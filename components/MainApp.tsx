@@ -11,29 +11,29 @@ import { useLang } from '../i18n/i18n';
 import { loadProfile, OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
+import AchievementsScreen from './AchievementsScreen';
 import BodyScanScreen from './BodyScanScreen';
 import BreathingScreen from './BreathingScreen';
-import HomeScreen from './HomeScreen';
-import LessonsScreen from './LessonsScreen';
-import PositiveTalkScreen from './PositiveTalkScreen';
-import ProfileScreen from './ProfileScreen';
-import PrivacyScreen from './PrivacyScreen';
-import ProgressScreen from './ProgressScreen';
-import ResourceDetail from './ResourceDetail';
-import AchievementsScreen from './AchievementsScreen';
 import CalendarScreen from './CalendarScreen';
 import ChoicesScreen from './ChoicesScreen';
 import ExercisesScreen from './ExercisesScreen';
 import FearProfileScreen from './FearProfileScreen';
 import GamesScreen from './GamesScreen';
-import SafetyScreen from './SafetyScreen';
-import UnplannedScreen from './UnplannedScreen';
 import GoalsScreen from './GoalsScreen';
+import HomeScreen from './HomeScreen';
 import JournalScreen from './JournalScreen';
+import LessonsScreen from './LessonsScreen';
+import PositiveTalkScreen from './PositiveTalkScreen';
+import ProfileScreen from './ProfileScreen';
+import PrivacyScreen from './PrivacyScreen';
+import ProgressScreen from './ProgressScreen';
 import RemindersScreen from './RemindersScreen';
+import ResourceDetail from './ResourceDetail';
 import ResourcesScreen from './ResourcesScreen';
+import SafetyScreen from './SafetyScreen';
 import SettingsScreen from './SettingsScreen';
 import SoundsScreen from './SoundsScreen';
+import UnplannedScreen from './UnplannedScreen';
 import { SwipeBack } from './ui';
 
 type TabKey = 'home' | 'progress' | 'calendar' | 'resources';
@@ -70,8 +70,7 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const close = () => setOverlay({ type: 'none' });
 
-  // Carrega a foto de perfil (e recarrega sempre que se fecha um overlay,
-  // para apanhar mudanças feitas na edição do perfil).
+  // Recarrega a foto de perfil sempre que se fecha um overlay.
   useEffect(() => {
     if (overlay.type === 'none') loadProfile().then((p) => setPhotoUri(p.photoUri));
   }, [overlay.type]);
@@ -83,7 +82,7 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
     { key: 'resources', labelKey: 'tabs.resources', icon: 'apps-outline', iconActive: 'apps' },
   ];
 
-  // Ecrãs "por cima".
+  // Ecrãs "por cima" (com gesto de voltar deslizando da margem esquerda).
   if (overlay.type === 'settings') return <SwipeBack onBack={close}><SettingsScreen onBack={close} data={data} onUpdate={onUpdate} onOpenPrivacy={() => setOverlay({ type: 'privacy' })} onOpenChoices={() => setOverlay({ type: 'choices' })} onOpenProfile={() => setOverlay({ type: 'profile' })} /></SwipeBack>;
   if (overlay.type === 'resource') return <SwipeBack onBack={close}><ResourceDetail title={overlay.title} onBack={close} /></SwipeBack>;
   if (overlay.type === 'lessons') return <SwipeBack onBack={close}><LessonsScreen onBack={close} /></SwipeBack>;
@@ -148,7 +147,7 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
         )}
       </View>
 
-      {/* Menu flutuante em cápsula (estilo Instagram) — Liquid Glass no iOS 26 */}
+      {/* Menu flutuante em cápsula — Liquid Glass no iOS 26 */}
       <View style={{ position: 'absolute', left: 20, right: 20, bottom: (insets.bottom || 10) + 6, height: 64, borderRadius: 32, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
         {glassSupported ? (
           <GlassView glassEffectStyle="regular" tintColor={isDark ? 'rgba(22,33,42,0.55)' : 'rgba(255,255,255,0.7)'} style={StyleSheet.absoluteFill} />
@@ -156,17 +155,17 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
           <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(22,33,42,0.88)' : 'rgba(255,255,255,0.88)' }]} />
         )}
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        {TABS.map((tb) => {
-          const active = tab === tb.key;
-          return (
-            <Pressable key={tb.key} onPress={() => setTab(tb.key)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-              <Ionicons name={active ? tb.iconActive : tb.icon} size={24} color={active ? colors.primary : colors.textMuted} />
-              <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: active ? '700' : '500', fontSize: 12 }}>
-                {t(tb.labelKey)}
-              </Text>
-            </Pressable>
-          );
-        })}
+          {TABS.map((tb) => {
+            const active = tab === tb.key;
+            return (
+              <Pressable key={tb.key} onPress={() => setTab(tb.key)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                <Ionicons name={active ? tb.iconActive : tb.icon} size={24} color={active ? colors.primary : colors.textMuted} />
+                <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: active ? '700' : '500', fontSize: 12 }}>
+                  {t(tb.labelKey)}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
     </View>
