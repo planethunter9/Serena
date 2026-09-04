@@ -1,98 +1,145 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// A lista de fobias. Cada uma tem o nome científico e uma descrição.
+// Mais tarde podes acrescentar/remover à vontade — é só editar aqui.
+const FOBIAS = [
+  { id: 'aracnofobia', nome: 'Aracnofobia', descricao: 'medo de aranhas' },
+  { id: 'acrofobia', nome: 'Acrofobia', descricao: 'medo de alturas' },
+  { id: 'aerofobia', nome: 'Aerofobia', descricao: 'medo de andar de avião' },
+  { id: 'claustrofobia', nome: 'Claustrofobia', descricao: 'medo de espaços fechados' },
+  { id: 'fobia_social', nome: 'Fobia social', descricao: 'medo de situações sociais' },
+  { id: 'tripanofobia', nome: 'Tripanofobia', descricao: 'medo de agulhas' },
+  { id: 'cinofobia', nome: 'Cinofobia', descricao: 'medo de cães' },
+  { id: 'amaxofobia', nome: 'Amaxofobia', descricao: 'medo de transportes' },
+  { id: 'emetofobia', nome: 'Emetofobia', descricao: 'medo de vomitar' },
+];
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  // "estado": guarda qual a fobia que o utilizador escolheu.
+  // Começa a null (nada escolhido). Ao tocar numa opção, muda.
+  const [fobiaEscolhida, setFobiaEscolhida] = useState<string | null>(null);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.titulo}>Qual é o teu medo?</Text>
+        <Text style={styles.subtitulo}>
+          Escolhe por onde queres começar. Podes mudar mais tarde.
+        </Text>
+
+        {/* Percorremos a lista e criamos um botão para cada fobia */}
+        {FOBIAS.map((fobia) => {
+          const selecionada = fobiaEscolhida === fobia.id;
+          return (
+            <Pressable
+              key={fobia.id}
+              onPress={() => setFobiaEscolhida(fobia.id)}
+              style={[
+                styles.opcao,
+                selecionada && styles.opcaoSelecionada,
+              ]}
+            >
+              <View style={styles.opcaoTextos}>
+                <Text
+                  style={[
+                    styles.opcaoNome,
+                    selecionada && styles.opcaoNomeSelecionado,
+                  ]}
+                >
+                  {fobia.nome}
+                </Text>
+                <Text style={styles.opcaoDescricao}>{fobia.descricao}</Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Botão de continuar: só fica "ativo" quando há algo escolhido */}
+      <Pressable
+        style={[
+          styles.botao,
+          !fobiaEscolhida && styles.botaoDesativado,
+        ]}
+        disabled={!fobiaEscolhida}
+        onPress={() => {
+          // Por agora só mostra no terminal. Depois liga ao próximo ecrã.
+          console.log('Fobia escolhida:', fobiaEscolhida);
+        }}
+      >
+        <Text style={styles.botaoTexto}>Continuar</Text>
+      </Pressable>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  safe: {
+    flex: 1,
+    backgroundColor: '#0f1117',
+  },
+  scroll: {
+    padding: 24,
+    gap: 12,
+  },
+  titulo: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  subtitulo: {
+    fontSize: 15,
+    color: '#9aa0aa',
+    marginBottom: 16,
+  },
+  opcao: {
+    padding: 18,
+    borderRadius: 14,
+    backgroundColor: '#1a1d26',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  opcaoSelecionada: {
+    borderColor: '#6c8cff',
+    backgroundColor: '#232a3d',
+  },
+  opcaoTextos: {
+    gap: 3,
+  },
+  opcaoNome: {
+    fontSize: 17,
+    color: '#e6e8ec',
+  },
+  opcaoNomeSelecionado: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  opcaoDescricao: {
+    fontSize: 13,
+    color: '#9aa0aa',
+  },
+  botao: {
+    margin: 24,
+    padding: 18,
+    borderRadius: 14,
+    backgroundColor: '#6c8cff',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  botaoDesativado: {
+    backgroundColor: '#2a2d38',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  botaoTexto: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
