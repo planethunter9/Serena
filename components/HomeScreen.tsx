@@ -127,7 +127,7 @@ export default function HomeScreen({
         </View>
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
           <CheckinButton label={t('home.behavior')} onPress={() => relapse('behavior')} />
-          <CheckinButton label={t('home.none')} onPress={noneToday} positive />
+          <CheckinButton label={t("home.none")} onPress={noneToday} />
         </View>
         {feedback && <Text style={{ color: colors.success, fontSize: 13, marginTop: 2 }}>{feedback}</Text>}
       </Card>

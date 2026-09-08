@@ -1,9 +1,11 @@
-// Camada raiz. Envolve tudo nos providers: tema, idioma, autenticação e área segura.
+// Camada raiz: providers (tema, idioma, auth, dados) + navegador Stack nativo.
+// As rotas dentro de app/ empilham-se com a animação nativa do iOS.
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../auth/AuthContext';
+import { DataProvider } from '../store/DataContext';
 import { LanguageProvider } from '../i18n/i18n';
 import { ThemeProvider, useTheme } from '../theme/ThemeContext';
 
@@ -17,10 +19,12 @@ export default function RootLayout() {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <SafeAreaProvider>
-            <ThemedStatusBar />
-            <Stack screenOptions={{ headerShown: false }} />
-          </SafeAreaProvider>
+          <DataProvider>
+            <SafeAreaProvider>
+              <ThemedStatusBar />
+              <Stack screenOptions={{ headerShown: false }} />
+            </SafeAreaProvider>
+          </DataProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

@@ -18,6 +18,7 @@ export type OnboardingData = {
   phobiaId: string;
   plan: string | null;
   subtypes: ProfileItem[];
+  coping: ProfileItem[];
   losses: ProfileItem[];
   recover: ProfileItem[];
   symptoms: ProfileItem[];
@@ -208,11 +209,12 @@ export type ProfileData = {
   showLosses: boolean;
   showSymptoms: boolean;
   showRecover: boolean;
+  showCoping: boolean;
 };
 
 export async function loadProfile(): Promise<ProfileData> {
   const raw = await AsyncStorage.getItem(k('profile'));
-  const def: ProfileData = { name: '', username: '', bio: '', photoUri: null, showSubtypes: true, showLosses: true, showSymptoms: true, showRecover: true };
+  const def: ProfileData = { name: '', username: '', bio: '', photoUri: null, showSubtypes: true, showLosses: true, showSymptoms: true, showRecover: true, showCoping: true };
   return raw ? { ...def, ...JSON.parse(raw) } : def;
 }
 export async function saveProfile(p: ProfileData) {

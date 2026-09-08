@@ -36,6 +36,7 @@ export default function ChoicesScreen({
         <ListEditor title={t('settings.losses')} items={asItems(data.losses)} onChange={(items) => onUpdate({ ...data, losses: items })} />
         <ListEditor title={t('settings.affects')} items={asItems(data.symptoms)} onChange={(items) => onUpdate({ ...data, symptoms: items })} />
         <ListEditor title={t('settings.recover')} items={asItems(data.recover)} onChange={(items) => onUpdate({ ...data, recover: items })} />
+        <ListEditor title={t('settings.coping')} items={asItems(data.coping)} onChange={(items) => onUpdate({ ...data, coping: items })} />
       </ScrollView>
     </View>
   );

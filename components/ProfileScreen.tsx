@@ -51,6 +51,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
     { title: t('settings.affects'), items: asItems(data.symptoms), show: p.showSymptoms },
     { title: t('settings.losses'), items: asItems(data.losses), show: p.showLosses },
     { title: t('settings.recover'), items: asItems(data.recover), show: p.showRecover },
+    { title: t('settings.coping'), items: asItems(data.coping), show: p.showCoping },
   ];
 
   const Avatar = ({ size, onPress }: { size: number; onPress?: () => void }) => {
@@ -159,6 +160,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
           {toggleRow(t('settings.affects'), 'showSymptoms')}
           {toggleRow(t('settings.losses'), 'showLosses')}
           {toggleRow(t('settings.recover'), 'showRecover')}
+          {toggleRow(t('settings.coping'), 'showCoping')}
         </Card>
 
         <PrimaryButton label={t('profile.save')} onPress={save} />

@@ -172,3 +172,17 @@ export const SUBTYPE_OPTIONS: { id: string; label: L }[] = [
   { id: 'animals', label: { pt: 'Medo de ver animais vomitar', en: 'Fear of seeing animals be sick' } },
   { id: 'general', label: { pt: 'Medo generalizado — praticamente tudo', en: 'Generalized — pretty much everything' } },
 ];
+
+// "O que te ajuda a lidar com a fobia?" — estratégias de coping.
+export const COPING_OPTIONS: { id: string; label: L }[] = [
+  { id: 'respirar', label: { pt: 'Respirar fundo e devagar', en: 'Slow, deep breathing' } },
+  { id: 'distrair', label: { pt: 'Distrair-me (música, telemóvel, conversa)', en: 'Distracting myself (music, phone, talking)' } },
+  { id: 'falar', label: { pt: 'Falar com alguém de confiança', en: 'Talking to someone I trust' } },
+  { id: 'arlivre', label: { pt: 'Sair para apanhar ar', en: 'Getting some fresh air' } },
+  { id: 'agua', label: { pt: 'Beber água devagar', en: 'Sipping water slowly' } },
+  { id: 'mindfulness', label: { pt: 'Focar-me no presente (mindfulness)', en: 'Grounding in the present (mindfulness)' } },
+  { id: 'movimento', label: { pt: 'Mexer o corpo / caminhar', en: 'Moving my body / walking' } },
+  { id: 'positivo', label: { pt: 'Lembrar-me de frases que acalmam', en: 'Recalling calming phrases' } },
+  { id: 'rotina', label: { pt: 'Manter uma rotina previsível', en: 'Keeping a predictable routine' } },
+  { id: 'descanso', label: { pt: 'Descansar e dormir bem', en: 'Resting and sleeping well' } },
+];

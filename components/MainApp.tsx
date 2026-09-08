@@ -1,79 +1,42 @@
-// App principal: barra de topo (engrenagem), menu inferior (Início, Progresso,
-// Recursos) e os ecrãs que abrem "por cima" (definições, técnicas, lições, etc.).
+// App principal (rota "/"): barra de topo, separadores e menu Liquid Glass.
+// Abrir um ecrã = router.push('/rota') -> animação nativa + gesto de voltar.
 
 import { Ionicons } from '@expo/vector-icons';
 import { GlassView } from 'expo-glass-effect';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
-import { loadProfile, OnboardingData } from '../storage/storage';
+import { loadProfile } from '../storage/storage';
+import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
-import AchievementsScreen from './AchievementsScreen';
-import BodyScanScreen from './BodyScanScreen';
-import BreathingScreen from './BreathingScreen';
 import CalendarScreen from './CalendarScreen';
-import ChoicesScreen from './ChoicesScreen';
-import ExercisesScreen from './ExercisesScreen';
-import FearProfileScreen from './FearProfileScreen';
-import GamesScreen from './GamesScreen';
-import GoalsScreen from './GoalsScreen';
 import HomeScreen from './HomeScreen';
-import JournalScreen from './JournalScreen';
-import LessonsScreen from './LessonsScreen';
-import PositiveTalkScreen from './PositiveTalkScreen';
-import ProfileScreen from './ProfileScreen';
-import PrivacyScreen from './PrivacyScreen';
 import ProgressScreen from './ProgressScreen';
-import RemindersScreen from './RemindersScreen';
-import ResourceDetail from './ResourceDetail';
 import ResourcesScreen from './ResourcesScreen';
-import SafetyScreen from './SafetyScreen';
-import SettingsScreen from './SettingsScreen';
-import SoundsScreen from './SoundsScreen';
-import UnplannedScreen from './UnplannedScreen';
-import { SwipeBack } from './ui';
 
 type TabKey = 'home' | 'progress' | 'calendar' | 'resources';
-type Overlay =
-  | { type: 'none' }
-  | { type: 'settings' }
-  | { type: 'resource'; title: string }
-  | { type: 'lessons' }
-  | { type: 'breathing' }
-  | { type: 'bodyscan' }
-  | { type: 'positive' }
-  | { type: 'sounds'; category: 'calm' | 'sleep' }
-  | { type: 'reminders' }
-  | { type: 'goals' }
-  | { type: 'journal' }
-  | { type: 'achievements' }
-  | { type: 'privacy' }
-  | { type: 'choices' }
-  | { type: 'exercises' }
-  | { type: 'games' }
-  | { type: 'unplanned' }
-  | { type: 'fearprofile' }
-  | { type: 'safety' }
-  | { type: 'profile' };
 
-export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUpdate: (data: OnboardingData) => void }) {
+export default function MainApp() {
   const { colors, isDark } = useTheme();
   const iosMajor = Platform.OS === 'ios' ? parseInt(String(Platform.Version), 10) : 0;
   const glassSupported = iosMajor >= 26;
   const { t } = useLang();
+  const { data } = useData();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
-  const [overlay, setOverlay] = useState<Overlay>({ type: 'none' });
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const close = () => setOverlay({ type: 'none' });
 
-  // Recarrega a foto de perfil sempre que se fecha um overlay.
-  useEffect(() => {
-    if (overlay.type === 'none') loadProfile().then((p) => setPhotoUri(p.photoUri));
-  }, [overlay.type]);
+  // Recarrega a foto de perfil sempre que este ecrã volta a ficar em foco.
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile().then((p) => setPhotoUri(p.photoUri));
+    }, [])
+  );
 
   const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.progress' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'home', labelKey: 'tabs.home', icon: 'home-outline', iconActive: 'home' },
@@ -82,27 +45,6 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
     { key: 'resources', labelKey: 'tabs.resources', icon: 'apps-outline', iconActive: 'apps' },
   ];
 
-  // Ecrãs "por cima" (com gesto de voltar deslizando da margem esquerda).
-  if (overlay.type === 'settings') return <SwipeBack onBack={close}><SettingsScreen onBack={close} data={data} onUpdate={onUpdate} onOpenPrivacy={() => setOverlay({ type: 'privacy' })} onOpenChoices={() => setOverlay({ type: 'choices' })} onOpenProfile={() => setOverlay({ type: 'profile' })} /></SwipeBack>;
-  if (overlay.type === 'resource') return <SwipeBack onBack={close}><ResourceDetail title={overlay.title} onBack={close} /></SwipeBack>;
-  if (overlay.type === 'lessons') return <SwipeBack onBack={close}><LessonsScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'reminders') return <SwipeBack onBack={close}><RemindersScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'goals') return <SwipeBack onBack={close}><GoalsScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'journal') return <SwipeBack onBack={close}><JournalScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'achievements') return <SwipeBack onBack={close}><AchievementsScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'privacy') return <SwipeBack onBack={close}><PrivacyScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'choices') return <SwipeBack onBack={close}><ChoicesScreen onBack={close} data={data} onUpdate={onUpdate} /></SwipeBack>;
-  if (overlay.type === 'exercises') return <SwipeBack onBack={close}><ExercisesScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'games') return <SwipeBack onBack={close}><GamesScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'unplanned') return <SwipeBack onBack={close}><UnplannedScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'fearprofile') return <SwipeBack onBack={close}><FearProfileScreen onBack={close} data={data} /></SwipeBack>;
-  if (overlay.type === 'safety') return <SwipeBack onBack={close}><SafetyScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'profile') return <SwipeBack onBack={close}><ProfileScreen onBack={close} data={data} /></SwipeBack>;
-  if (overlay.type === 'breathing') return <SwipeBack onBack={close}><BreathingScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'bodyscan') return <SwipeBack onBack={close}><BodyScanScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'positive') return <SwipeBack onBack={close}><PositiveTalkScreen onBack={close} /></SwipeBack>;
-  if (overlay.type === 'sounds') return <SwipeBack onBack={close}><SoundsScreen onBack={close} category={overlay.category} /></SwipeBack>;
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Barra de topo */}
@@ -110,7 +52,7 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <Pressable onPress={() => setOverlay({ type: 'profile' })} hitSlop={8}>
+            <Pressable onPress={() => router.push('/profile')} hitSlop={8}>
               {photoUri ? (
                 <Image source={{ uri: photoUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
               ) : (
@@ -119,7 +61,7 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
                 </View>
               )}
             </Pressable>
-            <Pressable onPress={() => setOverlay({ type: 'settings' })} hitSlop={12} style={{ padding: 6 }}>
+            <Pressable onPress={() => router.push('/settings')} hitSlop={12} style={{ padding: 6 }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
           </View>
@@ -130,19 +72,19 @@ export default function MainApp({ data, onUpdate }: { data: OnboardingData; onUp
       <View style={{ flex: 1 }}>
         {tab === 'home' && (
           <HomeScreen
-            onBreathing={() => setOverlay({ type: 'breathing' })}
-            onBodyScan={() => setOverlay({ type: 'bodyscan' })}
-            onPositive={() => setOverlay({ type: 'positive' })}
-            onSounds={(category) => setOverlay({ type: 'sounds', category })}
-            startDate={data.completedAt}
+            onBreathing={() => router.push('/breathing')}
+            onBodyScan={() => router.push('/bodyscan')}
+            onPositive={() => router.push('/positive')}
+            onSounds={(category) => router.push({ pathname: '/sounds', params: { category } })}
+            startDate={data ? data.completedAt : new Date().toISOString()}
           />
         )}
         {tab === 'progress' && <ProgressScreen />}
         {tab === 'calendar' && <CalendarScreen />}
         {tab === 'resources' && (
           <ResourcesScreen
-            onOpen={(id) => setOverlay({ type: id as any })}
-            onSoon={(title) => setOverlay({ type: 'resource', title })}
+            onOpen={(id) => router.push(('/' + id) as any)}
+            onSoon={(title) => router.push({ pathname: '/resource', params: { title } })}
           />
         )}
       </View>
