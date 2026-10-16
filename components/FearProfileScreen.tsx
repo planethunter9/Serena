@@ -69,9 +69,11 @@ export default function FearProfileScreen({ onBack, data }: { onBack: () => void
         </View>
 
         {section(t('settings.subtypes'), asItems(data.subtypes))}
+        {section(t('settings.triggers'), asItems(data.triggers))}
         {section(t('settings.losses'), asItems(data.losses))}
         {section(t('settings.affects'), asItems(data.symptoms))}
         {section(t('settings.recover'), asItems(data.recover))}
+        {section(t('settings.coping'), asItems(data.coping))}
       </ScrollView>
     </View>
   );

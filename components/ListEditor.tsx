@@ -1,5 +1,4 @@
-// Editor de uma lista de itens: adicionar, editar (inline) e remover.
-// Usado nas Definições para as escolhas "o que te tira", "como te afeta", etc.
+// Editor de uma lista de itens: adicionar da lista, escrever a própria, editar e remover.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -14,16 +13,20 @@ export default function ListEditor({
   title,
   items,
   onChange,
+  catalog,
 }: {
   title: string;
   items: ProfileItem[];
   onChange: (items: ProfileItem[]) => void;
+  // Opções pré-definidas da categoria (id + texto já traduzido). Opcional.
+  catalog?: { id: string; label: string }[];
 }) {
   const { colors } = useTheme();
   const { t } = useLang();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [newText, setNewText] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   function startEdit(item: ProfileItem) {
     setEditingId(item.id);
@@ -44,6 +47,13 @@ export default function ListEditor({
     onChange([...items, { id: 'custom:' + Date.now(), label: text }]);
     setNewText('');
   }
+  function addFromCatalog(opt: { id: string; label: string }) {
+    if (items.some((it) => it.id === opt.id)) return;
+    onChange([...items, { id: opt.id, label: opt.label }]);
+  }
+
+  // Opções do catálogo que ainda não estão escolhidas.
+  const available = (catalog ?? []).filter((o) => !items.some((it) => it.id === o.id));
 
   const inputBase = {
     flex: 1,
@@ -86,7 +96,35 @@ export default function ListEditor({
         );
       })}
 
-      {/* Adicionar novo */}
+      {/* Botão "Adicionar da lista" (só se houver catálogo com opções por escolher) */}
+      {available.length > 0 && (
+        <>
+          <Pressable
+            onPress={() => setPickerOpen((o) => !o)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.cardAlt, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, marginTop: 4 }}
+          >
+            <Ionicons name={pickerOpen ? 'chevron-up' : 'list-outline'} size={16} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('settings.addFromList')}</Text>
+          </Pressable>
+
+          {pickerOpen && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+              {available.map((o) => (
+                <Pressable
+                  key={o.id}
+                  onPress={() => addFromCatalog(o)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}
+                >
+                  <Ionicons name="add" size={15} color={colors.primary} />
+                  <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{o.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </>
+      )}
+
+      {/* Adicionar a própria */}
       <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
         <TextInput value={newText} onChangeText={setNewText} onSubmitEditing={add} placeholder={t('settings.addPlaceholder')} placeholderTextColor={colors.textMuted} style={inputBase} />
         <Pressable onPress={add} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>

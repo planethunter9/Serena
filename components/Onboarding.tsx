@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, PLANS, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS } from '../data/content';
+import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, PLANS, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
 import { OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { OptionRow, PrimaryButton } from './ui';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export default function Onboarding({ onComplete }: { onComplete: (data: OnboardingData) => void }) {
   const { colors } = useTheme();
@@ -18,7 +18,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
 
-  // Passo 1: vertentes da fobia
   const [subtypes, setSubtypes] = useState<string[]>([]);
   const [customSubtypes, setCustomSubtypes] = useState<{ id: string; label: string }[]>([]);
   const [subtypeText, setSubtypeText] = useState('');
@@ -26,10 +25,13 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const [losses, setLosses] = useState<string[]>([]);
   const [recover, setRecover] = useState<string[]>([]);
 
-  // Passo 4: sintomas
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [customSymptoms, setCustomSymptoms] = useState<{ id: string; label: string }[]>([]);
   const [symptomText, setSymptomText] = useState('');
+
+  const [triggers, setTriggers] = useState<string[]>([]);
+  const [customTriggers, setCustomTriggers] = useState<{ id: string; label: string }[]>([]);
+  const [triggerText, setTriggerText] = useState('');
 
   const [coping, setCoping] = useState<string[]>([]);
   const [customCoping, setCustomCoping] = useState<{ id: string; label: string }[]>([]);
@@ -60,6 +62,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSubtypes];
   const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSymptoms];
   const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customCoping];
+  const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customTriggers];
 
   const canProceed =
     step === 0 ? true
@@ -67,8 +70,9 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
     : step === 2 ? losses.length > 0
     : step === 3 ? recover.length > 0
     : step === 4 ? symptoms.length > 0
-    : step === 5 ? coping.length > 0
-    : step === 6 ? !!plan
+    : step === 5 ? triggers.length > 0
+    : step === 6 ? coping.length > 0
+    : step === 7 ? !!plan
     : true;
 
   function itemsFrom(selected: string[], catalog: { id: string; label: L2 }[], customs: { id: string; label: string }[]) {
@@ -92,6 +96,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         losses: LOSS_OPTIONS.filter((o) => losses.includes(o.id)).map((o) => ({ id: o.id, label: o.label[lang] })),
         recover: RECOVER_OPTIONS.filter((o) => recover.includes(o.id)).map((o) => ({ id: o.id, label: o.label[lang] })),
         symptoms: itemsFrom(symptoms, SYMPTOM_OPTIONS, customSymptoms),
+        triggers: itemsFrom(triggers, TRIGGERS_OPTIONS, customTriggers),
         completedAt: new Date().toISOString(),
       });
     }
@@ -103,7 +108,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
   const buttonLabel = step === 0 ? t('common.start') : step === TOTAL_STEPS - 1 ? t('common.finish') : t('common.continue');
 
-  // Campo "adicionar a tua" reutilizado nos passos das vertentes e dos sintomas.
   function CustomInput({ value, onChange, onAdd }: { value: string; onChange: (v: string) => void; onAdd: () => void }) {
     return (
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
@@ -192,6 +196,19 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         )}
 
         {step === 5 && (
+          <StepList title={t('onb.qTriggersTitle')} subtitle={t('onb.qTriggersSubtitle')}>
+            {allTriggers.map((o) => (
+              <OptionRow key={o.id} label={o.label} selected={triggers.includes(o.id)} onPress={() => toggle(triggers, setTriggers, o.id)} />
+            ))}
+            <CustomInput
+              value={triggerText}
+              onChange={setTriggerText}
+              onAdd={() => addCustom(triggerText, setTriggerText, customTriggers, setCustomTriggers, triggers, setTriggers)}
+            />
+          </StepList>
+        )}
+
+        {step === 6 && (
           <StepList title={t('onb.qCopingTitle')} subtitle={t('onb.qCopingSubtitle')}>
             {allCoping.map((o) => (
               <OptionRow key={o.id} label={o.label} selected={coping.includes(o.id)} onPress={() => toggle(coping, setCoping, o.id)} />
@@ -204,7 +221,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
           </StepList>
         )}
 
-        {step === 6 && (
+        {step === 7 && (
           <StepList title={t('onb.q4Title')} subtitle={t('onb.q4Subtitle')}>
             {PLANS.map((p) => {
               const active = plan === p.id;
@@ -233,7 +250,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   );
 }
 
-// tipo auxiliar para o itemsFrom
 type L2 = { pt: string; en: string };
 
 function StepList({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {

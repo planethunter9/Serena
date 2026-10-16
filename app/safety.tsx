@@ -1,7 +1,11 @@
-import { useRouter } from 'expo-router';
-import SafetyScreen from '../components/SafetyScreen';
+// Rota /safetyfeeding — wrapper para o ecrã combinado Segurança + Alimentar o medo.
+// Coloca este ficheiro em app/safetyfeeding.tsx
+// (ajusta o caminho do import se os teus ecrãs não estiverem em ../components/)
 
-export default function Route() {
+import { useRouter } from 'expo-router';
+import SafetyFeeding from '../components/SafetyFeeding';
+
+export default function SafetyFeedingRoute() {
   const router = useRouter();
-  return <SafetyScreen onBack={() => router.back()} />;
+  return <SafetyFeeding onBack={() => router.back()} />;
 }

@@ -22,6 +22,7 @@ export type OnboardingData = {
   losses: ProfileItem[];
   recover: ProfileItem[];
   symptoms: ProfileItem[];
+  triggers: ProfileItem[];
   completedAt: string;
 };
 
@@ -108,7 +109,20 @@ export async function saveJournal(entries: JournalEntry[]) {
 }
 
 // --- Lembretes ------------------------------------------------------------
+// Vários lembretes à escolha (estilo "Alarmes"). Cada um tem a sua hora,
+// nome opcional, interruptor e id da notificação agendada.
 
+export type Reminder = { id: string; hour: number; minute: number; label: string; enabled: boolean; notificationId: string | null };
+
+export async function loadReminders(): Promise<Reminder[]> {
+  const raw = await AsyncStorage.getItem(k('reminders'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveReminders(list: Reminder[]) {
+  await AsyncStorage.setItem(k('reminders'), JSON.stringify(list));
+}
+
+// (Compatibilidade) — lembrete único antigo. Mantido para não quebrar nada.
 export type ReminderConfig = { enabled: boolean; hour: number; minute: number; notificationId: string | null };
 
 export async function loadReminder(): Promise<ReminderConfig> {
@@ -131,7 +145,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'resourcesOrder'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -178,6 +192,32 @@ export async function saveThoughtRecords(list: ThoughtRecord[]) {
   await AsyncStorage.setItem(k('thoughtRecords'), JSON.stringify(list));
 }
 
+export async function loadExposureOrder(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('exposureOrder'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveExposureOrder(order: string[]) {
+  await AsyncStorage.setItem(k('exposureOrder'), JSON.stringify(order));
+}
+
+export async function loadExposureHidden(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('exposureHidden'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveExposureHidden(ids: string[]) {
+  await AsyncStorage.setItem(k('exposureHidden'), JSON.stringify(ids));
+}
+
+export type MemorySession = { id: string; date: string; ts: string; before: number; after: number; note: string };
+
+export async function loadMemorySessions(): Promise<MemorySession[]> {
+  const raw = await AsyncStorage.getItem(k('memorySessions'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveMemorySessions(list: MemorySession[]) {
+  await AsyncStorage.setItem(k('memorySessions'), JSON.stringify(list));
+}
+
 // --- Comportamentos de segurança & exposição não planeada -----------------
 
 export type SafetyItem = { id: string; label: string; doing: boolean; dropping: boolean };
@@ -210,13 +250,61 @@ export type ProfileData = {
   showSymptoms: boolean;
   showRecover: boolean;
   showCoping: boolean;
+  showTriggers: boolean;
 };
 
 export async function loadProfile(): Promise<ProfileData> {
   const raw = await AsyncStorage.getItem(k('profile'));
-  const def: ProfileData = { name: '', username: '', bio: '', photoUri: null, showSubtypes: true, showLosses: true, showSymptoms: true, showRecover: true, showCoping: true };
+  const def: ProfileData = { name: '', username: '', bio: '', photoUri: null, showSubtypes: true, showLosses: true, showSymptoms: true, showRecover: true, showCoping: true, showTriggers: true };
   return raw ? { ...def, ...JSON.parse(raw) } : def;
 }
 export async function saveProfile(p: ProfileData) {
   await AsyncStorage.setItem(k('profile'), JSON.stringify(p));
+}
+
+// --- Sons personalizados do utilizador ------------------------------------
+
+export type UserSound = { id: string; name: string; uri: string; category: 'calm' | 'sleep' };
+
+export async function loadUserSounds(): Promise<UserSound[]> {
+  const raw = await AsyncStorage.getItem(k('userSounds'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveUserSounds(list: UserSound[]) {
+  await AsyncStorage.setItem(k('userSounds'), JSON.stringify(list));
+}
+
+// --- "Alimentar o medo" (comportamentos a trabalhar) ----------------------
+export async function loadFeeding(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('feeding'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveFeeding(ids: string[]) {
+  await AsyncStorage.setItem(k('feeding'), JSON.stringify(ids));
+}
+
+// --- Dias de terapia exposta (streak manual) ------------------------------
+export async function loadExposureDays(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('exposureDays'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveExposureDays(dates: string[]) {
+  await AsyncStorage.setItem(k('exposureDays'), JSON.stringify(dates));
+}
+
+// --- Conquistas marcadas manualmente --------------------------------------
+export async function loadManualAchievements(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('manualAchievements'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveManualAchievements(ids: string[]) {
+  await AsyncStorage.setItem(k('manualAchievements'), JSON.stringify(ids));
+}
+
+export async function loadResourcesOrder(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('resourcesOrder'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveResourcesOrder(order: string[]) {
+  await AsyncStorage.setItem(k('resourcesOrder'), JSON.stringify(order));
 }

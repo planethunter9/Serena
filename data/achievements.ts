@@ -1,5 +1,5 @@
-// Definição das conquistas ("medalhas"). Cada uma sabe dizer se está
-// desbloqueada com base nas estatísticas do utilizador.
+// Definição das conquistas ("medalhas"). As automáticas desbloqueiam com as
+// estatísticas; as manuais (manual: true) são marcadas pelo utilizador.
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -13,6 +13,8 @@ export type AchStats = {
   goalsCreated: number;
   goalsDone: number;
   fearDays: number;
+  exposureDays: number;    // dias distintos de terapia exposta
+  exposureStreak: number;  // dias seguidos de exposição
 };
 
 export type Achievement = {
@@ -20,6 +22,8 @@ export type Achievement = {
   icon: keyof typeof Ionicons.glyphMap;
   title: L;
   desc: L;
+  // Se true, é marcada à mão pelo utilizador (não depende das estatísticas).
+  manual?: boolean;
   // Devolve se está desbloqueada e, opcionalmente, o progresso (têm/faltam).
   check: (s: AchStats) => { unlocked: boolean; have?: number; need?: number };
 };
@@ -101,5 +105,75 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: { pt: 'Autoconhecimento', en: 'Self-awareness' },
     desc: { pt: 'Registaste o medo em 7 dias.', en: 'You logged your fear on 7 days.' },
     check: (s) => ({ unlocked: s.fearDays >= 7, have: s.fearDays, need: 7 }),
+  },
+
+  {
+    id: 'fear30',
+    icon: 'analytics',
+    title: { pt: 'Um mês a registar', en: 'A month of logging' },
+    desc: { pt: 'Registaste o medo em 30 dias.', en: 'You logged your fear on 30 days.' },
+    check: (s) => ({ unlocked: s.fearDays >= 30, have: s.fearDays, need: 30 }),
+  },
+  {
+    id: 'journal30',
+    icon: 'bookmarks',
+    title: { pt: 'Diário de um mês', en: 'A month of journaling' },
+    desc: { pt: 'Escreveste em 30 dias diferentes.', en: 'You wrote on 30 different days.' },
+    check: (s) => ({ unlocked: s.journalDays >= 30, have: s.journalDays, need: 30 }),
+  },
+  {
+    id: 'goalsDone3',
+    icon: 'trophy-outline',
+    title: { pt: 'Três vitórias', en: 'Three wins' },
+    desc: { pt: 'Cumpriste três objetivos.', en: 'You completed three goals.' },
+    check: (s) => ({ unlocked: s.goalsDone >= 3, have: s.goalsDone, need: 3 }),
+  },
+
+  // --- Terapia exposta ---
+  {
+    id: 'expoFirst',
+    icon: 'walk',
+    title: { pt: 'Primeira exposição', en: 'First exposure' },
+    desc: { pt: 'Fizeste terapia exposta pela primeira vez.', en: 'You did exposure therapy for the first time.' },
+    check: (s) => ({ unlocked: s.exposureDays >= 1, have: s.exposureDays, need: 1 }),
+  },
+  {
+    id: 'expoStreak3',
+    icon: 'flame',
+    title: { pt: 'Exposição 3 dias seguidos', en: 'Exposure 3 days in a row' },
+    desc: { pt: 'Praticaste exposição 3 dias seguidos.', en: 'You practised exposure 3 days in a row.' },
+    check: (s) => ({ unlocked: s.exposureStreak >= 3, have: s.exposureStreak, need: 3 }),
+  },
+  {
+    id: 'expoStreak7',
+    icon: 'bonfire',
+    title: { pt: 'Uma semana de exposição', en: 'A week of exposure' },
+    desc: { pt: 'Praticaste exposição 7 dias seguidos.', en: 'You practised exposure 7 days in a row.' },
+    check: (s) => ({ unlocked: s.exposureStreak >= 7, have: s.exposureStreak, need: 7 }),
+  },
+  {
+    id: 'expoDays10',
+    icon: 'medal',
+    title: { pt: '10 dias de exposição', en: '10 days of exposure' },
+    desc: { pt: 'Já fizeste exposição em 10 dias.', en: 'You have done exposure on 10 days.' },
+    check: (s) => ({ unlocked: s.exposureDays >= 10, have: s.exposureDays, need: 10 }),
+  },
+
+  // --- Conquistas manuais (marcadas por ti) ---
+  {
+    id: 'drink',
+    icon: 'water',
+    manual: true,
+    title: { pt: 'Um gole com confiança', en: 'A confident sip' },
+    desc: { pt: 'Beber um pouco com segurança e conforto, sabendo que nada te vai acontecer.', en: 'Drinking a little safely and comfortably, knowing nothing will happen.' },
+    check: () => ({ unlocked: false }),
+  },
+  {
+    id: 'aloneAttack',
+    icon: 'moon',
+    manual: true,
+    title: { pt: 'Sozinha na tempestade', en: 'Alone through the storm' },
+    desc: { pt: 'Lidar com um ataque de ansiedade sozinha, sem chamar ninguém.', en: 'Handling an anxiety attack on your own, without calling anyone.' },
+    check: () => ({ unlocked: false }),
   },
 ];

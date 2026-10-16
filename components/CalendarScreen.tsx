@@ -1,11 +1,11 @@
-// Calendário mensal que marca os dias com ataques ou comportamentos.
-// Feito só com Views (sem bibliotecas). A semana começa à segunda-feira.
+// Calendário mensal: marca os dias com ataques/comportamentos (vermelho)
+// e os dias de terapia exposta (verde).
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
-import { AttackEntry, loadAttacks } from '../storage/storage';
+import { AttackEntry, loadAttacks, loadExposureDays } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, ScreenTitle } from './ui';
@@ -31,9 +31,11 @@ export default function CalendarScreen() {
   const [month, setMonth] = useState(now.getMonth());
   const [selected, setSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<AttackEntry[]>([]);
+  const [expDays, setExpDays] = useState<string[]>([]);
 
   useEffect(() => {
     loadAttacks().then(setEvents);
+    loadExposureDays().then(setExpDays);
   }, []);
 
   // Agrupa os eventos por dia (AAAA-MM-DD).
@@ -45,6 +47,8 @@ export default function CalendarScreen() {
     }
     return m;
   }, [events]);
+
+  const expSet = useMemo(() => new Set(expDays), [expDays]);
 
   function prevMonth() {
     setSelected(null);
@@ -77,6 +81,7 @@ export default function CalendarScreen() {
   }
 
   const selectedEvents = selected ? byDate[selected] ?? [] : [];
+  const selectedHasExp = selected ? expSet.has(selected) : false;
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
@@ -106,18 +111,22 @@ export default function CalendarScreen() {
         {/* Grelha de dias */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {cells.map((day, idx) => {
-            if (day === null) return <View key={'e' + idx} style={{ width: cellW, height: 44 }} />;
+            if (day === null) return <View key={'e' + idx} style={{ width: cellW, height: 46 }} />;
             const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
-            const hasEvent = !!byDate[dateStr];
+            const hasAttack = !!byDate[dateStr];
+            const hasExp = expSet.has(dateStr);
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === selected;
             return (
-              <Pressable key={dateStr} onPress={() => setSelected(dateStr)} style={{ width: cellW, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable key={dateStr} onPress={() => setSelected(dateStr)} style={{ width: cellW, height: 46, alignItems: 'center', justifyContent: 'center' }}>
                 <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? colors.primary : isToday ? colors.primarySoft : 'transparent' }}>
                   <Text style={{ color: isSelected ? '#fff' : colors.text, fontSize: 15, fontWeight: isToday ? '700' : '500' }}>{day}</Text>
                 </View>
-                {/* Marca de evento */}
-                <View style={{ width: 6, height: 6, borderRadius: 3, marginTop: 2, backgroundColor: hasEvent ? colors.danger : 'transparent' }} />
+                {/* Marcas: vermelho (ataque) e/ou verde (exposição) */}
+                <View style={{ flexDirection: 'row', gap: 3, marginTop: 2, height: 6 }}>
+                  {hasAttack && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />}
+                  {hasExp && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />}
+                </View>
               </Pressable>
             );
           })}
@@ -125,25 +134,39 @@ export default function CalendarScreen() {
       </Card>
 
       {/* Legenda */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 }}>
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger }} />
-        <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('calendar.legend')}</Text>
+      <View style={{ gap: 6, paddingHorizontal: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger }} />
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('calendar.legend')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success }} />
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('calendar.legendExposure')}</Text>
+        </View>
       </View>
 
       {/* Detalhe do dia escolhido */}
       {selected && (
         <Card style={{ gap: spacing.sm }}>
           <Text style={{ color: colors.text, fontWeight: '700' }}>{selected.split('-').reverse().join('/')}</Text>
-          {selectedEvents.length === 0 ? (
+
+          {selectedHasExp && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />
+              <Text style={{ color: colors.text, fontSize: 15 }}>{t('calendar.exposureDay')}</Text>
+            </View>
+          )}
+
+          {selectedEvents.map((e, i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />
+              <Text style={{ color: colors.text, fontSize: 15 }}>{typeLabel(e.type)}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
+            </View>
+          ))}
+
+          {selectedEvents.length === 0 && !selectedHasExp && (
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('calendar.noneDay')}</Text>
-          ) : (
-            selectedEvents.map((e, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />
-                <Text style={{ color: colors.text, fontSize: 15 }}>{typeLabel(e.type)}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
-              </View>
-            ))
           )}
         </Card>
       )}

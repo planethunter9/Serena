@@ -1,4 +1,4 @@
-// Os meus objetivos: adicionar, marcar como cumprido e remover.
+// Os meus objetivos: adicionar da lista, escrever os meus, marcar como cumprido e remover.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -9,11 +9,26 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
 
+// Objetivos sugeridos (bilingue). O utilizador escolhe os que quiser.
+const GOAL_SUGGESTIONS: { pt: string; en: string }[] = [
+  { pt: 'Comer fora sem verificar tudo', en: 'Eat out without checking everything' },
+  { pt: 'Viajar sem levar "itens de segurança"', en: 'Travel without "safety items"' },
+  { pt: 'Comer um alimento que ando a evitar', en: 'Eat a food I have been avoiding' },
+  { pt: 'Estar perto de alguém doente sem fugir', en: 'Be near someone ill without fleeing' },
+  { pt: 'Dormir sem precisar de ninguém por perto', en: 'Sleep without needing anyone nearby' },
+  { pt: 'Ver um vídeo que costumo evitar', en: 'Watch a video I usually avoid' },
+  { pt: 'Passar um dia sem procurar reassurance', en: 'Go a day without seeking reassurance' },
+  { pt: 'Reduzir as verificações de validade', en: 'Cut down on checking expiry dates' },
+  { pt: 'Dizer "sim" a um plano que diria que não', en: 'Say "yes" to a plan I would decline' },
+  { pt: 'Ficar com a náusea sem tomar nada', en: 'Stay with nausea without taking anything' },
+];
+
 export default function GoalsScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [text, setText] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     loadGoals().then(setGoals);
@@ -29,6 +44,10 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
     persist([...goals, { id: 'g' + Date.now(), text: v, done: false }]);
     setText('');
   }
+  function addSuggestion(label: string) {
+    if (goals.some((g) => g.text === label)) return; // evita duplicados
+    persist([...goals, { id: 'g' + Date.now() + Math.random().toString(36).slice(2, 6), text: label, done: false }]);
+  }
   function toggle(id: string) {
     persist(goals.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));
   }
@@ -36,12 +55,44 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
     persist(goals.filter((g) => g.id !== id));
   }
 
+  // Sugestões que ainda não foram adicionadas.
+  const available = GOAL_SUGGESTIONS.map((g) => g[lang]).filter((label) => !goals.some((x) => x.text === label));
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={t('goals.title')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
         <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('goals.subtitle')}</Text>
 
+        {/* Adicionar da lista */}
+        {available.length > 0 && (
+          <>
+            <Pressable
+              onPress={() => setPickerOpen((o) => !o)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.cardAlt, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}
+            >
+              <Ionicons name={pickerOpen ? 'chevron-up' : 'list-outline'} size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('settings.addFromList')}</Text>
+            </Pressable>
+
+            {pickerOpen && (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {available.map((label) => (
+                  <Pressable
+                    key={label}
+                    onPress={() => addSuggestion(label)}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}
+                  >
+                    <Ionicons name="add" size={15} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Escrever o meu */}
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput
             value={text}

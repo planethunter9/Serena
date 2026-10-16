@@ -48,6 +48,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
 
   const sections: { title: string; items: ProfileItem[]; show: boolean }[] = [
     { title: t('settings.subtypes'), items: asItems(data.subtypes), show: p.showSubtypes },
+    { title: t('settings.triggers'), items: asItems(data.triggers), show: p.showTriggers },
     { title: t('settings.affects'), items: asItems(data.symptoms), show: p.showSymptoms },
     { title: t('settings.losses'), items: asItems(data.losses), show: p.showLosses },
     { title: t('settings.recover'), items: asItems(data.recover), show: p.showRecover },
@@ -69,14 +70,8 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
   if (!editing) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Cabeçalho com voltar + 3 pontos */}
         <TopBackBar title={t('profile.title')} onBack={onBack} />
-        <View style={{ position: 'absolute', right: spacing.md, top: 0, paddingTop: 0 }}>
-          {/* botão de 3 pontos posicionado no cabeçalho */}
-        </View>
-
         <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-          {/* linha do menu de 3 pontos */}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <View>
               <Pressable onPress={() => setMenuOpen((o) => !o)} hitSlop={10} style={{ padding: 6 }}>
@@ -92,7 +87,6 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
             </View>
           </View>
 
-          {/* Cartão de perfil */}
           <View style={{ alignItems: 'center', gap: 6 }}>
             <Avatar size={110} />
             <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800', marginTop: 8 }}>{p.name || user?.name || '—'}</Text>
@@ -100,7 +94,6 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
             {!!p.bio && <Text style={{ color: colors.text, fontSize: 15, textAlign: 'center', marginTop: 8, lineHeight: 21 }}>{p.bio}</Text>}
           </View>
 
-          {/* Secções visíveis */}
           {sections.map((sec) =>
             sec.show && sec.items.length > 0 ? (
               <Card key={sec.title} style={{ gap: 8 }}>
@@ -157,6 +150,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
         <Card style={{ gap: 8 }}>
           <Text style={{ color: colors.text, fontWeight: '700' }}>{t('profile.show')}</Text>
           {toggleRow(t('settings.subtypes'), 'showSubtypes')}
+          {toggleRow(t('settings.triggers'), 'showTriggers')}
           {toggleRow(t('settings.affects'), 'showSymptoms')}
           {toggleRow(t('settings.losses'), 'showLosses')}
           {toggleRow(t('settings.recover'), 'showRecover')}

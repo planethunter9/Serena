@@ -15,10 +15,9 @@ import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import CalendarScreen from './CalendarScreen';
 import HomeScreen from './HomeScreen';
-import ProgressScreen from './ProgressScreen';
 import ResourcesScreen from './ResourcesScreen';
 
-type TabKey = 'home' | 'progress' | 'calendar' | 'resources';
+type TabKey = 'home' | 'calendar' | 'resources';
 
 export default function MainApp() {
   const { colors, isDark } = useTheme();
@@ -38,9 +37,8 @@ export default function MainApp() {
     }, [])
   );
 
-  const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.progress' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
+  const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'home', labelKey: 'tabs.home', icon: 'home-outline', iconActive: 'home' },
-    { key: 'progress', labelKey: 'tabs.progress', icon: 'stats-chart-outline', iconActive: 'stats-chart' },
     { key: 'calendar', labelKey: 'tabs.calendar', icon: 'calendar-outline', iconActive: 'calendar' },
     { key: 'resources', labelKey: 'tabs.resources', icon: 'apps-outline', iconActive: 'apps' },
   ];
@@ -76,10 +74,11 @@ export default function MainApp() {
             onBodyScan={() => router.push('/bodyscan')}
             onPositive={() => router.push('/positive')}
             onSounds={(category) => router.push({ pathname: '/sounds', params: { category } })}
+            onTrigger={() => router.push('/triggerhelp')}
+            onUnplanned={() => router.push('/unplanned')}
             startDate={data ? data.completedAt : new Date().toISOString()}
           />
         )}
-        {tab === 'progress' && <ProgressScreen />}
         {tab === 'calendar' && <CalendarScreen />}
         {tab === 'resources' && (
           <ResourcesScreen
