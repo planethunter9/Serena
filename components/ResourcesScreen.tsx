@@ -19,11 +19,12 @@ const ITEMS: { id: string; titleKey: TKey; icon: keyof typeof Ionicons.glyphMap 
   { id: 'fearprofile', titleKey: 'resources.fearprofile', icon: 'analytics-outline' },
   { id: 'safetyfeeding', titleKey: 'resources.safetyfeeding', icon: 'shield-checkmark-outline' },
   { id: 'games', titleKey: 'resources.games', icon: 'game-controller-outline' },
+  { id: 'crisislines', titleKey: 'resources.crisislines', icon: 'call-outline' },
   { id: 'citations', titleKey: 'resources.citations', icon: 'library-outline' },
 ];
 
 // Ids que já têm ecrã a funcionar.
-const READY = ['lessons', 'exercises', 'games', 'goalsachievements', 'reminders', 'journal', 'fearprofile', 'safetyfeeding'];
+const READY = ['lessons', 'exercises', 'games', 'goalsachievements', 'reminders', 'journal', 'fearprofile', 'safetyfeeding', 'crisislines', 'citations'];
 
 export default function ResourcesScreen({
   onOpen,

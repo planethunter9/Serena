@@ -7,7 +7,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { useLang } from '../i18n/i18n';
-import { loadFeeding, loadSafety, SafetyItem, saveFeeding, saveSafety } from '../storage/storage';
+import { DroppedBehavior, isoLocal, loadDropped, loadFeeding, loadSafety, SafetyItem, saveDropped, saveFeeding, saveSafety } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -17,11 +17,22 @@ function SafetyBody() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const [stored, setStored] = useState<SafetyItem[]>([]);
+  const [droppedLog, setDroppedLog] = useState<DroppedBehavior[]>([]);
   const [newText, setNewText] = useState('');
 
   useEffect(() => {
     loadSafety().then(setStored);
+    loadDropped().then(setDroppedLog);
   }, []);
+
+  // Regista (ou remove) a data em que um comportamento passou a "a largar".
+  function logDrop(id: string, label: string, isDropping: boolean) {
+    const next = isDropping
+      ? (droppedLog.some((d) => d.id === id) ? droppedLog : [...droppedLog, { id, label, date: isoLocal() }])
+      : droppedLog.filter((d) => d.id !== id);
+    setDroppedLog(next);
+    saveDropped(next);
+  }
 
   function persist(next: SafetyItem[]) {
     setStored(next);
@@ -46,9 +57,11 @@ function SafetyBody() {
   }
   function toggleDoing(id: string, label: string, doing: boolean) {
     upsert(id, label, { doing: !doing, dropping: false });
+    logDrop(id, label, false); // deixar de "fazer" tira o estado de largar
   }
   function toggleDropping(id: string, label: string, dropping: boolean) {
     upsert(id, label, { dropping: !dropping });
+    logDrop(id, label, !dropping);
   }
   function addCustom() {
     const v = newText.trim();
@@ -58,6 +71,9 @@ function SafetyBody() {
   }
   function removeCustom(id: string) {
     persist(stored.filter((x) => x.id !== id));
+    const next = droppedLog.filter((d) => d.id !== id);
+    setDroppedLog(next);
+    saveDropped(next);
   }
 
   const doingCount = rows.filter((r) => r.doing).length;

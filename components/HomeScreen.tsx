@@ -6,22 +6,28 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Circle, Line, Polyline, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { CHAPTERS } from '../data/content';
+import PlanToday, { PlanSummary } from './Plan';
 import { useLang } from '../i18n/i18n';
 import {
   addAttack,
   addSeverity,
   AttackEntry,
+  DroppedBehavior,
   ExposureSession,
+  isoLocal,
   JournalEntry,
   loadAttacks,
+  loadDashboardOrder,
+  loadDropped,
   loadExposureDays,
   loadExposureSessions,
   loadJournal,
   loadLessonsDone,
   loadSeverity,
   loadStreakStart,
+  saveDashboardOrder,
   saveStreakStart,
   SeverityEntry,
 } from '../storage/storage';
@@ -29,24 +35,8 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, ScreenTitle } from './ui';
 
-export default function HomeScreen({
-  onBreathing,
-  onBodyScan,
-  onPositive,
-  onSounds,
-  onTrigger,
-  onUnplanned,
-  startDate,
-}: {
-  onBreathing: () => void;
-  onBodyScan: () => void;
-  onPositive: () => void;
-  onSounds: (category: 'calm' | 'sleep') => void;
-  onTrigger: () => void;
-  onUnplanned?: () => void;
-  startDate: string;
-}) {
-  const { colors } = useTheme();
+export default function HomeScreen({ startDate }: { startDate: string }) {
+  const { colors, unlocked } = useTheme();
   const { t, lang } = useLang();
 
   const [tab, setTab] = useState<'overview' | 'today'>('overview');
@@ -64,9 +54,14 @@ export default function HomeScreen({
   const [fear, setFear] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [lastKind, setLastKind] = useState<'anxiety' | 'panic' | 'behavior' | null>(null);
-  const [chartView, setChartView] = useState<'progress' | 'activity'>('progress');
+  const [chartView, setChartView] = useState<'progress' | 'activity' | 'dropped'>('progress');
   const [chartW, setChartW] = useState(0);
   const fearScrollRef = useRef<ScrollView>(null);
+
+  // Comportamentos largados (progresso ERP) e ordem do painel (reordenável, pago).
+  const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
+  const [dashOrder, setDashOrder] = useState<string[]>(['hero', 'glance', 'plan']);
+  const [reordering, setReordering] = useState(false);
 
   useEffect(() => {
     loadStreakStart().then((v) => {
@@ -79,6 +74,8 @@ export default function HomeScreen({
     loadExposureSessions().then(setExposures);
     loadJournal().then(setJournal);
     loadExposureDays().then(setExpDays);
+    loadDropped().then(setDropped);
+    loadDashboardOrder().then((o) => { if (o.length) setDashOrder(o); });
   }, []);
 
   const streakDays = streakStart
@@ -131,11 +128,11 @@ export default function HomeScreen({
   ];
 
   // --- Gráficos ---
-  const CHART_HEIGHT = 130;
-  const AX_LEFT = 24;    // coluna fixa com a escala Y
-  const AX_BOTTOM = 30;  // faixa dos dias no eixo X
-  const PAD = 6;
-  const PAD_X = 10;
+  const CHART_HEIGHT = 156;
+  const AX_LEFT = 26;    // coluna fixa com a escala Y
+  const AX_BOTTOM = 24;  // faixa dos dias no eixo X
+  const PAD = 12;
+  const PAD_X = 14;
   const WEEKS = 12;      // nº de semanas de histórico (deslizável, paginado)
   const plotH = CHART_HEIGHT - AX_BOTTOM;
   const yAt = (v: number) => plotH - PAD - (v / 5) * (plotH - PAD * 2);
@@ -162,7 +159,7 @@ export default function HomeScreen({
     const wk: string[] = [];
     for (let d = 0; d < 7; d++) {
       const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - w * 7 + d);
-      wk.push(dt.toISOString().slice(0, 10));
+      wk.push(isoLocal(dt));
     }
     weeks.push(wk);
   }
@@ -174,9 +171,29 @@ export default function HomeScreen({
   const innerW = Math.max(0, visibleW - PAD_X * 2);
   const xAt = (j: number) => PAD_X + (innerW / 6) * j; // 7 pontos (Seg..Dom)
 
+  // Curva suave (Catmull-Rom → Bézier) para a linha; versão fechada para a área.
+  const smoothLine = (ps: { x: number; y: number }[]) => {
+    if (ps.length < 2) return '';
+    let d = `M ${ps[0].x},${ps[0].y}`;
+    for (let i = 0; i < ps.length - 1; i++) {
+      const p0 = ps[i - 1] || ps[i];
+      const p1 = ps[i];
+      const p2 = ps[i + 1];
+      const p3 = ps[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+    }
+    return d;
+  };
+  const smoothArea = (ps: { x: number; y: number }[], baseY: number) => {
+    if (ps.length < 2) return '';
+    return `${smoothLine(ps)} L ${ps[ps.length - 1].x},${baseY} L ${ps[0].x},${baseY} Z`;
+  };
+
   // 14 dias para o gráfico de atividade.
   const days: string[] = [];
-  for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(Date.now() - i * 86400000)));
   const activityByDay = days.map((d) => {
     const ex = exposures.filter((e) => e.date === d).length;
     const jn = journal.filter((j) => j.date === d).length;
@@ -185,12 +202,6 @@ export default function HomeScreen({
   });
   const maxActivity = Math.max(1, ...activityByDay);
 
-  const techniques = [
-    { key: 'breathing', title: t('tech.breathing'), desc: t('tech.breathingDesc'), icon: 'ellipse-outline' as const, onPress: onBreathing },
-    { key: 'bodyscan', title: t('tech.bodyscan'), desc: t('tech.bodyscanDesc'), icon: 'body-outline' as const, onPress: onBodyScan },
-    { key: 'positive', title: t('tech.positive'), desc: t('tech.positiveDesc'), icon: 'chatbubble-ellipses-outline' as const, onPress: onPositive },
-  ];
-
   function CheckinButton({ label, onPress, positive }: { label: string; onPress: () => void; positive?: boolean }) {
     return (
       <Pressable onPress={onPress} style={{ flex: 1, paddingVertical: 16, borderRadius: radius.md, alignItems: 'center', backgroundColor: positive ? colors.primarySoft : colors.cardAlt, borderWidth: 2, borderColor: positive ? colors.primary : colors.border }}>
@@ -198,6 +209,61 @@ export default function HomeScreen({
       </Pressable>
     );
   }
+
+  // --- Painel reordenável (Visão geral) ---
+  function moveDash(index: number, dir: -1 | 1) {
+    const j = index + dir;
+    if (j < 0 || j >= dashOrder.length) return;
+    const ids = [...dashOrder];
+    [ids[index], ids[j]] = [ids[j], ids[index]];
+    setDashOrder(ids);
+    saveDashboardOrder(ids);
+  }
+  function toggleReorder() {
+    if (!unlocked) {
+      Alert.alert(
+        lang === 'pt' ? 'Personalização' : 'Personalization',
+        lang === 'pt' ? 'Reordenar o painel faz parte do pack de personalização.' : 'Reordering the panel is part of the personalization pack.'
+      );
+      return;
+    }
+    setReordering((r) => !r);
+  }
+  function heroBlock() {
+    return (
+      <View style={{ alignItems: 'center', gap: 8 }}>
+        <View style={{ width: 170, height: 170, borderRadius: 85, borderWidth: 10, borderColor: colors.primary, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: colors.primary, fontSize: 54, fontWeight: '800' }}>{dayNumber}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center', paddingHorizontal: 10 }}>{t(dayNumber === 1 ? 'home.journeyDay' : 'home.journeyDays')}</Text>
+        </View>
+        {dayNumber >= 30 && (
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.journeyMonthsCaption', { n: Math.floor(dayNumber / 30) })}</Text>
+        )}
+      </View>
+    );
+  }
+  function glanceBlock() {
+    return (
+      <View style={{ gap: spacing.lg }}>
+        <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>{t('progress.glance')}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+          {glance.map((g) => (
+            <Card key={g.label} style={{ width: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={g.icon} size={19} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{g.value}</Text>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{g.label}</Text>
+              </View>
+            </Card>
+          ))}
+        </View>
+      </View>
+    );
+  }
+  function planBlock() { return <PlanSummary />; }
+  const DASH: Record<string, () => any> = { hero: heroBlock, glance: glanceBlock, plan: planBlock };
 
   return (
     <View style={{ flex: 1 }}>
@@ -220,39 +286,41 @@ export default function HomeScreen({
       {/* ---------- VISÃO GERAL ---------- */}
       {tab === 'overview' && (
         <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg, paddingBottom: 120 }}>
-          <View style={{ alignItems: 'center', gap: 8 }}>
-            <View style={{ width: 170, height: 170, borderRadius: 85, borderWidth: 10, borderColor: colors.primary, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: colors.primary, fontSize: 54, fontWeight: '800' }}>{dayNumber}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center', paddingHorizontal: 10 }}>{t(dayNumber === 1 ? 'home.journeyDay' : 'home.journeyDays')}</Text>
-            </View>
-            {dayNumber >= 30 && (
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.journeyMonthsCaption', { n: Math.floor(dayNumber / 30) })}</Text>
-            )}
+          {/* Reordenar o painel (pack de personalização) */}
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -spacing.sm }}>
+            <Pressable onPress={toggleReorder} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name={reordering ? 'checkmark' : unlocked ? 'swap-vertical' : 'lock-closed-outline'} size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{reordering ? (lang === 'pt' ? 'Concluir' : 'Done') : (lang === 'pt' ? 'Reordenar' : 'Reorder')}</Text>
+            </Pressable>
           </View>
 
-          <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>{t('progress.glance')}</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-            {glance.map((g) => (
-              <Card key={g.label} style={{ width: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name={g.icon} size={19} color={colors.primary} />
+          {dashOrder.map((key, i) => (
+            reordering ? (
+              <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderColor: colors.border, borderStyle: 'dashed', borderRadius: radius.lg, padding: spacing.sm }}>
+                <View style={{ flex: 1 }}>{DASH[key]?.()}</View>
+                <View style={{ gap: 4 }}>
+                  <Pressable onPress={() => moveDash(i, -1)} hitSlop={6} disabled={i === 0} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                    <Ionicons name="chevron-up" size={22} color={colors.primary} />
+                  </Pressable>
+                  <Pressable onPress={() => moveDash(i, 1)} hitSlop={6} disabled={i === dashOrder.length - 1} style={{ padding: 4, opacity: i === dashOrder.length - 1 ? 0.3 : 1 }}>
+                    <Ionicons name="chevron-down" size={22} color={colors.primary} />
+                  </Pressable>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{g.value}</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{g.label}</Text>
-                </View>
-              </Card>
-            ))}
-          </View>
+              </View>
+            ) : (
+              <View key={key}>{DASH[key]?.()}</View>
+            )
+          ))}
 
-          {/* Seletor Progresso / Atividade */}
+          {/* Seletor Progresso / Atividade / Largados */}
           <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-            {(['progress', 'activity'] as const).map((v) => {
+            {(['progress', 'activity', 'dropped'] as const).map((v) => {
               const active = chartView === v;
+              const label = v === 'progress' ? t('progress.tabProgress') : v === 'activity' ? t('progress.tabActivity') : (lang === 'pt' ? 'Largados' : 'Dropped');
               return (
                 <Pressable key={v} onPress={() => setChartView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-                  <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 14 }}>
-                    {v === 'progress' ? t('progress.tabProgress') : t('progress.tabActivity')}
+                  <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 13 }}>
+                    {label}
                   </Text>
                 </Pressable>
               );
@@ -269,7 +337,7 @@ export default function HomeScreen({
                 {allFearVals.length === 0 ? (
                   <Text style={{ color: colors.textMuted }}>{t('progress.chartEmpty')}</Text>
                 ) : (
-                  <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT }}>
+                  <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT + 24, alignItems: 'flex-start' }}>
                     {/* Eixo Y fixo (0 a 5) */}
                     <Svg width={AX_LEFT} height={CHART_HEIGHT}>
                       {[0, 1, 2, 3, 4, 5].map((v) => (
@@ -283,35 +351,72 @@ export default function HomeScreen({
                         horizontal
                         pagingEnabled
                         showsHorizontalScrollIndicator={false}
-                        style={{ width: visibleW }}
+                        style={{ width: visibleW, height: CHART_HEIGHT + 24 }}
                         onContentSizeChange={() => fearScrollRef.current?.scrollToEnd({ animated: false })}
                       >
                         {weeks.map((wk, wi) => {
                           const pts = wk
-                            .map((d, j) => { const v = fearFor(d); return v === null ? null : { x: xAt(j), y: yAt(v) }; })
-                            .filter((p): p is { x: number; y: number } => p !== null);
-                          const poly = pts.map((p) => `${p.x},${p.y}`).join(' ');
+                            .map((d, j) => { const v = fearFor(d); return v === null ? null : { x: xAt(j), y: yAt(v), v }; })
+                            .filter((p): p is { x: number; y: number; v: number } => p !== null);
+                          const baseY = yAt(0);
+                          const line = smoothLine(pts);
+                          const area = smoothArea(pts, baseY);
+                          const last = pts[pts.length - 1];
+                          const gid = `fearGrad${wi}`;
+                          const todayIso = isoLocal();
                           const range = `${dmShort(wk[0])} – ${dmShort(wk[6])}`;
                           return (
-                            <Svg key={wi} width={visibleW} height={CHART_HEIGHT}>
-                              {/* Grelha horizontal (0 a 5) */}
+                            <View key={wi} style={{ width: visibleW }}>
+                            <Svg width={visibleW} height={CHART_HEIGHT}>
+                              <Defs>
+                                <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                                  <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
+                                  <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
+                                </LinearGradient>
+                              </Defs>
+
+                              {/* Grelha horizontal tracejada (0 a 5) */}
                               {[0, 1, 2, 3, 4, 5].map((v) => (
-                                <Line key={'g' + v} x1={PAD_X} y1={yAt(v)} x2={visibleW - PAD_X} y2={yAt(v)} stroke={colors.border} strokeWidth={0.5} opacity={v === 0 ? 1 : 0.4} />
+                                <Line
+                                  key={'g' + v}
+                                  x1={PAD_X} y1={yAt(v)} x2={visibleW - PAD_X} y2={yAt(v)}
+                                  stroke={colors.border}
+                                  strokeWidth={v === 0 ? 1 : 1}
+                                  strokeDasharray={v === 0 ? undefined : '2 5'}
+                                  opacity={v === 0 ? 0.7 : 0.45}
+                                  strokeLinecap="round"
+                                />
                               ))}
-                              {/* Intervalo da semana */}
-                              <SvgText x={visibleW / 2} y={plotH + 30} fontSize={8} fill={colors.textMuted} textAnchor="middle">{range}</SvgText>
-                              {/* Dias da semana no eixo X */}
-                              {WEEKDAYS.map((wd, j) => (
-                                <SvgText key={'wd' + j} x={xAt(j)} y={plotH + 12} fontSize={8} fill={colors.textMuted} textAnchor="middle">{wd}</SvgText>
-                              ))}
-                              {/* Linha + pontos da semana */}
-                              {pts.length > 1 && (
-                                <Polyline points={poly} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+
+                              {/* Dias da semana no eixo X (hoje a destaque) */}
+                              {WEEKDAYS.map((wd, j) => {
+                                const isToday = wk[j] === todayIso;
+                                return (
+                                  <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '700' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
+                                );
+                              })}
+
+                              {/* Área com gradiente + linha curva */}
+                              {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
+                              {pts.length > 1 && <Path d={line} fill="none" stroke={colors.primary} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
+
+                              {/* Pontos (anel branco + miolo); halo no último */}
+                              {last && <Circle cx={last.x} cy={last.y} r={9} fill={colors.primary} opacity={0.14} />}
+                              {pts.map((p, i) => {
+                                const isLast = i === pts.length - 1;
+                                return (
+                                  <Circle key={'p' + i} cx={p.x} cy={p.y} r={isLast ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={isLast ? 3 : 2} />
+                                );
+                              })}
+
+                              {/* Valor do último dia registado */}
+                              {last && (
+                                <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="700" fill={colors.primary} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
                               )}
-                              {pts.map((p, i) => (
-                                <Circle key={'p' + i} cx={p.x} cy={p.y} r={3.5} fill={colors.primary} />
-                              ))}
                             </Svg>
+                            {/* Intervalo da semana (por baixo do eixo x) */}
+                            <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{range}</Text>
+                            </View>
                           );
                         })}
                       </ScrollView>
@@ -319,7 +424,7 @@ export default function HomeScreen({
                   </View>
                 )}
               </>
-            ) : (
+            ) : chartView === 'activity' ? (
               <>
                 <Text style={{ color: colors.text, fontWeight: '600' }}>{t('progress.activityTitle')}</Text>
                 {activityByDay.every((n) => n === 0) ? (
@@ -335,6 +440,52 @@ export default function HomeScreen({
                 )}
                 <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('progress.activityHint')}</Text>
               </>
+            ) : (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={{ color: colors.success, fontSize: 30, fontWeight: '800' }}>{dropped.length}</Text>
+                  <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{lang === 'pt' ? 'comportamentos que estás a largar' : 'behaviours you are dropping'}</Text>
+                </View>
+                {dropped.length === 0 ? (
+                  <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>{lang === 'pt' ? 'Marca um comportamento como "a largar" em Recursos › Comportamentos para veres aqui o teu progresso.' : 'Mark a behaviour as "dropping" in Resources › Behaviours to see your progress here.'}</Text>
+                ) : (
+                  <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
+                    {chartW > 0 && (() => {
+                      const sorted = [...dropped].sort((a, b) => (a.date < b.date ? -1 : 1));
+                      const map = new Map<string, number>();
+                      sorted.forEach((d, i) => map.set(d.date, i + 1));
+                      const dates = Array.from(map.keys());
+                      const maxC = sorted.length;
+                      const first = new Date(dates[0] + 'T00:00:00').getTime();
+                      const today = new Date(isoLocal() + 'T00:00:00').getTime();
+                      const span = Math.max(1, today - first);
+                      const w = chartW;
+                      const plotH2 = CHART_HEIGHT - 16;
+                      const xOf = (iso: string) => PAD_X + ((new Date(iso + 'T00:00:00').getTime() - first) / span) * (w - PAD_X * 2);
+                      const yOf = (c: number) => (plotH2 - PAD) - (c / maxC) * (plotH2 - PAD * 2);
+                      const pts = dates.map((iso) => ({ x: xOf(iso), y: yOf(map.get(iso)!) }));
+                      const lastPt = pts[pts.length - 1];
+                      const endPts = lastPt.x < w - PAD_X ? [...pts, { x: w - PAD_X, y: lastPt.y }] : pts;
+                      return (
+                        <Svg width={w} height={CHART_HEIGHT}>
+                          <Defs>
+                            <LinearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
+                              <Stop offset="0" stopColor={colors.success} stopOpacity={0.28} />
+                              <Stop offset="1" stopColor={colors.success} stopOpacity={0} />
+                            </LinearGradient>
+                          </Defs>
+                          {endPts.length > 1 && <Path d={smoothArea(endPts, plotH2 - PAD)} fill="url(#dropGrad)" />}
+                          {endPts.length > 1 && <Path d={smoothLine(endPts)} fill="none" stroke={colors.success} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
+                          {pts.map((p, i) => (
+                            <Circle key={i} cx={p.x} cy={p.y} r={4} fill={colors.card} stroke={colors.success} strokeWidth={2} />
+                          ))}
+                        </Svg>
+                      );
+                    })()}
+                  </View>
+                )}
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lang === 'pt' ? 'Total de comportamentos que começaste a largar ao longo do tempo.' : 'Cumulative safety behaviours you have started dropping over time.'}</Text>
+              </>
             )}
           </Card>
         </ScrollView>
@@ -348,6 +499,8 @@ export default function HomeScreen({
             <Text style={{ color: colors.textMuted, fontSize: 15, marginTop: 4 }}>{t('home.subtitle')}</Text>
           </View>
 
+          <PlanToday />
+
           {/* Check-in */}
           <Card style={{ gap: spacing.sm }}>
             <Text style={{ color: colors.text, fontWeight: '600' }}>{t('home.checkinTitle')}</Text>
@@ -358,7 +511,7 @@ export default function HomeScreen({
             </View>
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <CheckinButton label={t('home.behavior')} onPress={() => relapse('behavior')} />
-              <CheckinButton label={t('home.none')} onPress={noneToday} positive />
+              <CheckinButton label={t('home.none')} onPress={noneToday} />
             </View>
 
             {showIntensity && (
@@ -381,60 +534,6 @@ export default function HomeScreen({
             {feedback && <Text style={{ color: colors.success, fontSize: 13, marginTop: 2 }}>{feedback}</Text>}
           </Card>
 
-          {/* Estou com um gatilho */}
-          <Pressable onPress={onTrigger} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.primarySoft }}>
-            <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="flash-outline" size={22} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('home.triggerTitle')}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.triggerDesc')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-          </Pressable>
-
-          {/* Exposição não planeada */}
-          {onUnplanned && (
-            <Pressable onPress={onUnplanned} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="footsteps-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('home.unplannedTitle')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.unplannedDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-          )}
-
-          {/* Técnicas */}
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginTop: 4 }}>{t('home.techniquesTitle')}</Text>
-          {techniques.map((tech) => (
-            <Pressable key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={tech.icon} size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>{tech.title}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{tech.desc}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-          ))}
-
-          {/* Sons */}
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginTop: 4 }}>{t('home.soundsTitle')}</Text>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            {[
-              { key: 'calm' as const, label: t('home.soundsCalm'), icon: 'leaf-outline' as const },
-              { key: 'sleep' as const, label: t('home.soundsSleep'), icon: 'moon-outline' as const },
-            ].map((s) => (
-              <Pressable key={s.key} onPress={() => onSounds(s.key)} style={{ flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, alignItems: 'center', gap: 8 }}>
-                <Ionicons name={s.icon} size={26} color={colors.primary} />
-                <Text style={{ color: colors.text, fontWeight: '600' }}>{s.label}</Text>
-              </Pressable>
-            ))}
-          </View>
         </ScrollView>
       )}
     </View>

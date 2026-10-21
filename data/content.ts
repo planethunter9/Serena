@@ -12,11 +12,17 @@ export const PHOBIA = {
 
 export const LOSS_OPTIONS: { id: string; label: L }[] = [
   { id: 'restaurantes', label: { pt: 'Comer fora / em restaurantes', en: 'Eating out / at restaurants' } },
-  { id: 'viajar', label: { pt: 'Viajar', en: 'Travelling' } },
+  { id: 'viajar', label: { pt: 'Viajar e férias', en: 'Travelling and holidays' } },
+  { id: 'transportes', label: { pt: 'Andar em transportes públicos', en: 'Using public transport' } },
   { id: 'social', label: { pt: 'Momentos sociais com amigos', en: 'Social time with friends' } },
   { id: 'trabalho', label: { pt: 'Concentração no trabalho ou estudo', en: 'Focus at work or school' } },
   { id: 'relacoes', label: { pt: 'Relações e intimidade', en: 'Relationships and intimacy' } },
   { id: 'comida_nova', label: { pt: 'Experimentar comida nova', en: 'Trying new food' } },
+  { id: 'nutricao', label: { pt: 'Alimentar-me de forma variada', en: 'Eating a varied diet' } },
+  { id: 'filhos', label: { pt: 'Ter filhos / gravidez / cuidar de crianças', en: 'Having children / pregnancy / caring for kids' } },
+  { id: 'espontaneidade', label: { pt: 'Ser espontâneo / sair sem planear tudo', en: 'Being spontaneous / going out without a plan' } },
+  { id: 'sono', label: { pt: 'Dormir descansado', en: 'Sleeping soundly' } },
+  { id: 'tempo', label: { pt: 'Tempo perdido em verificações e pesquisas', en: 'Time lost to checking and searching' } },
 ];
 
 export const RECOVER_OPTIONS: { id: string; label: L }[] = [
@@ -28,21 +34,35 @@ export const RECOVER_OPTIONS: { id: string; label: L }[] = [
 ];
 
 export const SYMPTOM_OPTIONS: { id: string; label: L }[] = [
-  { id: 'ansiedade', label: { pt: 'Ataques de ansiedade', en: 'Anxiety attacks' } },
+  { id: 'ansiedade', label: { pt: 'Ataques de ansiedade ou pânico', en: 'Anxiety or panic attacks' } },
+  { id: 'nausea', label: { pt: 'Náuseas provocadas pela própria ansiedade', en: 'Nausea caused by anxiety itself' } },
   { id: 'adormecer', label: { pt: 'Dificuldade em adormecer', en: 'Trouble falling asleep' } },
-  { id: 'transportes', label: { pt: 'Medo de andar em transportes públicos', en: 'Fear of public transport' } },
+  { id: 'apetite', label: { pt: 'Perda de apetite', en: 'Loss of appetite' } },
+  { id: 'vigilancia', label: { pt: 'Vigiar o corpo à procura de sinais', en: 'Scanning my body for signs' } },
   { id: 'evitar_comida', label: { pt: 'Evitar certos alimentos', en: 'Avoiding certain foods' } },
+  { id: 'intrusivos', label: { pt: 'Pensamentos intrusivos sobre vomitar', en: 'Intrusive thoughts about vomiting' } },
+  { id: 'fisicos', label: { pt: 'Tonturas, suores ou coração acelerado', en: 'Dizziness, sweating or racing heart' } },
+  { id: 'estomago', label: { pt: 'Desconforto ou indigestão de estômago', en: 'Stomach discomfort or indigestion' } },
+  { id: 'antecipatoria', label: { pt: 'Ansiedade antecipatória (preocupar-me antes)', en: 'Anticipatory anxiety (worrying in advance)' } },
+  { id: 'transportes', label: { pt: 'Medo de andar em transportes públicos', en: 'Fear of public transport' } },
   { id: 'verificar', label: { pt: 'Verificar sinais de doença a toda a hora', en: 'Constantly checking for signs of illness' } },
-  { id: 'nausea', label: { pt: 'Sentir náuseas com o stress', en: 'Feeling nauseous when stressed' } },
+  { id: 'isolar', label: { pt: 'Isolar-me ou evitar sair', en: 'Isolating or avoiding going out' } },
 ];
 
 export const TRIGGERS_OPTIONS: { id: string; label: L }[] = [
-  { id: 'náusea', label: { pt: 'Sentir náuseas', en: 'Feeling nauseous' } },
-  { id: 'outros sintomas', label: { pt: 'Experenciar outros sintomas como refluxo, diarreia ou vertigens', en: 'Experiencing heartburn, acid reflux, diarrhea, or dizziness.' } },
-  { id: 'crianças', label: { pt: 'Estar perto de crianças que tenham maior probabilidade de apanhar viroses estomacais', en: 'Being around children who have a higher likelihood of catching stomach bugs' } },
-  { id: 'viajar', label: { pt: 'Andar de carro, avião ou barco onde há maior chance de enjoo', en: 'Riding in cars, airplanes, or boats where motion sickness might occur.' } },
-  { id: 'comida contaminada', label: { pt: 'Comer comida contaminada e confirmar datas de validade constantemente', en: 'Encountering foods that previously caused illness, checking expiration dates obsessively, or avoiding restaurants and buffets.' } },
-  { id: 'ver outros', label: { pt: 'Ver outros vomitar, até mesmo em filmes/séries', en: ' Seeing, hearing, or smelling someone else vomit, or even watching it depicted in movies or on television' } },
+  { id: 'nausea', label: { pt: 'Sentir náuseas ou enjoo', en: 'Feeling nauseous' } },
+  { id: 'outros_sintomas', label: { pt: 'Refluxo, azia, indigestão, diarreia ou tonturas', en: 'Heartburn, acid reflux, indigestion, diarrhea or dizziness' } },
+  { id: 'criancas', label: { pt: 'Estar perto de crianças (mais sujeitas a viroses)', en: 'Being around children (more prone to stomach bugs)' } },
+  { id: 'doentes', label: { pt: 'Estar perto de pessoas que parecem doentes', en: 'Being around people who seem ill' } },
+  { id: 'viajar', label: { pt: 'Andar de carro, avião, barco ou autocarro', en: 'Travelling by car, plane, boat or bus' } },
+  { id: 'comida_fora', label: { pt: 'Comida de fora, buffets, reaquecida ou validades', en: 'Food from outside, buffets, reheated food or expiry dates' } },
+  { id: 'ver_outros', label: { pt: 'Ver, ouvir ou cheirar alguém a vomitar (real ou em ecrã)', en: 'Seeing, hearing or smelling someone vomit (real or on screen)' } },
+  { id: 'palavra', label: { pt: 'A palavra "vomitar" / "náusea"', en: 'The word "vomit" / "nausea"' } },
+  { id: 'surtos', label: { pt: 'Notícias de surtos (gripe, norovírus, gastroenterite)', en: 'News of outbreaks (flu, norovirus, stomach bug)' } },
+  { id: 'alcool', label: { pt: 'Beber álcool (medo de enjoar)', en: 'Drinking alcohol (fear of getting sick)' } },
+  { id: 'cheio', label: { pt: 'Sensação de estômago muito cheio', en: 'Feeling of a very full stomach' } },
+  { id: 'stress', label: { pt: 'Stress ou ansiedade que dá mal-estar de estômago', en: 'Stress or anxiety that upsets the stomach' } },
+  { id: 'cheiros', label: { pt: 'Calor ou cheiros fortes de comida', en: 'Heat or strong food smells' } },
 ];
 
 export const PLANS: { id: string; title: L; subtitle: L; desc: L }[] = [
@@ -197,6 +217,14 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
           en: 'Breathing slowly, with the out-breath longer than the in-breath, sends the body a signal that it can lower the alarm. It activates the calming side of the nervous system and helps brake the anxiety spiral.\n\nBut watch out for a trap: breathing is not meant to "make the fear disappear" or to prevent vomiting. If you use it as one more safety behaviour ("I only didn\'t vomit because I breathed"), you reinforce the phobia.\n\nUse it as an anchor — something that helps you stay with the discomfort, not flee it. Breathe slowly and keep doing what you were doing, letting the sensation exist. The breathing tool is on the home page, whenever you need it.',
         },
       },
+      {
+        id: 'l15b',
+        title: { pt: 'Tremer durante os ataques', en: 'Trembling during attacks' },
+        body: {
+          pt: 'Tremer durante um ataque assusta muita gente, mas tem uma explicação simples e inofensiva. Quando o alarme dispara, o corpo entra em "luta ou fuga" e liberta adrenalina: os músculos enchem-se de energia para correr ou lutar. Como não há de onde fugir, essa energia extra sai em forma de tremor. É só isso — energia a descarregar. O tremor é inofensivo e passa sozinho, de segundos a poucos minutos, assim que a adrenalina baixa.\n\nA armadilha é teres medo do próprio tremor ("e se reparam?", "estou a perder o controlo"). Esse medo manda ainda mais adrenalina — e tremes mais. É o mesmo mecanismo do medo do medo: quanto mais lutas contra o tremor ou o tentas travar à força (apertando os músculos), mais tensão crias. Ao contrário do que parece, deixar o corpo tremer é o que faz a energia descarregar e o tremor passar mais depressa.\n\nEntão como sentir a ansiedade sem tremer tanto? Não se trava a adrenalina pela força — baixa-se o alarme que a alimenta. O que ajuda mesmo: expirar devagar e mais tempo do que inspiras (acalma o sistema nervoso); largar a tensão de propósito — ombros a descair, mandíbula e mãos a soltar; assentar os pés no chão e nomear o que vês à tua volta, para ancorares no presente; e, se precisares, mexeres-te — andar, abanar as mãos — para a energia sair. Mas o mais poderoso é lembrares-te: "isto é só adrenalina, é inofensivo, já vai passar". Quando o tremor deixa de te assustar, perde o combustível e encolhe.\n\nComo a respiração, usa isto para ficares com o desconforto, não para fugir dele nem para "evitar vomitar" — senão vira mais um comportamento de segurança. Se tiveres tremores fora dos picos de ansiedade, ou que te preocupem, fala com um profissional de saúde.',
+          en: 'Trembling during an attack frightens many people, but it has a simple, harmless explanation. When the alarm goes off, the body enters "fight or flight" and releases adrenaline: the muscles fill with energy to run or fight. Since there is nowhere to flee, that extra energy comes out as trembling. That is all it is — energy discharging. The tremor is harmless and passes on its own, from seconds to a few minutes, as soon as the adrenaline comes down.\n\nThe trap is being afraid of the tremor itself ("what if people notice?", "I\'m losing control"). That fear sends even more adrenaline — and you shake more. It is the same mechanism as the fear of fear: the more you fight the tremor or try to force it to stop (clenching your muscles), the more tension you create. Counter to how it feels, letting the body shake is what lets the energy discharge and the tremor pass faster.\n\nSo how do you feel the anxiety without trembling so much? You do not stop adrenaline by force — you lower the alarm that feeds it. What really helps: breathe out slowly and for longer than you breathe in (it calms the nervous system); release the tension on purpose — drop the shoulders, unclench the jaw and hands; plant your feet on the floor and name what you see around you, to anchor in the present; and, if you need to, move — walk, shake out your hands — to let the energy out. But the most powerful thing is to remind yourself: "this is just adrenaline, it is harmless, it will pass." When the tremor stops scaring you, it loses its fuel and shrinks.\n\nLike breathing, use this to stay with the discomfort, not to flee it or to "avoid vomiting" — otherwise it becomes one more safety behaviour. If you have tremors outside anxiety spikes, or that worry you, speak to a health professional.',
+        },
+      },
     ],
   },
   {
@@ -276,6 +304,74 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
     ],
   },
   {
+    id: 'ch8',
+    title: { pt: 'Ultrapassar a fobia', en: 'Overcoming the phobia' },
+    lessons: [
+      {
+        id: 'ov1',
+        title: { pt: 'Ultrapassar é moldar o cérebro', en: 'Overcoming means reshaping the brain' },
+        body: {
+          pt: 'Ultrapassar a emetofobia não é apagar o medo de um dia para o outro — é ir treinando o cérebro a reagir como reage o de alguém que não tem esta fobia. O cérebro é moldável: aquilo que repetes vai-se tornando o teu novo normal.\n\nDe cada vez que enfrentas um gatilho e ficas com o desconforto sem fugir, o cérebro recolhe uma prova nova: "consigo lidar com isto". Repetidas vezes, essas provas vão substituindo o alarme antigo ("isto é perigoso") por uma resposta mais calma e até aborrecida — que é exatamente como uma pessoa sem a fobia reage ao mesmo gatilho.\n\nNão é força de vontade nem "pensar positivo". É experiência repetida a reescrever, aos poucos, aquilo que o teu cérebro aprendeu a temer. Quanto mais vives como alguém sem a fobia viveria, mais o teu cérebro se torna nisso.',
+          en: 'Overcoming emetophobia is not erasing the fear overnight — it is gradually training your brain to react the way the brain of someone without this phobia reacts. The brain is malleable: what you repeat becomes your new normal.\n\nEach time you face a trigger and stay with the discomfort without fleeing, your brain gathers new evidence: "I can handle this." Repeated many times, this evidence replaces the old alarm ("this is dangerous") with a calmer, even boring response — which is exactly how someone without the phobia reacts to the same trigger.\n\nIt is not willpower or "positive thinking." It is repeated experience slowly rewriting what your brain learned to fear. The more you live as someone without the phobia would, the more your brain becomes that.',
+        },
+      },
+      {
+        id: 'ov2',
+        title: { pt: 'O que faria alguém sem emetofobia?', en: 'What would a person without emetophobia do?' },
+        body: {
+          pt: 'Uma das perguntas mais úteis na recuperação é: "o que faria agora uma pessoa que não tem emetofobia?". Ela comeria sem cheirar a comida primeiro, ficaria no jantar mesmo enjoada, não perguntaria aos outros se se sentem bem, não verificaria validades, veria o filme sem saltar a cena.\n\nA ideia é agir como essa pessoa agiria — mesmo antes de te sentires pronta. Não esperas o medo desaparecer para fazer; fazes, e é a ação que vai ensinando o cérebro. Age primeiro, a confiança vem depois.\n\nUsa a pergunta nos momentos de dúvida: repara no que a fobia te manda fazer (verificar, evitar, perguntar, fugir) e faz o contrário — o que faria alguém sem a fobia.',
+          en: 'One of the most useful questions in recovery is: "what would a person without emetophobia do right now?" They would eat without smelling the food first, stay at the dinner even while nauseous, not ask others whether they feel okay, not check expiry dates, watch the film without skipping the scene.\n\nThe idea is to act the way that person would — even before you feel ready. You do not wait for the fear to vanish before acting; you act, and it is the action that teaches the brain. Act first, confidence comes after.\n\nUse the question in moments of doubt: notice what the phobia is telling you to do (check, avoid, ask, flee) and do the opposite — what someone without the phobia would do.',
+        },
+      },
+      {
+        id: 'ov3',
+        title: { pt: 'As técnicas que ajudam a ultrapassar', en: 'The techniques that help you overcome it' },
+        body: {
+          pt: 'Não há um só truque — há um conjunto de técnicas que, juntas, moldam o cérebro. As principais, que tens nesta app:\n\n• Exposição gradual (a escada): aproximares-te do que temes, por degraus, do mais fácil ao mais difícil.\n• Prevenção de resposta: largar os comportamentos de segurança enquanto fazes a exposição.\n• Exposição às sensações (interocetiva): habituar-te às sensações do corpo que confundes com "vou vomitar".\n• Trabalhar as imagens e memórias: dessensibilizar palavras, imagens e a memória que está na origem.\n• Reformular os pensamentos: encolher a catástrofe e tolerar a incerteza.\n• Autocompaixão: ser gentil contigo torna tudo o resto possível.\n\nNenhuma funciona isolada e de uma vez. É a prática regular, combinando-as, que faz a diferença ao longo das semanas.',
+          en: 'There is no single trick — there is a set of techniques that, together, reshape the brain. The main ones, all in this app:\n\n• Gradual exposure (the ladder): moving toward what you fear, step by step, from easiest to hardest.\n• Response prevention: dropping safety behaviours while you do the exposure.\n• Interoceptive exposure: getting used to the body sensations you mistake for "I\'m going to vomit".\n• Working with images and memories: desensitising words, images, and the memory at the root.\n• Reframing thoughts: shrinking the catastrophe and tolerating uncertainty.\n• Self-compassion: being kind to yourself makes everything else possible.\n\nNone works alone or all at once. It is regular practice, combining them, that makes the difference over the weeks.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'ch9',
+    title: { pt: 'ERP passo a passo', en: 'ERP step by step' },
+    lessons: [
+      {
+        id: 'erp1',
+        title: { pt: 'O que é a ERP', en: 'What ERP is' },
+        body: {
+          pt: 'ERP quer dizer Exposição com Prevenção de Resposta. É o "motor" do tratamento: expões-te ao que temes (a exposição) e, ao mesmo tempo, resistes a fazer o comportamento de segurança que costumavas fazer (a prevenção de resposta).\n\nExemplo: comes um alimento que andavas a evitar (exposição) e resistes a verificar a validade, a cheirá-lo, a perguntar se está bom ou a tomar um antináusea (prevenção de resposta). É a combinação das duas que ensina o cérebro — a exposição sozinha, ainda com as muletas de segurança por baixo, não chega.\n\nPraticada de forma regular e repetida, a ERP é a abordagem com mais evidência para a emetofobia.',
+          en: 'ERP stands for Exposure and Response Prevention. It is the "engine" of treatment: you expose yourself to what you fear (the exposure) and, at the same time, resist doing the safety behaviour you used to do (the response prevention).\n\nExample: you eat a food you had been avoiding (exposure) and resist checking the expiry date, smelling it, asking whether it is fine, or taking an anti-nausea pill (response prevention). It is the combination of the two that teaches the brain — exposure on its own, still propped up by safety crutches, is not enough.\n\nPractised regularly and repeatedly, ERP is the most evidence-based approach for emetophobia.',
+        },
+      },
+      {
+        id: 'erp2',
+        title: { pt: 'A ansiedade faz parte da ERP', en: 'Anxiety is part of ERP' },
+        body: {
+          pt: 'Ao fazer ERP é NORMAL sentir ansiedade — e até é preciso. O objetivo não é não sentir nada; é aprender a ficar com a ansiedade, sem fugir e sem as muletas, até o corpo perceber que o perigo não acontece.\n\nPor isso, um sinal importante: se uma exposição não te dá ansiedade nenhuma, ou a estratégia não é a mais indicada, ou esse degrau é demasiado fácil para onde já estás. Nesse caso, sobe para um degrau que mexa mesmo contigo — desafiante, mas não avassalador. É aí, no desconforto tolerável, que há aprendizagem.\n\nCuidado com as "fugas disfarçadas": distraíres-te com o telemóvel, repetir frases para te acalmar a toda a hora, ou fazer a exposição "pela rama". Baixam a ansiedade no momento, mas impedem o cérebro de aprender. Queres sentir, ficar, e deixar descer sozinho.',
+          en: 'When doing ERP it is NORMAL to feel anxiety — and it is even necessary. The goal is not to feel nothing; it is to learn to stay with the anxiety, without fleeing and without the crutches, until your body sees that the danger does not happen.\n\nSo here is an important sign: if an exposure gives you no anxiety at all, either the strategy is not the right one, or that step is too easy for where you already are. In that case, move up to a step that genuinely stirs something — challenging, but not overwhelming. It is there, in tolerable discomfort, that learning happens.\n\nWatch out for "disguised escapes": distracting yourself with your phone, repeating calming phrases non-stop, or doing the exposure half-heartedly. They lower anxiety in the moment but stop the brain from learning. You want to feel it, stay with it, and let it come down on its own.',
+        },
+      },
+      {
+        id: 'erpUnc',
+        title: { pt: 'Deixar entrar o desconforto e a incerteza', en: 'Letting discomfort and uncertainty in' },
+        body: {
+          pt: 'Grande parte da recuperação é aprender a deixar entrar o desconforto e a incerteza — em vez de lutar contra eles ou de os empurrar para longe. Parece contra-intuitivo, mas é assim que o cérebro se habitua a viver com essas sensações e percebe, pela experiência, que a incerteza não magoa.\n\nNa ERP fazes isto de propósito: permites que a dúvida ("e se…?") e o mal-estar existam, sem os resolver, sem verificar, sem procurar certeza. De cada vez que ficas com eles e nada de catastrófico acontece, o cérebro recolhe a prova de que não precisava de fugir nem de ter a certeza para estar bem.\n\nNão tens de gostar do desconforto — só de o deixar estar. Com a repetição, o desconforto e o "não saber" deixam de soar a perigo e passam a ser apenas sensações que vêm e vão.',
+          en: 'A big part of recovery is learning to let discomfort and uncertainty in — instead of fighting them or pushing them away. It feels counter-intuitive, but that is how the brain gets used to living with these sensations and learns, through experience, that uncertainty does not hurt.\n\nIn ERP you do this on purpose: you allow the doubt ("what if…?") and the discomfort to be there, without resolving them, without checking, without seeking certainty. Each time you stay with them and nothing catastrophic happens, the brain gathers evidence that it did not need to flee or to be certain in order to be okay.\n\nYou do not have to like the discomfort — only to let it be. With repetition, the discomfort and the "not knowing" stop sounding like danger and become just sensations that come and go.',
+        },
+      },
+      {
+        id: 'erp3',
+        title: { pt: 'O que fazer depois da exposição', en: 'What to do after an exposure' },
+        body: {
+          pt: 'O que fazes depois conta tanto como a exposição em si. A regra de ouro: não a desfaças. Resiste a "reparar" o desconforto logo a seguir — não verifiques o corpo, não peças que te tranquilizem, não pesquises sintomas, não laves as mãos sem necessidade. Deixa a ansiedade descer sozinha, ao seu ritmo.\n\nDepois, revê com as perguntas certas: "o que eu previa que ia acontecer?", "o que aconteceu mesmo?", "fui capaz de ficar com isto?". Quase sempre a catástrofe prevista não acontece — e é esse contraste que reescreve o medo. Regista-o (nos exercícios) para teres as provas do teu lado nos dias difíceis.\n\nPor fim: sê gentil contigo, descansa, e planeia a próxima. Progresso é repetir, não acertar à primeira.',
+          en: 'What you do afterwards counts as much as the exposure itself. The golden rule: do not undo it. Resist "fixing" the discomfort right after — do not check your body, do not seek reassurance, do not search symptoms, do not wash your hands needlessly. Let the anxiety come down on its own, at its own pace.\n\nThen review with the right questions: "what did I predict would happen?", "what actually happened?", "was I able to stay with it?". Almost always the predicted catastrophe does not happen — and it is that contrast that rewrites the fear. Record it (in the exercises) so the evidence is on your side on hard days.\n\nFinally: be kind to yourself, rest, and plan the next one. Progress is repeating, not getting it right the first time.',
+        },
+      },
+    ],
+  },
+  {
     id: 'ch7',
     title: { pt: 'Saber mais', en: 'Learn more' },
     lessons: [
@@ -335,6 +431,30 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
           en: 'One reason the phobia is so frightening is not knowing how to tell "I\'m nervous" from "I\'m actually going to vomit". Knowing what usually precedes vomiting helps you see that the vast majority of your day-to-day sensations look nothing like it.\n\nWhen the body is genuinely getting ready to vomit, there is usually a cluster of signs at once, building — not an isolated, passing sensation. Typically: strong, persistent nausea (not an off feeling that comes and goes), excess salivation (the mouth fills with saliva), cold sweat, pale skin, sometimes a racing heart and, often, retching or gagging (the dry reflex) just before. It is a fairly unmistakable crescendo that sets in and stays.\n\nNotice the contrast: a "lump" in the throat on its own, a wave of heat, a gurgle or a twinge that passes are not this picture. They are single sensations that come and go — not the whole cluster rising together.\n\nTwo honest cautions: this is to help you tell things apart, not to sit monitoring your stomach waiting for the "cluster" — that would just be one more safety behaviour. And if you really do have a stomach bug, the body does what it needs to and then it passes, as we have seen. This is information to learn from, not a diagnosis or a substitute for a doctor if something genuinely worries you.',
         },
       },
+      {
+        id: 'fam1',
+        title: { pt: 'Envolver quem vive contigo', en: 'Involving the people around you' },
+        body: {
+          pt: 'Quem gosta de ti quer ajudar — e, sem querer, muitas vezes alimenta a fobia. Responder sempre "sim, estás bem", comprar só os alimentos "seguros", confirmar validades por ti, assumir as tarefas que te assustam ou deixar-te sair mais cedo: parece carinho, mas é acomodação, e ensina ao teu cérebro que só ficaste bem porque a outra pessoa resolveu.\n\nPor isso vale a pena envolver quem vive contigo na recuperação — do lado certo. Explica-lhes o básico: que a tranquilização e os "favores" dão alívio curto e reforço longo, e que a forma de ajudarem a sério é pararem de o fazer, aos poucos e combinado contigo.\n\nUm guião simples para lhes pedires: "Quando eu perguntar se estou bem, por favor não respondas — lembra-me só que não preciso de ter a certeza." "Não confirmes validades nem cheires a comida por mim." "Se eu quiser sair a correr de um sítio, encoraja-me a ficar mais um bocadinho." O tom certo é de treinador gentil, não de polícia: encorajar, nunca forçar.\n\nCombina com eles um comportamento de cada vez, como fazes no teu plano. Transformar a recuperação em algo partilhado tira-te peso e evita o braço-de-ferro em casa — passam a estar do mesmo lado.',
+          en: 'The people who love you want to help — and, without meaning to, they often feed the phobia. Always answering "yes, you\'re fine", buying only the "safe" foods, checking expiry dates for you, taking over the tasks that scare you, or letting you leave early: it looks like care, but it is accommodation, and it teaches your brain that you were only okay because someone else sorted it.\n\nSo it is worth involving the people you live with in your recovery — on the right side. Explain the basics: that reassurance and "favours" give short relief and long reinforcement, and that the way to really help is to stop doing them, little by little and agreed with you.\n\nA simple script to ask them: "When I ask if I\'m okay, please don\'t answer — just remind me that I don\'t need to be certain." "Don\'t check expiry dates or smell food for me." "If I want to rush out of a place, encourage me to stay a little longer." The right tone is a gentle coach, not a police officer: encourage, never force.\n\nAgree on one behaviour at a time, like you do in your plan. Making recovery something shared takes weight off you and avoids the tug-of-war at home — they end up on the same side as you.',
+        },
+      },
+      {
+        id: 'kids1',
+        title: { pt: 'Crianças e gravidez', en: 'Children and pregnancy' },
+        body: {
+          pt: 'Dois medos muito comuns na emetofobia envolvem as crianças e a gravidez — e costumam pesar em decisões grandes da vida.\n\nCrianças: como apanham viroses com mais facilidade, muita gente com emetofobia evita estar com elas, teme ser mãe ou pai, ou afasta-se de sobrinhos e amigos com filhos. É verdade que as crianças adoecem mais — mas também é verdade que esses episódios são curtos, previsíveis e geríveis, e que muitíssimos pais com esta fobia cuidam dos filhos e recuperam na mesma. Aplica-se o de sempre: aproximares-te aos poucos em vez de evitar, e não compensar com excesso de higiene, verificações ou vigilância.\n\nGravidez: o medo dos enjoos pode levar a adiar ou recusar engravidar. Ajuda saber que, embora as náuseas sejam comuns no início da gravidez, a maioria das grávidas vomita pouco ou nada, que costuma melhorar depois do primeiro trimestre, e que há acompanhamento e opções para os casos mais difíceis. A decisão de ter filhos é profundamente pessoal e só tua — a ideia aqui é que a tomes a partir de informação e dos teus valores, não a partir da catástrofe que a fobia pinta.\n\nUm aviso: isto é informação psicoeducativa, não aconselhamento médico. Para decisões sobre gravidez, ou se os enjoos forem muito intensos, fala com o teu médico; e se este medo estiver a moldar grandes escolhas da tua vida, vale muito o apoio de um profissional de saúde mental.',
+          en: 'Two very common emetophobia fears involve children and pregnancy — and they often weigh on big life decisions.\n\nChildren: because they catch stomach bugs more easily, many people with emetophobia avoid being around them, fear becoming a parent, or keep their distance from nieces, nephews and friends with kids. It is true that children get ill more often — but it is also true that these episodes are short, predictable and manageable, and that a great many parents with this phobia care for their children and recover all the same. The usual approach applies: moving closer little by little instead of avoiding, and not compensating with excessive hygiene, checking or monitoring.\n\nPregnancy: the fear of sickness can lead people to delay or refuse pregnancy. It helps to know that, although nausea is common in early pregnancy, most pregnant people vomit little or not at all, that it usually improves after the first trimester, and that there is support and there are options for the harder cases. The decision to have children is deeply personal and yours alone — the idea here is to make it from information and your values, not from the catastrophe the phobia paints.\n\nA caution: this is psychoeducational information, not medical advice. For decisions about pregnancy, or if sickness is very intense, talk to your doctor; and if this fear is shaping big choices in your life, support from a mental-health professional is well worth it.',
+        },
+      },
+      {
+        id: 'ocd1',
+        title: { pt: 'Emetofobia e OCD', en: 'Emetophobia and OCD' },
+        body: {
+          pt: 'A emetofobia e a perturbação obsessivo-compulsiva (OCD) são muito próximas e, por isso, confundem-se com frequência — às vezes andam mesmo juntas. Perceber a ligação ajuda a encontrar a ajuda certa.\n\nA emetofobia "parece mais OCD" quando há: pensamentos ou imagens intrusivas sobre vomitar que voltam sem parar; e rituais para neutralizar o medo — verificar validades, lavar as mãos em excesso, pedir tranquilização, repetir frases ou rezas na cabeça, evitar de forma muito elaborada. Por baixo está quase sempre a mesma coisa: uma necessidade enorme de certeza e de controlo.\n\nA boa notícia é que o tratamento com mais evidência é, no essencial, o mesmo: a ERP — Exposição com Prevenção de Resposta. Enfrentar o gatilho e resistir ao ritual é o que ensina o cérebro, quer se chame fobia, quer se chame OCD.\n\nNem toda a emetofobia é OCD — são coisas distintas que se sobrepõem. Mas se os pensamentos intrusivos e os rituais dominam o teu dia, vale muito a pena um profissional com experiência em OCD/ERP. Não é sinal de que "é pior" — é só encontrar quem conhece bem este terreno.',
+          en: 'Emetophobia and obsessive-compulsive disorder (OCD) are very close and so are often confused — sometimes they genuinely go together. Understanding the link helps you find the right kind of help.\n\nEmetophobia "looks more like OCD" when there are: intrusive thoughts or images about vomiting that keep coming back; and rituals to neutralise the fear — checking expiry dates, excessive hand-washing, seeking reassurance, repeating phrases or prayers in your head, elaborate avoidance. Underneath it is almost always the same thing: a huge need for certainty and control.\n\nThe good news is that the most evidence-based treatment is essentially the same: ERP — Exposure and Response Prevention. Facing the trigger and resisting the ritual is what teaches the brain, whether it is called a phobia or OCD.\n\nNot all emetophobia is OCD — they are distinct things that overlap. But if intrusive thoughts and rituals dominate your day, a professional experienced in OCD/ERP is really worth it. It is not a sign that "it is worse" — it is just finding someone who knows this ground well.',
+        },
+      },
     ],
   },
 ];
@@ -358,6 +478,10 @@ export const AFFIRMATIONS: L[] = [
   { pt: 'O meu corpo sabe acalmar-se sozinho.', en: 'My body knows how to calm itself down.' },
   { pt: 'Um passo de cada vez. Estou a fazer o suficiente.', en: 'One step at a time. I am doing enough.' },
   { pt: 'O medo vem em ondas — e as ondas sempre descem.', en: 'Fear comes in waves — and waves always come down.' },
+  { pt: 'De tanto me preocupar, não mudo o que vai acontecer.', en: 'No amount of worrying will change the outcome.' },
+  { pt: 'Faz com medo e tudo.', en: 'Do it scared.' },
+  { pt: 'O que faria alguém sem emetofobia?', en: 'What would a person without emetophobia do?' },
+  { pt: 'Age primeiro, a confiança vem depois.', en: 'Act first, confidence comes after.' },
 ];
 
 // Vertentes/tipos de emetofobia (baseado em relatos reais e fontes clínicas).

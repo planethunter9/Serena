@@ -113,6 +113,10 @@ const TR = {
     'progress.chartTitle': 'Intensidade do medo (últimos registos)',
     'progress.chartEmpty': 'Ainda não há registos. Regista na página inicial.',
 
+    'weekplan.title': 'Plano da semana',
+'exercises.weekplan': 'Plano da semana',
+'exercises.weekplanDesc': 'Organizar a prática por dias, com ERP e memórias',
+
     'resources.title': 'Recursos',
     'resources.lessons': 'Lições',
     'resources.reminders': 'Lembretes de prática',
@@ -248,6 +252,14 @@ const TR = {
     'myth.score': 'Acertaste {have} de {total}',
     'myth.restart': 'Jogar outra vez',
 
+    'exercises.interoceptive': 'Exposição às sensações',
+'exercises.interoceptiveDesc': 'Exercícios guiados para te habituares às sensações',
+'interoceptive.title': 'Exposição às sensações',
+'exercises.challenges': 'Desafios de incerteza',
+'exercises.challengesDesc': 'Pequenos passos para tolerar a incerteza',
+'challenges.title': 'Desafios de incerteza',
+'resources.crisislines': 'Linhas de apoio',
+
     'resources.achievements': 'Conquistas',
     'ach.title': 'Conquistas',
     'ach.count': '{have} de {total} desbloqueadas',
@@ -305,6 +317,13 @@ const TR = {
     'exposure.removeTitle': 'Remover degrau',
     'exposure.removeMsg': 'Queres remover "{label}"?',
     'common.remove': 'Remover',
+    'settings.personalization': 'Personalização',
+
+    'support.urgesurf': 'Surfar o impulso',
+'support.urgesurfDesc': 'Deixar passar a vontade de verificar, perguntar, evitar',
+
+    'tabs.support': 'Apoio',
+'support.title': 'Apoio',
 
     'home.unplannedTitle': 'Exposição não planeada',
 'home.unplannedDesc': 'Topaste um gatilho sem planear? Regista aqui.',
@@ -377,6 +396,9 @@ const TR = {
     'exposure.removeMsg': 'Remove "{label}"?',
     'common.remove': 'Remove',
 
+    'tabs.support': 'Support',
+'support.title': 'Support',
+
     'home.greeting': 'How are you right now?',
     'home.subtitle': 'Log how you feel and use a technique to calm down.',
     'home.triggerTitle': "I'm facing a trigger",
@@ -415,6 +437,11 @@ const TR = {
     'home.todaySection': 'Today',
 'home.nowSection': 'When you need it',
 
+
+'weekplan.title': 'Weekly plan',
+'exercises.weekplan': 'Weekly plan',
+'exercises.weekplanDesc': 'Organise practice by day, with ERP and memories',
+
     'tech.breathing': '4-second breathing',
     'tech.breathingDesc': 'Breathe in and out slowly, with the circle.',
     'tech.bodyscan': 'Body scan',
@@ -448,6 +475,9 @@ const TR = {
     'progress.activityHint': 'Includes fear logs, exposures and journal.',
     'progress.chartTitle': 'Fear intensity (recent entries)',
     'progress.chartEmpty': 'No entries yet. Log it on the home page.',
+
+    'support.urgesurf': 'Urge surfing',
+'support.urgesurfDesc': 'Let the urge to check, ask or avoid pass',
 
     'resources.title': 'Resources',
     'resources.lessons': 'Lessons',
@@ -553,6 +583,7 @@ const TR = {
 'exercises.sensationsDesc': 'Learn to recognise common, harmless sensations',
     'exposure.title': 'Exposure therapy',
     'exposure.reorder': 'Reorder',
+    'settings.personalization': 'Personalization',
     'exposure.guideTitle': 'How it works',
     'exposure.guide': 'Pick a step that is challenging but doable (~3-5). Stay with the discomfort until it drops by about half, without fleeing. Repeat until easy, then move up.',
     'exposure.safety': 'Never force yourself to vomit. Go at your own pace.',
@@ -644,6 +675,14 @@ const TR = {
     'onb.q4Title': 'Choose your plan',
     'onb.q4Subtitle': 'You can change this later.',
     'onb.customPlaceholder': 'Type your own…',
+
+    'exercises.interoceptive': 'Body-sensation exposure',
+'exercises.interoceptiveDesc': 'Guided exercises to get used to the sensations',
+'interoceptive.title': 'Body-sensation exposure',
+'exercises.challenges': 'Uncertainty challenges',
+'exercises.challengesDesc': 'Small steps to tolerate uncertainty',
+'challenges.title': 'Uncertainty challenges',
+'resources.crisislines': 'Helplines',
 
     'exposure.streakTitle': 'Exposure days',
     'exposure.streakDays': '{n} in a row',

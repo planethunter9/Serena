@@ -15,9 +15,10 @@ import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import CalendarScreen from './CalendarScreen';
 import HomeScreen from './HomeScreen';
+import SupportScreen from './SupportScreen';
 import ResourcesScreen from './ResourcesScreen';
 
-type TabKey = 'home' | 'calendar' | 'resources';
+type TabKey = 'home' | 'support' | 'calendar' | 'resources';
 
 export default function MainApp() {
   const { colors, isDark } = useTheme();
@@ -37,8 +38,9 @@ export default function MainApp() {
     }, [])
   );
 
-  const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
+  const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.support' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'home', labelKey: 'tabs.home', icon: 'home-outline', iconActive: 'home' },
+    { key: 'support', labelKey: 'tabs.support', icon: 'medkit-outline', iconActive: 'medkit' },
     { key: 'calendar', labelKey: 'tabs.calendar', icon: 'calendar-outline', iconActive: 'calendar' },
     { key: 'resources', labelKey: 'tabs.resources', icon: 'apps-outline', iconActive: 'apps' },
   ];
@@ -69,14 +71,17 @@ export default function MainApp() {
       {/* Conteúdo do separador */}
       <View style={{ flex: 1 }}>
         {tab === 'home' && (
-          <HomeScreen
+          <HomeScreen startDate={data ? data.completedAt : new Date().toISOString()} />
+        )}
+        {tab === 'support' && (
+          <SupportScreen
             onBreathing={() => router.push('/breathing')}
             onBodyScan={() => router.push('/bodyscan')}
             onPositive={() => router.push('/positive')}
             onSounds={(category) => router.push({ pathname: '/sounds', params: { category } })}
             onTrigger={() => router.push('/triggerhelp')}
             onUnplanned={() => router.push('/unplanned')}
-            startDate={data ? data.completedAt : new Date().toISOString()}
+            onUrgeSurf={() => router.push('/urgesurf')}
           />
         )}
         {tab === 'calendar' && <CalendarScreen />}

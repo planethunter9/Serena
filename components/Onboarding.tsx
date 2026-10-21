@@ -23,7 +23,12 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const [subtypeText, setSubtypeText] = useState('');
 
   const [losses, setLosses] = useState<string[]>([]);
+  const [customLosses, setCustomLosses] = useState<{ id: string; label: string }[]>([]);
+  const [lossText, setLossText] = useState('');
+
   const [recover, setRecover] = useState<string[]>([]);
+  const [customRecover, setCustomRecover] = useState<{ id: string; label: string }[]>([]);
+  const [recoverText, setRecoverText] = useState('');
 
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [customSymptoms, setCustomSymptoms] = useState<{ id: string; label: string }[]>([]);
@@ -60,6 +65,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   }
 
   const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSubtypes];
+  const allLosses = [...LOSS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customLosses];
+  const allRecover = [...RECOVER_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customRecover];
   const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSymptoms];
   const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customCoping];
   const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customTriggers];
@@ -93,8 +100,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         plan,
         subtypes: itemsFrom(subtypes, SUBTYPE_OPTIONS, customSubtypes),
         coping: itemsFrom(coping, COPING_OPTIONS, customCoping),
-        losses: LOSS_OPTIONS.filter((o) => losses.includes(o.id)).map((o) => ({ id: o.id, label: o.label[lang] })),
-        recover: RECOVER_OPTIONS.filter((o) => recover.includes(o.id)).map((o) => ({ id: o.id, label: o.label[lang] })),
+        losses: itemsFrom(losses, LOSS_OPTIONS, customLosses),
+        recover: itemsFrom(recover, RECOVER_OPTIONS, customRecover),
         symptoms: itemsFrom(symptoms, SYMPTOM_OPTIONS, customSymptoms),
         triggers: itemsFrom(triggers, TRIGGERS_OPTIONS, customTriggers),
         completedAt: new Date().toISOString(),
@@ -168,17 +175,27 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 2 && (
           <StepList title={t('onb.q1Title', { phobia: PHOBIA.name[lang] })} subtitle={t('onb.q1Subtitle')}>
-            {LOSS_OPTIONS.map((o) => (
-              <OptionRow key={o.id} label={o.label[lang]} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} />
+            {allLosses.map((o) => (
+              <OptionRow key={o.id} label={o.label} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} />
             ))}
+            <CustomInput
+              value={lossText}
+              onChange={setLossText}
+              onAdd={() => addCustom(lossText, setLossText, customLosses, setCustomLosses, losses, setLosses)}
+            />
           </StepList>
         )}
 
         {step === 3 && (
           <StepList title={t('onb.q2Title')} subtitle={t('onb.q2Subtitle')}>
-            {RECOVER_OPTIONS.map((o) => (
-              <OptionRow key={o.id} label={o.label[lang]} selected={recover.includes(o.id)} onPress={() => toggle(recover, setRecover, o.id)} />
+            {allRecover.map((o) => (
+              <OptionRow key={o.id} label={o.label} selected={recover.includes(o.id)} onPress={() => toggle(recover, setRecover, o.id)} />
             ))}
+            <CustomInput
+              value={recoverText}
+              onChange={setRecoverText}
+              onAdd={() => addCustom(recoverText, setRecoverText, customRecover, setCustomRecover, recover, setRecover)}
+            />
           </StepList>
         )}
 

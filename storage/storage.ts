@@ -48,9 +48,14 @@ export async function loadSeverity(): Promise<SeverityEntry[]> {
   const raw = await AsyncStorage.getItem(k('severity'));
   return raw ? JSON.parse(raw) : [];
 }
+// Data local em formato YYYY-MM-DD (evita o desvio de 1 dia do toISOString, que é UTC).
+export function isoLocal(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export async function addSeverity(value: number): Promise<SeverityEntry[]> {
   const list = await loadSeverity();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoLocal();
   const filtered = list.filter((e) => e.date !== today);
   const next = [...filtered, { date: today, value }].sort((a, b) => (a.date < b.date ? -1 : 1));
   await AsyncStorage.setItem(k('severity'), JSON.stringify(next));
@@ -66,9 +71,21 @@ export async function loadAttacks(): Promise<AttackEntry[]> {
 export async function addAttack(type: 'anxiety' | 'panic' | 'behavior'): Promise<AttackEntry[]> {
   const list = await loadAttacks();
   const now = new Date();
-  const next = [...list, { ts: now.toISOString(), date: now.toISOString().slice(0, 10), type }];
+  const next = [...list, { ts: now.toISOString(), date: isoLocal(now), type }];
   await AsyncStorage.setItem(k('attacks'), JSON.stringify(next));
   return next;
+}
+
+// --- Plano da semana ------------------------------------------------------
+// Tarefas do dia + "comportamento da semana" a largar. Renova-se a cada semana.
+export type WeekPlan = { weekStart: string; focusId: string | null; focusLabel: string | null; done: string[] };
+
+export async function loadWeekPlan(): Promise<WeekPlan> {
+  const raw = await AsyncStorage.getItem(k('weekPlan'));
+  return raw ? JSON.parse(raw) : { weekStart: '', focusId: null, focusLabel: null, done: [] };
+}
+export async function saveWeekPlan(plan: WeekPlan): Promise<void> {
+  await AsyncStorage.setItem(k('weekPlan'), JSON.stringify(plan));
 }
 
 // --- Lições concluídas ----------------------------------------------------
@@ -145,7 +162,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'resourcesOrder'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -190,6 +207,58 @@ export async function loadThoughtRecords(): Promise<ThoughtRecord[]> {
 }
 export async function saveThoughtRecords(list: ThoughtRecord[]) {
   await AsyncStorage.setItem(k('thoughtRecords'), JSON.stringify(list));
+}
+
+// --- Experiências comportamentais (prever vs resultado) -------------------
+export type ExperimentEntry = {
+  id: string; date: string; ts: string;
+  experiment: string; prediction: string; belief: number; // 0–10
+  outcome: string; learned: string; done: boolean;
+};
+export async function loadExperiments(): Promise<ExperimentEntry[]> {
+  const raw = await AsyncStorage.getItem(k('experiments'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveExperiments(list: ExperimentEntry[]) {
+  await AsyncStorage.setItem(k('experiments'), JSON.stringify(list));
+}
+
+// --- Comportamentos largados (progresso ERP) ------------------------------
+export type DroppedBehavior = { id: string; label: string; date: string };
+export async function loadDropped(): Promise<DroppedBehavior[]> {
+  const raw = await AsyncStorage.getItem(k('droppedBehaviors'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveDropped(list: DroppedBehavior[]) {
+  await AsyncStorage.setItem(k('droppedBehaviors'), JSON.stringify(list));
+}
+
+// --- Lembrete de afirmação diária -----------------------------------------
+export type AffirmationReminder = { enabled: boolean; hour: number; minute: number; notificationId: string | null };
+export async function loadAffirmationReminder(): Promise<AffirmationReminder> {
+  const raw = await AsyncStorage.getItem(k('affirmationReminder'));
+  return raw ? JSON.parse(raw) : { enabled: false, hour: 9, minute: 0, notificationId: null };
+}
+export async function saveAffirmationReminder(s: AffirmationReminder) {
+  await AsyncStorage.setItem(k('affirmationReminder'), JSON.stringify(s));
+}
+
+// --- Ordem das secções do painel inicial (personalização paga) ------------
+export async function loadDashboardOrder(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('dashboardOrder'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveDashboardOrder(order: string[]) {
+  await AsyncStorage.setItem(k('dashboardOrder'), JSON.stringify(order));
+}
+
+// --- Ordem dos itens do ecrã Recursos -------------------------------------
+export async function loadResourcesOrder(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('resourcesOrder'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveResourcesOrder(order: string[]) {
+  await AsyncStorage.setItem(k('resourcesOrder'), JSON.stringify(order));
 }
 
 export async function loadExposureOrder(): Promise<string[]> {
@@ -299,12 +368,4 @@ export async function loadManualAchievements(): Promise<string[]> {
 }
 export async function saveManualAchievements(ids: string[]) {
   await AsyncStorage.setItem(k('manualAchievements'), JSON.stringify(ids));
-}
-
-export async function loadResourcesOrder(): Promise<string[]> {
-  const raw = await AsyncStorage.getItem(k('resourcesOrder'));
-  return raw ? JSON.parse(raw) : [];
-}
-export async function saveResourcesOrder(order: string[]) {
-  await AsyncStorage.setItem(k('resourcesOrder'), JSON.stringify(order));
 }
