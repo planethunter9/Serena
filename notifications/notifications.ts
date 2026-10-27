@@ -42,3 +42,58 @@ export async function cancelReminder(id: string | null) {
     // se já não existir, ignorar
   }
 }
+
+// --- Reconciliação de lembretes "órfãos" ----------------------------------
+// Versões antigas da app agendavam uma notificação (ex.: 22h) diretamente, sem
+// a guardar na lista de lembretes. Essa notificação continua a disparar mas não
+// aparece no ecrã de Lembretes. Estas funções encontram essas notificações
+// agendadas que não estão na lista conhecida, para as podermos mostrar/gerir.
+
+// Lê hora/minuto de um trigger agendado, lidando com os vários formatos (iOS/Android).
+function readHourMinute(trigger: any): { hour: number; minute: number } | null {
+  if (!trigger) return null;
+  if (typeof trigger.hour === 'number' && typeof trigger.minute === 'number') {
+    return { hour: trigger.hour, minute: trigger.minute };
+  }
+  const dc = trigger.dateComponents;
+  if (dc && typeof dc.hour === 'number' && typeof dc.minute === 'number') {
+    return { hour: dc.hour, minute: dc.minute };
+  }
+  return null;
+}
+
+export type UntrackedReminder = {
+  id: string;
+  hour: number;
+  minute: number;
+  label: string;
+  enabled: boolean;
+  notificationId: string;
+};
+
+// Devolve as notificações agendadas que NÃO estão na lista conhecida (knownIds),
+// reconstruídas como lembretes diários para poderem aparecer no ecrã.
+export async function findUntrackedReminders(knownIds: (string | null)[]): Promise<UntrackedReminder[]> {
+  const known = new Set(knownIds.filter((x): x is string => !!x));
+  let all: Notifications.NotificationRequest[] = [];
+  try {
+    all = await Notifications.getAllScheduledNotificationsAsync();
+  } catch {
+    return [];
+  }
+  const out: UntrackedReminder[] = [];
+  for (const n of all) {
+    if (known.has(n.identifier)) continue;
+    const hm = readHourMinute(n.trigger as any);
+    if (!hm) continue; // ignora triggers que não sejam diários por hora
+    out.push({
+      id: 'r' + n.identifier,
+      hour: hm.hour,
+      minute: hm.minute,
+      label: typeof n.content?.body === 'string' ? n.content.body : '',
+      enabled: true,
+      notificationId: n.identifier,
+    });
+  }
+  return out;
+}

@@ -1,216 +1,424 @@
-// Página inicial com duas abas no topo:
-//  • "Visão geral" — contador (herói), "Num relance" e gráfico (ex-Progresso, melhorado).
-//  • "Hoje" — check-in do dia (intensidade só em ataques), gatilho, exposição não
-//    planeada, técnicas e sons.
+// Página inicial com duas abas: "Visão geral" (afirmação, círculo dos pilares,
+// frase dos dias de exposição, próximo passo e plano) e "Estatísticas".
+// O círculo pode ser diário / semanal / mensal (escolhido na Personalização).
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
-import { CHAPTERS } from '../data/content';
-import PlanToday, { PlanSummary } from './Plan';
+import { useEffect, useState } from 'react';
+import { Alert, Dimensions, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Reanimated, { runOnJS, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Svg, { Circle, G } from 'react-native-svg';
+import { EXPOSURE_LADDER } from '../data/exercises';
+import PlanView, { PlanEditor } from './Plan';
+import ProgressScreen from './ProgressScreen';
 import { useLang } from '../i18n/i18n';
 import {
-  addAttack,
-  addSeverity,
-  AttackEntry,
+  ActCommitment,
   DroppedBehavior,
+  ExerciseLogEntry,
+  ExperimentEntry,
   ExposureSession,
   isoLocal,
   JournalEntry,
-  loadAttacks,
+  loadActCommitments,
+  addSeverity,
+  loadChallengesDone,
   loadDashboardOrder,
   loadDropped,
+  loadExerciseLog,
+  loadExperiments,
   loadExposureDays,
+  loadExposureHidden,
+  loadExposureOrder,
   loadExposureSessions,
+  loadExposureSteps,
   loadJournal,
-  loadLessonsDone,
+  loadMemorySessions,
+  loadNextStep,
+  loadRecapDismissed,
+  loadRingMode,
   loadSeverity,
-  loadStreakStart,
+  loadThoughtRecords,
+  loadUnplanned,
+  MemorySession,
+  ProfileItem,
+  RingMode,
   saveDashboardOrder,
-  saveStreakStart,
-  SeverityEntry,
+  saveExposureOrder,
+  saveExposureSteps,
+  saveNextStep,
+  saveRecapDismissed,
+  ThoughtRecord,
+  UnplannedLog,
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import { Card, ScreenTitle } from './ui';
+import { Card } from './ui';
+
+type L = { pt: string; en: string };
+
+const AFFIRMATIONS: L[] = [
+  { pt: 'Posso sentir isto e continuar.', en: 'I can feel this and carry on.' },
+  { pt: 'Desconfortável não é perigoso.', en: 'Uncomfortable is not dangerous.' },
+  { pt: 'Não preciso de ter a certeza para seguir em frente.', en: "I don't need certainty to move forward." },
+  { pt: 'Cada vez que fico, fico mais forte.', en: 'Every time I stay, I get stronger.' },
+  { pt: 'O medo mente — não tenho de acreditar nele.', en: "Fear lies — I don't have to believe it." },
+  { pt: 'Já cheguei até aqui; consigo dar mais um passo.', en: 'I have come this far; I can take one more step.' },
+  { pt: 'Deixo a onda subir e descer.', en: 'I let the wave rise and fall.' },
+  { pt: 'A minha vida é maior do que o meu medo.', en: 'My life is bigger than my fear.' },
+];
+
+function expStreakOf(days: string[]): number {
+  const set = new Set(days);
+  const d = new Date();
+  if (!set.has(isoLocal(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (set.has(isoLocal(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
 
 export default function HomeScreen({ startDate }: { startDate: string }) {
-  const { colors, unlocked } = useTheme();
+  const { colors, unlocked, ringColors, defaultRingColors } = useTheme();
   const { t, lang } = useLang();
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
 
-  const [tab, setTab] = useState<'overview' | 'today'>('overview');
+  const [tab, setTab] = useState<'overview' | 'stats'>('overview');
 
-  // Dados partilhados pelas duas abas.
-  const [streakStart, setStreakStart] = useState<string | null>(null);
-  const [severity, setSeverity] = useState<SeverityEntry[]>([]);
-  const [lessonsDone, setLessonsDone] = useState<string[]>([]);
-  const [attacks, setAttacks] = useState<AttackEntry[]>([]);
+  // Dados (terapia / formas de enfrentar).
   const [exposures, setExposures] = useState<ExposureSession[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [expDays, setExpDays] = useState<string[]>([]);
-
-  // Estado do check-in (aba Hoje).
-  const [fear, setFear] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [lastKind, setLastKind] = useState<'anxiety' | 'panic' | 'behavior' | null>(null);
-  const [chartView, setChartView] = useState<'progress' | 'activity' | 'dropped'>('progress');
-  const [chartW, setChartW] = useState(0);
-  const fearScrollRef = useRef<ScrollView>(null);
-
-  // Comportamentos largados (progresso ERP) e ordem do painel (reordenável, pago).
   const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
-  const [dashOrder, setDashOrder] = useState<string[]>(['hero', 'glance', 'plan']);
+  const [commitments, setCommitments] = useState<ActCommitment[]>([]);
+  const [challengesDone, setChallengesDone] = useState<string[]>([]);
+  const [exerciseLog, setExerciseLog] = useState<ExerciseLogEntry[]>([]);
+  const [thoughts, setThoughts] = useState<ThoughtRecord[]>([]);
+  const [experiments, setExperiments] = useState<ExperimentEntry[]>([]);
+  const [memories, setMemories] = useState<MemorySession[]>([]);
+  const [unplanned, setUnplanned] = useState<UnplannedLog[]>([]);
+  const [ringMode, setRingMode] = useState<RingMode>('daily');
+
+  // Próximo passo.
+  const [customSteps, setCustomSteps] = useState<ProfileItem[]>([]);
+  const [stepOrder, setStepOrder] = useState<string[]>([]);
+  const [stepHidden, setStepHidden] = useState<string[]>([]);
+  const [savedNextStep, setSavedNextStep] = useState('');
+  const [severityToday, setSeverityToday] = useState<number | null>(null);
+  const [nsText, setNsText] = useState('');
+  const [nsSheetOpen, setNsSheetOpen] = useState(false);
+  const [nsAdding, setNsAdding] = useState(false);
+  const [nsNewStep, setNsNewStep] = useState('');
+  function closeNsSheet() { setNsSheetOpen(false); setNsAdding(false); setNsNewStep(''); }
+
+  const [dashOrder, setDashOrder] = useState<string[]>(['hero', 'plan']);
   const [reordering, setReordering] = useState(false);
+  const [recapDismissed, setRecapDismissed] = useState('');
+  const [planSheetOpen, setPlanSheetOpen] = useState(false);
+  const [planViewKey, setPlanViewKey] = useState(0);
+  function closePlanSheet() { setPlanSheetOpen(false); setPlanViewKey((k) => k + 1); }
+
+  // Arrastar o sheet para baixo para fechar (gesture-handler + reanimated).
+  const SCREEN_H = Dimensions.get('window').height;
+  const sheetTY = useSharedValue(0);
+  const sheetScroll = useSharedValue(0);
+  const sheetScrollRef = useAnimatedRef<any>();
+  useEffect(() => { if (planSheetOpen) sheetTY.value = 0; }, [planSheetOpen]);
+  const sheetOnScroll = useAnimatedScrollHandler((e) => { sheetScroll.value = e.contentOffset.y; });
+  const sheetGesture = Gesture.Pan()
+    .onUpdate((e) => { if (e.translationY > 0 && sheetScroll.value <= 0) sheetTY.value = e.translationY; })
+    .onEnd((e) => {
+      if (sheetTY.value > 120 || e.velocityY > 800) {
+        sheetTY.value = withTiming(SCREEN_H, { duration: 220 }, (f) => { if (f) runOnJS(closePlanSheet)(); });
+      } else {
+        sheetTY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      }
+    })
+    .simultaneousWithExternalGesture(sheetScrollRef);
+  const sheetAnimStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sheetTY.value }] }));
+
+  // Sheet do "próximo passo" (mesmo comportamento: arrastar para baixo fecha).
+  const nsTY = useSharedValue(0);
+  const nsScroll = useSharedValue(0);
+  const nsScrollRef = useAnimatedRef<any>();
+  useEffect(() => { if (nsSheetOpen) nsTY.value = 0; }, [nsSheetOpen]);
+  const nsOnScroll = useAnimatedScrollHandler((e) => { nsScroll.value = e.contentOffset.y; });
+  const nsGesture = Gesture.Pan()
+    .onUpdate((e) => { if (e.translationY > 0 && nsScroll.value <= 0) nsTY.value = e.translationY; })
+    .onEnd((e) => {
+      if (nsTY.value > 120 || e.velocityY > 800) {
+        nsTY.value = withTiming(SCREEN_H, { duration: 220 }, (f) => { if (f) runOnJS(closeNsSheet)(); });
+      } else {
+        nsTY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      }
+    })
+    .simultaneousWithExternalGesture(nsScrollRef);
+  const nsAnimStyle = useAnimatedStyle(() => ({ transform: [{ translateY: nsTY.value }] }));
 
   useEffect(() => {
-    loadStreakStart().then((v) => {
-      if (v) setStreakStart(v);
-      else { setStreakStart(startDate); saveStreakStart(startDate); }
-    });
-    loadSeverity().then(setSeverity);
-    loadLessonsDone().then(setLessonsDone);
-    loadAttacks().then(setAttacks);
     loadExposureSessions().then(setExposures);
     loadJournal().then(setJournal);
     loadExposureDays().then(setExpDays);
     loadDropped().then(setDropped);
-    loadDashboardOrder().then((o) => { if (o.length) setDashOrder(o); });
+    loadActCommitments().then(setCommitments);
+    loadChallengesDone().then(setChallengesDone);
+    loadExerciseLog().then(setExerciseLog);
+    loadThoughtRecords().then(setThoughts);
+    loadExperiments().then(setExperiments);
+    loadMemorySessions().then(setMemories);
+    loadUnplanned().then(setUnplanned);
+    loadRingMode().then(setRingMode);
+    loadExposureSteps().then(setCustomSteps);
+    loadExposureOrder().then(setStepOrder);
+    loadExposureHidden().then(setStepHidden);
+    loadNextStep().then((s) => { setSavedNextStep(s); setNsText(s); });
+    loadSeverity().then((list) => { const today = list.find((e) => e.date === isoLocal()); setSeverityToday(today ? today.value : null); });
+    loadRecapDismissed().then(setRecapDismissed);
+    loadDashboardOrder().then((o) => {
+      const valid = o.filter((k) => k === 'hero' || k === 'plan');
+      const full = [...valid, ...['hero', 'plan'].filter((k) => !valid.includes(k))];
+      setDashOrder(full);
+    });
   }, []);
 
-  const streakDays = streakStart
-    ? Math.max(0, Math.floor((Date.now() - new Date(streakStart).getTime()) / 86400000))
-    : 0;
-  const dayNumber = streakDays;
+  const todayIso = isoLocal();
+  const expStreak = expStreakOf(expDays);
+  const totalExpDays = expDays.length;
 
-  function relapse(kind: 'anxiety' | 'panic' | 'behavior') {
-    Alert.alert(t('home.resetTitle'), t('home.resetBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('home.reset'),
-        style: 'destructive',
-        onPress: async () => {
-          const next = await addAttack(kind);
-          setAttacks(next);
-          const iso = new Date().toISOString();
-          await saveStreakStart(iso);
-          setStreakStart(iso);
-          setFear(null);
-          setLastKind(kind);
-          setFeedback(kind === 'behavior' ? t('home.logged') : null);
-        },
-      },
-    ]);
-  }
+  const now = new Date();
+  const startY = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - startY.getTime()) / 86400000);
+  const affirmation = AFFIRMATIONS[dayOfYear % AFFIRMATIONS.length];
 
-  function noneToday() {
-    setLastKind(null);
-    setFear(null);
-    setFeedback(t('home.keptStreak'));
-  }
+  // --- Pilares ---
+  // Contam: terapia de exposição + comportamentos largados + exercícios que são
+  // terapia / formas de enfrentar (pensamentos, experiências, memória, não planeada,
+  // compromissos de aproximação). NÃO contam diário nem lições.
+  const periodDays = ringMode === 'daily' ? 1 : ringMode === 'weekly' ? 7 : 30;
+  const periodSet = new Set<string>();
+  for (let i = 0; i < periodDays; i++) periodSet.add(isoLocal(new Date(Date.now() - i * 86400000)));
 
-  async function logFear(v: number) {
-    setFear(v);
-    const next = await addSeverity(v);
-    setSeverity(next);
-    setFeedback(t('home.logged'));
-  }
-
-  const showIntensity = lastKind === 'anxiety' || lastKind === 'panic';
-
-  // --- Num relance ---
-  const totalLessons = CHAPTERS.flatMap((c) => c.lessons).length;
-  const glance = [
-    { icon: 'book-outline' as const, label: t('progress.glLessons'), value: `${lessonsDone.length}/${totalLessons}` },
-    { icon: 'trending-up-outline' as const, label: t('progress.glExposures'), value: `${exposures.length}` },
-    { icon: 'footsteps-outline' as const, label: t('progress.glExposureDays'), value: `${expDays.length}` },
-    { icon: 'create-outline' as const, label: t('progress.glJournal'), value: `${new Set(journal.map((j) => j.date)).size}` },
+  const challengeDates = challengesDone.map((kk) => kk.split(':')[0]);
+  const exerciseDates = exerciseLog.map((e) => e.date);
+  const therapyDates = [
+    ...exposures.map((e) => e.date),
+    ...thoughts.map((r) => r.date),
+    ...experiments.map((x) => x.date),
+    ...memories.map((m) => m.date),
+    ...unplanned.map((u) => u.date),
+    ...commitments.flatMap((c) => c.logs),
+    ...dropped.map((d) => d.date),
+    ...challengeDates,
+    ...exerciseDates,
+  ];
+  // "Aproximação" = enfrentar mesmo: exposição, não planeada, compromissos,
+  // largados, desafios de incerteza e os exercícios de treino registados.
+  const facingDates = [
+    ...exposures.map((e) => e.date),
+    ...unplanned.map((u) => u.date),
+    ...commitments.flatMap((c) => c.logs),
+    ...dropped.map((d) => d.date),
+    ...challengeDates,
+    ...exerciseDates,
   ];
 
-  // --- Gráficos ---
-  const CHART_HEIGHT = 156;
-  const AX_LEFT = 26;    // coluna fixa com a escala Y
-  const AX_BOTTOM = 24;  // faixa dos dias no eixo X
-  const PAD = 12;
-  const PAD_X = 14;
-  const WEEKS = 12;      // nº de semanas de histórico (deslizável, paginado)
-  const plotH = CHART_HEIGHT - AX_BOTTOM;
-  const yAt = (v: number) => plotH - PAD - (v / 5) * (plotH - PAD * 2);
-  const dmShort = (iso: string) => { const p = iso.split('-'); return `${p[2]}/${p[1]}`; };
-  const WEEKDAYS = lang === 'pt'
-    ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const therapyInPeriod = therapyDates.filter((d) => periodSet.has(d));
+  const facingInPeriod = facingDates.filter((d) => periodSet.has(d));
+  const daysWithTherapy = new Set(therapyInPeriod).size;
 
-  // Intensidade por dia (0–5): ataques (puxam sempre para cima), registos de intensidade
-  // e o desconforto na terapia de exposição (SUDS 0–10 → 0–5). Dia sem dados = sem ponto.
-  const fearFor = (d: string): number | null => {
-    const cands: number[] = severity.filter((e) => e.date === d).map((e) => e.value);
-    exposures.filter((e) => e.date === d).forEach((e) => cands.push((typeof e.peak === 'number' ? e.peak : e.before) / 2));
-    if (attacks.some((a) => a.date === d)) cands.push(4);
-    return cands.length ? Math.min(5, Math.max(...cands)) : null;
-  };
+  const appTarget = ringMode === 'daily' ? 1 : ringMode === 'weekly' ? 5 : 15;
+  // A 1.ª atividade do período conta para a Prática; as seguintes (repetições)
+  // contam para a Repetição — só há repetição se já houver ≥1 feita.
+  const repeats = Math.max(0, therapyInPeriod.length - 1);
+  const repeatTarget = ringMode === 'daily' ? 1 : ringMode === 'weekly' ? 6 : 19;
 
-  // Semanas alinhadas de segunda a domingo; a última é a semana atual.
-  const nowD = new Date();
-  const dow = (nowD.getDay() + 6) % 7; // 0 = segunda
-  const monday = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - dow);
-  const weeks: string[][] = [];
-  for (let w = WEEKS - 1; w >= 0; w--) {
-    const wk: string[] = [];
-    for (let d = 0; d < 7; d++) {
-      const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - w * 7 + d);
-      wk.push(isoLocal(dt));
-    }
-    weeks.push(wk);
+  const practicePct = ringMode === 'daily'
+    ? (therapyInPeriod.length >= 1 ? 100 : 0)
+    : Math.min(100, Math.round((daysWithTherapy / periodDays) * 100));
+  const repetitionPct = Math.min(100, Math.round((repeats / repeatTarget) * 100));
+  const approachPct = Math.min(100, Math.round((facingInPeriod.length / appTarget) * 100));
+
+  const ringCols = ringColors ?? defaultRingColors;
+  const PILLARS = [
+    { name: L('Prática', 'Practice'), pct: practicePct, color: ringCols[0] },
+    { name: L('Repetição', 'Repetition'), pct: repetitionPct, color: ringCols[1] },
+    { name: L('Aproximação', 'Approach'), pct: approachPct, color: ringCols[2] },
+  ];
+  const modeLabel = ringMode === 'daily' ? L('hoje', 'today') : ringMode === 'weekly' ? L('esta semana', 'this week') : L('este mês', 'this month');
+
+  // --- Próximo passo: sugestão a partir da escada ---
+  const hiddenSet = new Set(stepHidden);
+  const base = [
+    ...EXPOSURE_LADDER.map((s) => ({ id: s.id, label: s.label[lang] })),
+    ...customSteps.map((c) => ({ id: c.id, label: c.label })),
+  ].filter((s) => !hiddenSet.has(s.id));
+  const byId = new Map(base.map((s) => [s.id, s]));
+  const ordered = stepOrder.map((id) => byId.get(id)).filter(Boolean) as { id: string; label: string }[];
+  const seen = new Set(stepOrder);
+  const steps = [...ordered, ...base.filter((s) => !seen.has(s.id))];
+  const countByStep: Record<string, number> = {};
+  exposures.forEach((e) => { countByStep[e.stepId] = (countByStep[e.stepId] ?? 0) + 1; });
+  const sugStep = steps.find((s) => (countByStep[s.id] ?? 0) === 0)
+    ?? steps.reduce<{ id: string; label: string } | null>((min, s) => (!min || (countByStep[s.id] ?? 0) < (countByStep[min.id] ?? 0) ? s : min), null);
+  const sug = sugStep?.label ?? '';
+
+  function saveNs() {
+    const v = nsText.trim();
+    setSavedNextStep(v);
+    saveNextStep(v);
+    closeNsSheet();
   }
-  const allFearVals = weeks.flat().map(fearFor).filter((v): v is number => v !== null);
-  const avg = allFearVals.length ? allFearVals.reduce((s, v) => s + v, 0) / allFearVals.length : 0;
 
-  // Geometria de cada página (uma semana ocupa a largura visível).
-  const visibleW = Math.max(0, chartW - AX_LEFT);
-  const innerW = Math.max(0, visibleW - PAD_X * 2);
-  const xAt = (j: number) => PAD_X + (innerW / 6) * j; // 7 pontos (Seg..Dom)
+  // Adiciona um passo novo à escada (fica também disponível como sugestão) e seleciona-o.
+  function addNsStep() {
+    const v = nsNewStep.trim();
+    if (!v) return;
+    const id = 'custom:' + Date.now();
+    const nextCustom = [...customSteps, { id, label: v }];
+    setCustomSteps(nextCustom);
+    saveExposureSteps(nextCustom);
+    const nextOrder = [...steps.map((s) => s.id), id];
+    setStepOrder(nextOrder);
+    saveExposureOrder(nextOrder);
+    setNsText(v);
+    setNsNewStep('');
+    setNsAdding(false);
+  }
 
-  // Curva suave (Catmull-Rom → Bézier) para a linha; versão fechada para a área.
-  const smoothLine = (ps: { x: number; y: number }[]) => {
-    if (ps.length < 2) return '';
-    let d = `M ${ps[0].x},${ps[0].y}`;
-    for (let i = 0; i < ps.length - 1; i++) {
-      const p0 = ps[i - 1] || ps[i];
-      const p1 = ps[i];
-      const p2 = ps[i + 1];
-      const p3 = ps[i + 2] || p2;
-      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
-      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
-      d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
-    }
-    return d;
-  };
-  const smoothArea = (ps: { x: number; y: number }[], baseY: number) => {
-    if (ps.length < 2) return '';
-    return `${smoothLine(ps)} L ${ps[ps.length - 1].x},${baseY} L ${ps[0].x},${baseY} Z`;
-  };
+  // --- Resumo semanal (fim de semana) ---
+  const dow = (now.getDay() + 6) % 7;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+  const thisWeek: string[] = [];
+  for (let d = 0; d < 7; d++) thisWeek.push(isoLocal(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + d)));
+  const weekStartISO = thisWeek[0];
+  const weekSet = new Set(thisWeek);
+  const recapStats = [
+    { n: exposures.filter((e) => weekSet.has(e.date)).length, label: L('exposições', 'exposures') },
+    { n: expDays.filter((d) => weekSet.has(d)).length, label: L('dias de prática', 'practice days') },
+    { n: dropped.filter((d) => weekSet.has(d.date)).length, label: L('a largar', 'dropping') },
+    { n: new Set(journal.filter((j) => weekSet.has(j.date)).map((j) => j.date)).size, label: L('no diário', 'journal') },
+  ];
+  const showRecap = dow >= 5 && recapDismissed !== weekStartISO;
+  const recapMsg = recapStats[1].n > 0
+    ? L('Boa — cada passo conta. Continua assim.', 'Great — every step counts. Keep it up.')
+    : L('Uma semana mais calma também faz parte. Que tal um pequeno passo?', 'A quieter week is okay too. How about one small step?');
 
-  // 14 dias para o gráfico de atividade.
-  const days: string[] = [];
-  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(Date.now() - i * 86400000)));
-  const activityByDay = days.map((d) => {
-    const ex = exposures.filter((e) => e.date === d).length;
-    const jn = journal.filter((j) => j.date === d).length;
-    const sv = severity.filter((e) => e.date === d).length;
-    return ex + jn + sv;
-  });
-  const maxActivity = Math.max(1, ...activityByDay);
+  // --- Anel ---
+  const RING = 144, RC = RING / 2, SW = 10;
+  const radii = [RC - SW, RC - SW * 2 - 6, RC - SW * 3 - 12];
 
-  function CheckinButton({ label, onPress, positive }: { label: string; onPress: () => void; positive?: boolean }) {
+  function heroBlock() {
+    const streakLine = expStreak === 0
+      ? L('ainda sem dias seguidos — começa hoje', 'no streak yet — start today')
+      : L(`${expStreak} ${expStreak === 1 ? 'dia' : 'dias'} seguidos · ${totalExpDays} no total`, `${expStreak} ${expStreak === 1 ? 'day' : 'days'} in a row · ${totalExpDays} total`);
     return (
-      <Pressable onPress={onPress} style={{ flex: 1, paddingVertical: 16, borderRadius: radius.md, alignItems: 'center', backgroundColor: positive ? colors.primarySoft : colors.cardAlt, borderWidth: 2, borderColor: positive ? colors.primary : colors.border }}>
-        <Text style={{ color: positive ? colors.primary : colors.text, fontWeight: '700' }}>{label}</Text>
-      </Pressable>
+      <Card style={{ gap: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{L('Os teus pilares', 'Your pillars')}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>· {modeLabel}</Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
+          <View style={{ width: RING, height: RING }}>
+            <Svg width={RING} height={RING}>
+              <G rotation={-90} origin={`${RC}, ${RC}`}>
+                {PILLARS.map((p, i) => {
+                  const r = radii[i];
+                  const circ = 2 * Math.PI * r;
+                  return (
+                    <G key={i}>
+                      <Circle cx={RC} cy={RC} r={r} stroke={colors.cardAlt} strokeWidth={SW} fill="none" opacity={0.5} />
+                      <Circle cx={RC} cy={RC} r={r} stroke={p.color} strokeWidth={SW} fill="none" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - p.pct / 100)} />
+                    </G>
+                  );
+                })}
+              </G>
+            </Svg>
+          </View>
+
+          <View style={{ gap: 10, flex: 1 }}>
+            {PILLARS.map((p) => (
+              <View key={p.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: p.color }} />
+                <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{p.name}</Text>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '800' }}>{p.pct}%</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+          <Ionicons name="flame-outline" size={13} color={colors.primary} /> {streakLine}
+        </Text>
+      </Card>
     );
   }
 
-  // --- Painel reordenável (Visão geral) ---
+  function planBlock() {
+    return <PlanView key={planViewKey} onEdit={() => setPlanSheetOpen(true)} />;
+  }
+
+  function nextStepBlock() {
+    return (
+      <Card style={{ gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="footsteps-outline" size={18} color={colors.primary} />
+          <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{L('O teu próximo passo', 'Your next step')}</Text>
+          <Pressable onPress={() => { setNsText(savedNextStep); setNsSheetOpen(true); }} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="create-outline" size={15} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{savedNextStep ? L('mudar', 'change') : L('definir', 'set')}</Text>
+          </Pressable>
+        </View>
+
+        {savedNextStep ? (
+          <Text style={{ color: colors.text, fontSize: 15 }}>{savedNextStep}</Text>
+        ) : (
+          <>
+            <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{L('Ainda não definiste o teu próximo passo. Toca em "definir".', 'You haven\'t set your next step yet. Tap "set".')}</Text>
+            {!!sug && (
+              <Pressable onPress={() => { setNsText(sug); setNsSheetOpen(true); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
+                <Ionicons name="bulb-outline" size={14} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontSize: 13 }} numberOfLines={1}>{L('Sugestão: ', 'Suggestion: ')}{sug}</Text>
+              </Pressable>
+            )}
+          </>
+        )}
+      </Card>
+    );
+  }
+
+  // Check-in diário de gravidade (0–5) — alimenta o gráfico "Gravidade" nas Estatísticas.
+  function severityBlock() {
+    return (
+      <Card style={{ gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="pulse-outline" size={18} color={colors.primary} />
+          <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{L('Como está a fobia hoje?', 'How is the phobia today?')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {[0, 1, 2, 3, 4, 5].map((v) => {
+            const sel = severityToday === v;
+            return (
+              <Pressable
+                key={v}
+                onPress={() => { setSeverityToday(v); addSeverity(v); }}
+                accessibilityRole="button"
+                accessibilityLabel={L(`Gravidade ${v} de 5`, `Severity ${v} of 5`)}
+                style={{ flex: 1, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: sel ? colors.primary : colors.border }}
+              >
+                <Text style={{ color: sel ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+          {severityToday != null ? L(`Hoje: ${severityToday}/5 · toca para mudar`, `Today: ${severityToday}/5 · tap to change`) : L('0 = nada · 5 = muito', '0 = none · 5 = a lot')}
+        </Text>
+      </Card>
+    );
+  }
+
+  const DASH: Record<string, () => any> = { hero: heroBlock, plan: planBlock };
+
   function moveDash(index: number, dir: -1 | 1) {
     const j = index + dir;
     if (j < 0 || j >= dashOrder.length) return;
@@ -221,61 +429,22 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
   }
   function toggleReorder() {
     if (!unlocked) {
-      Alert.alert(
-        lang === 'pt' ? 'Personalização' : 'Personalization',
-        lang === 'pt' ? 'Reordenar o painel faz parte do pack de personalização.' : 'Reordering the panel is part of the personalization pack.'
-      );
+      Alert.alert(L('Personalização', 'Personalization'), L('Reordenar o painel faz parte do pack de personalização.', 'Reordering the panel is part of the personalization pack.'));
       return;
     }
     setReordering((r) => !r);
   }
-  function heroBlock() {
-    return (
-      <View style={{ alignItems: 'center', gap: 8 }}>
-        <View style={{ width: 170, height: 170, borderRadius: 85, borderWidth: 10, borderColor: colors.primary, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.primary, fontSize: 54, fontWeight: '800' }}>{dayNumber}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center', paddingHorizontal: 10 }}>{t(dayNumber === 1 ? 'home.journeyDay' : 'home.journeyDays')}</Text>
-        </View>
-        {dayNumber >= 30 && (
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.journeyMonthsCaption', { n: Math.floor(dayNumber / 30) })}</Text>
-        )}
-      </View>
-    );
-  }
-  function glanceBlock() {
-    return (
-      <View style={{ gap: spacing.lg }}>
-        <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>{t('progress.glance')}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          {glance.map((g) => (
-            <Card key={g.label} style={{ width: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={g.icon} size={19} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{g.value}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{g.label}</Text>
-              </View>
-            </Card>
-          ))}
-        </View>
-      </View>
-    );
-  }
-  function planBlock() { return <PlanSummary />; }
-  const DASH: Record<string, () => any> = { hero: heroBlock, glance: glanceBlock, plan: planBlock };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Abas */}
-      <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
+      <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
         <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-          {(['overview', 'today'] as const).map((v) => {
+          {(['overview', 'stats'] as const).map((v) => {
             const active = tab === v;
             return (
               <Pressable key={v} onPress={() => setTab(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
                 <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 14 }}>
-                  {v === 'overview' ? t('home.overviewTab') : t('home.todayTab')}
+                  {v === 'overview' ? L('Visão geral', 'Overview') : L('Estatísticas', 'Statistics')}
                 </Text>
               </Pressable>
             );
@@ -283,14 +452,19 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
         </View>
       </View>
 
-      {/* ---------- VISÃO GERAL ---------- */}
-      {tab === 'overview' && (
-        <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg, paddingBottom: 120 }}>
-          {/* Reordenar o painel (pack de personalização) */}
+      {tab === 'stats' ? (
+        <ProgressScreen />
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg, paddingBottom: 120 }}>
+          <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ionicons name="sunny-outline" size={20} color={colors.primary} />
+            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1, lineHeight: 21 }}>{affirmation[lang]}</Text>
+          </View>
+
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -spacing.sm }}>
             <Pressable onPress={toggleReorder} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name={reordering ? 'checkmark' : unlocked ? 'swap-vertical' : 'lock-closed-outline'} size={16} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{reordering ? (lang === 'pt' ? 'Concluir' : 'Done') : (lang === 'pt' ? 'Reordenar' : 'Reorder')}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{reordering ? L('Concluir', 'Done') : L('Reordenar', 'Reorder')}</Text>
             </Pressable>
           </View>
 
@@ -299,10 +473,10 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
               <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderColor: colors.border, borderStyle: 'dashed', borderRadius: radius.lg, padding: spacing.sm }}>
                 <View style={{ flex: 1 }}>{DASH[key]?.()}</View>
                 <View style={{ gap: 4 }}>
-                  <Pressable onPress={() => moveDash(i, -1)} hitSlop={6} disabled={i === 0} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                  <Pressable onPress={() => moveDash(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={L('Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                     <Ionicons name="chevron-up" size={22} color={colors.primary} />
                   </Pressable>
-                  <Pressable onPress={() => moveDash(i, 1)} hitSlop={6} disabled={i === dashOrder.length - 1} style={{ padding: 4, opacity: i === dashOrder.length - 1 ? 0.3 : 1 }}>
+                  <Pressable onPress={() => moveDash(i, 1)} hitSlop={6} disabled={i === dashOrder.length - 1} accessibilityRole="button" accessibilityLabel={L('Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === dashOrder.length - 1 ? 0.3 : 1 }}>
                     <Ionicons name="chevron-down" size={22} color={colors.primary} />
                   </Pressable>
                 </View>
@@ -312,230 +486,95 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
             )
           ))}
 
-          {/* Seletor Progresso / Atividade / Largados */}
-          <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-            {(['progress', 'activity', 'dropped'] as const).map((v) => {
-              const active = chartView === v;
-              const label = v === 'progress' ? t('progress.tabProgress') : v === 'activity' ? t('progress.tabActivity') : (lang === 'pt' ? 'Largados' : 'Dropped');
-              return (
-                <Pressable key={v} onPress={() => setChartView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-                  <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 13 }}>
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          {severityBlock()}
 
-          <Card style={{ gap: 14 }}>
-            {chartView === 'progress' ? (
-              <>
-                <View style={{ gap: 2 }}>
-                  <Text style={{ color: colors.text, fontWeight: '600' }}>{t('progress.chartTitle')}</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('progress.statAvg')} {avg.toFixed(1)}/5</Text>
-                </View>
-                {allFearVals.length === 0 ? (
-                  <Text style={{ color: colors.textMuted }}>{t('progress.chartEmpty')}</Text>
-                ) : (
-                  <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT + 24, alignItems: 'flex-start' }}>
-                    {/* Eixo Y fixo (0 a 5) */}
-                    <Svg width={AX_LEFT} height={CHART_HEIGHT}>
-                      {[0, 1, 2, 3, 4, 5].map((v) => (
-                        <SvgText key={'y' + v} x={AX_LEFT - 6} y={yAt(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
-                      ))}
-                    </Svg>
-                    {/* Páginas semanais (paginado) */}
-                    {chartW > 0 && (
-                      <ScrollView
-                        ref={fearScrollRef}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        style={{ width: visibleW, height: CHART_HEIGHT + 24 }}
-                        onContentSizeChange={() => fearScrollRef.current?.scrollToEnd({ animated: false })}
-                      >
-                        {weeks.map((wk, wi) => {
-                          const pts = wk
-                            .map((d, j) => { const v = fearFor(d); return v === null ? null : { x: xAt(j), y: yAt(v), v }; })
-                            .filter((p): p is { x: number; y: number; v: number } => p !== null);
-                          const baseY = yAt(0);
-                          const line = smoothLine(pts);
-                          const area = smoothArea(pts, baseY);
-                          const last = pts[pts.length - 1];
-                          const gid = `fearGrad${wi}`;
-                          const todayIso = isoLocal();
-                          const range = `${dmShort(wk[0])} – ${dmShort(wk[6])}`;
-                          return (
-                            <View key={wi} style={{ width: visibleW }}>
-                            <Svg width={visibleW} height={CHART_HEIGHT}>
-                              <Defs>
-                                <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-                                  <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
-                                  <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
-                                </LinearGradient>
-                              </Defs>
+          {nextStepBlock()}
 
-                              {/* Grelha horizontal tracejada (0 a 5) */}
-                              {[0, 1, 2, 3, 4, 5].map((v) => (
-                                <Line
-                                  key={'g' + v}
-                                  x1={PAD_X} y1={yAt(v)} x2={visibleW - PAD_X} y2={yAt(v)}
-                                  stroke={colors.border}
-                                  strokeWidth={v === 0 ? 1 : 1}
-                                  strokeDasharray={v === 0 ? undefined : '2 5'}
-                                  opacity={v === 0 ? 0.7 : 0.45}
-                                  strokeLinecap="round"
-                                />
-                              ))}
-
-                              {/* Dias da semana no eixo X (hoje a destaque) */}
-                              {WEEKDAYS.map((wd, j) => {
-                                const isToday = wk[j] === todayIso;
-                                return (
-                                  <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '700' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
-                                );
-                              })}
-
-                              {/* Área com gradiente + linha curva */}
-                              {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
-                              {pts.length > 1 && <Path d={line} fill="none" stroke={colors.primary} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
-
-                              {/* Pontos (anel branco + miolo); halo no último */}
-                              {last && <Circle cx={last.x} cy={last.y} r={9} fill={colors.primary} opacity={0.14} />}
-                              {pts.map((p, i) => {
-                                const isLast = i === pts.length - 1;
-                                return (
-                                  <Circle key={'p' + i} cx={p.x} cy={p.y} r={isLast ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={isLast ? 3 : 2} />
-                                );
-                              })}
-
-                              {/* Valor do último dia registado */}
-                              {last && (
-                                <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="700" fill={colors.primary} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
-                              )}
-                            </Svg>
-                            {/* Intervalo da semana (por baixo do eixo x) */}
-                            <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{range}</Text>
-                            </View>
-                          );
-                        })}
-                      </ScrollView>
-                    )}
-                  </View>
-                )}
-              </>
-            ) : chartView === 'activity' ? (
-              <>
-                <Text style={{ color: colors.text, fontWeight: '600' }}>{t('progress.activityTitle')}</Text>
-                {activityByDay.every((n) => n === 0) ? (
-                  <Text style={{ color: colors.textMuted }}>{t('progress.activityEmpty')}</Text>
-                ) : (
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: CHART_HEIGHT }}>
-                    {activityByDay.map((n, idx) => (
-                      <View key={idx} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-                        <View style={{ width: '70%', height: Math.max(4, (n / maxActivity) * CHART_HEIGHT), backgroundColor: colors.success, borderRadius: 4 }} />
-                      </View>
-                    ))}
-                  </View>
-                )}
-                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('progress.activityHint')}</Text>
-              </>
-            ) : (
-              <>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Text style={{ color: colors.success, fontSize: 30, fontWeight: '800' }}>{dropped.length}</Text>
-                  <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{lang === 'pt' ? 'comportamentos que estás a largar' : 'behaviours you are dropping'}</Text>
-                </View>
-                {dropped.length === 0 ? (
-                  <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>{lang === 'pt' ? 'Marca um comportamento como "a largar" em Recursos › Comportamentos para veres aqui o teu progresso.' : 'Mark a behaviour as "dropping" in Resources › Behaviours to see your progress here.'}</Text>
-                ) : (
-                  <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
-                    {chartW > 0 && (() => {
-                      const sorted = [...dropped].sort((a, b) => (a.date < b.date ? -1 : 1));
-                      const map = new Map<string, number>();
-                      sorted.forEach((d, i) => map.set(d.date, i + 1));
-                      const dates = Array.from(map.keys());
-                      const maxC = sorted.length;
-                      const first = new Date(dates[0] + 'T00:00:00').getTime();
-                      const today = new Date(isoLocal() + 'T00:00:00').getTime();
-                      const span = Math.max(1, today - first);
-                      const w = chartW;
-                      const plotH2 = CHART_HEIGHT - 16;
-                      const xOf = (iso: string) => PAD_X + ((new Date(iso + 'T00:00:00').getTime() - first) / span) * (w - PAD_X * 2);
-                      const yOf = (c: number) => (plotH2 - PAD) - (c / maxC) * (plotH2 - PAD * 2);
-                      const pts = dates.map((iso) => ({ x: xOf(iso), y: yOf(map.get(iso)!) }));
-                      const lastPt = pts[pts.length - 1];
-                      const endPts = lastPt.x < w - PAD_X ? [...pts, { x: w - PAD_X, y: lastPt.y }] : pts;
-                      return (
-                        <Svg width={w} height={CHART_HEIGHT}>
-                          <Defs>
-                            <LinearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
-                              <Stop offset="0" stopColor={colors.success} stopOpacity={0.28} />
-                              <Stop offset="1" stopColor={colors.success} stopOpacity={0} />
-                            </LinearGradient>
-                          </Defs>
-                          {endPts.length > 1 && <Path d={smoothArea(endPts, plotH2 - PAD)} fill="url(#dropGrad)" />}
-                          {endPts.length > 1 && <Path d={smoothLine(endPts)} fill="none" stroke={colors.success} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
-                          {pts.map((p, i) => (
-                            <Circle key={i} cx={p.x} cy={p.y} r={4} fill={colors.card} stroke={colors.success} strokeWidth={2} />
-                          ))}
-                        </Svg>
-                      );
-                    })()}
-                  </View>
-                )}
-                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lang === 'pt' ? 'Total de comportamentos que começaste a largar ao longo do tempo.' : 'Cumulative safety behaviours you have started dropping over time.'}</Text>
-              </>
-            )}
-          </Card>
         </ScrollView>
       )}
 
-      {/* ---------- HOJE ---------- */}
-      {tab === 'today' && (
-        <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg, paddingBottom: 120 }}>
-          <View>
-            <ScreenTitle title={t('home.greeting')} />
-            <Text style={{ color: colors.textMuted, fontSize: 15, marginTop: 4 }}>{t('home.subtitle')}</Text>
+      {/* Plano — sheet que desliza de baixo para cima */}
+      <Modal visible={planSheetOpen} transparent animationType="slide" onRequestClose={closePlanSheet}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <Pressable style={{ flex: 1 }} onPress={closePlanSheet} />
+            <GestureDetector gesture={sheetGesture}>
+              <Reanimated.View style={[{ backgroundColor: colors.background, borderTopLeftRadius: 22, borderTopRightRadius: 22, height: '92%' }, sheetAnimStyle]}>
+                <View style={{ alignItems: 'center', paddingTop: 8 }}>
+                  <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border }} />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: 8 }}>
+                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', flex: 1 }}>{L('Editar plano', 'Edit plan')}</Text>
+                  <Pressable onPress={closePlanSheet} hitSlop={8} accessibilityRole="button" accessibilityLabel={L('Fechar', 'Close')}>
+                    <Ionicons name="close" size={26} color={colors.textMuted} />
+                  </Pressable>
+                </View>
+                <Reanimated.ScrollView ref={sheetScrollRef} onScroll={sheetOnScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: spacing.xl, paddingTop: 4, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+                  <PlanEditor />
+                </Reanimated.ScrollView>
+              </Reanimated.View>
+            </GestureDetector>
           </View>
+        </GestureHandlerRootView>
+      </Modal>
 
-          <PlanToday />
+      {/* Próximo passo — sheet que desliza de baixo para cima */}
+      <Modal visible={nsSheetOpen} transparent animationType="slide" onRequestClose={closeNsSheet}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <Pressable style={{ flex: 1 }} onPress={closeNsSheet} />
+            <GestureDetector gesture={nsGesture}>
+              <Reanimated.View style={[{ backgroundColor: colors.background, borderTopLeftRadius: 22, borderTopRightRadius: 22, height: '82%' }, nsAnimStyle]}>
+                <View style={{ alignItems: 'center', paddingTop: 8 }}>
+                  <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border }} />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: 8 }}>
+                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', flex: 1 }}>{L('Próximo passo', 'Next step')}</Text>
+                  <Pressable onPress={closeNsSheet} hitSlop={8} accessibilityRole="button" accessibilityLabel={L('Fechar', 'Close')}>
+                    <Ionicons name="close" size={26} color={colors.textMuted} />
+                  </Pressable>
+                </View>
+                <Reanimated.ScrollView ref={nsScrollRef} onScroll={nsOnScroll} scrollEventThrottle={16} contentContainerStyle={{ padding: spacing.xl, paddingTop: 4, paddingBottom: 60, gap: spacing.md }} keyboardShouldPersistTaps="handled">
+                  <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{L('Escolhe um passo da lista ou adiciona o teu.', 'Pick a step from the list or add your own.')}</Text>
 
-          {/* Check-in */}
-          <Card style={{ gap: spacing.sm }}>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{t('home.checkinTitle')}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.checkinHint')}</Text>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: 4 }}>
-              <CheckinButton label={t('home.anxiety')} onPress={() => relapse('anxiety')} />
-              <CheckinButton label={t('home.panic')} onPress={() => relapse('panic')} />
-            </View>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <CheckinButton label={t('home.behavior')} onPress={() => relapse('behavior')} />
-              <CheckinButton label={t('home.none')} onPress={noneToday} />
-            </View>
-
-            {showIntensity && (
-              <View style={{ gap: spacing.sm, marginTop: spacing.sm, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border }}>
-                <Text style={{ color: colors.text, fontWeight: '600' }}>{t('home.fearTitle')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.fearHint')}</Text>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                  {[0, 1, 2, 3, 4, 5].map((v) => {
-                    const active = fear === v;
-                    return (
-                      <Pressable key={v} onPress={() => logFear(v)} style={{ flex: 1, aspectRatio: 1, borderRadius: radius.md, backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: active ? '#ffffff' : colors.text, fontSize: 18, fontWeight: '700' }}>{v}</Text>
+                  {/* Adicionar passo — no topo, não no fundo */}
+                  {nsAdding ? (
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput value={nsNewStep} onChangeText={setNsNewStep} onSubmitEditing={addNsStep} autoFocus
+                        placeholder={L('Escreve o teu passo…', 'Write your own step…')} placeholderTextColor={colors.textMuted}
+                        style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+                      <Pressable onPress={addNsStep} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#fff', fontWeight: '700' }}>{L('Adicionar', 'Add')}</Text>
                       </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
+                    </View>
+                  ) : (
+                    <Pressable onPress={() => setNsAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 14, height: 38, borderRadius: 999 }}>
+                      <Ionicons name="add" size={18} color={colors.primary} />
+                      <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{L('Adicionar passo', 'Add step')}</Text>
+                    </Pressable>
+                  )}
 
-            {feedback && <Text style={{ color: colors.success, fontSize: 13, marginTop: 2 }}>{feedback}</Text>}
-          </Card>
+                  {/* Lista de passos */}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {steps.map((s) => {
+                      const sel = nsText.trim() === s.label;
+                      return (
+                        <Pressable key={s.id} onPress={() => setNsText(s.label)} style={{ paddingHorizontal: 12, paddingVertical: 10, borderRadius: 999, borderWidth: 2, borderColor: sel ? colors.primary : colors.border, backgroundColor: sel ? colors.primarySoft : colors.cardAlt }}>
+                          <Text style={{ color: sel ? colors.primary : colors.text, fontSize: 14, fontWeight: sel ? '700' : '500' }}>{s.label}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
 
-        </ScrollView>
-      )}
+                  <Pressable onPress={saveNs} disabled={!nsText.trim()} style={{ alignItems: 'center', paddingVertical: 13, borderRadius: radius.md, backgroundColor: colors.primary, opacity: nsText.trim() ? 1 : 0.5, marginTop: 4 }}>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{L('Guardar', 'Save')}</Text>
+                  </Pressable>
+                </Reanimated.ScrollView>
+              </Reanimated.View>
+            </GestureDetector>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
     </View>
   );
 }

@@ -1,41 +1,78 @@
-// Plano (hoje): tarefas do dia + "comportamento da semana" escolhido da tua lista
-// de comportamentos de segurança. Começas pelos mais fáceis e vais subindo.
-// PlanToday  -> usado na aba "Hoje".
-// PlanSummary-> resumo pequeno na aba "Visão geral".
+// Plano do utilizador. Dois modos:
+//  • PlanView   — checklist do dia, VISÍVEL no ecrã inicial (marcar feito + "Editar").
+//  • PlanEditor — formulário livre (no sheet): escolher sugestões, acrescentar
+//    tarefas próprias e definir o comportamento da semana a largar.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { useLang } from '../i18n/i18n';
-import { loadSafety, loadWeekPlan, saveWeekPlan, WeekPlan } from '../storage/storage';
+import {
+  loadPlanTasks,
+  loadSafety,
+  loadWeekPlan,
+  PlanTask,
+  savePlanTasks,
+  saveWeekPlan,
+  WeekPlan,
+} from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card } from './ui';
 
 type L = { pt: string; en: string };
 
-const L_EXP: L = { pt: 'Exposição do degrau atual', en: 'Exposure at your current step' };
-const L_REV: L = { pt: 'Rever (o que previa vs o que aconteceu)', en: 'Review (predicted vs what happened)' };
-const L_MEM: L = { pt: 'Trabalhar uma memória', en: 'Work on a memory' };
-const L_LEVE: L = { pt: 'Dia mais leve / descanso', en: 'Lighter day / rest' };
+const CATEGORIES: { key: string; title: L }[] = [
+  { key: 'exp', title: { pt: 'Exposição', en: 'Exposure' } },
+  { key: 'cog', title: { pt: 'Pensamento', en: 'Thinking' } },
+  { key: 'acc', title: { pt: 'Aceitação e valores', en: 'Acceptance & values' } },
+  { key: 'beh', title: { pt: 'Comportamentos a largar', en: 'Behaviours to drop' } },
+  { key: 'care', title: { pt: 'Autocuidado', en: 'Self-care' } },
+];
+const SUGGESTIONS: { id: string; cat: string; label: L }[] = [
+  { id: 'exp_day', cat: 'exp', label: { pt: 'Exposição do dia (um degrau)', en: "Today's exposure (one step)" } },
+  { id: 'exp_video', cat: 'exp', label: { pt: 'Ver um vídeo temido', en: 'Watch a feared video' } },
+  { id: 'exp_words', cat: 'exp', label: { pt: 'Palavra a palavra', en: 'Word by word' } },
+  { id: 'exp_senso', cat: 'exp', label: { pt: 'Exposição às sensações do corpo', en: 'Body-sensation exposure' } },
+  { id: 'exp_food', cat: 'exp', label: { pt: 'Comer algo "assustador"', en: 'Eat something "scary"' } },
+  { id: 'exp_read', cat: 'exp', label: { pt: 'Ler um relato / lição', en: 'Read an account / lesson' } },
+  { id: 'exp_mem', cat: 'exp', label: { pt: 'Trabalhar uma memória', en: 'Work on a memory' } },
+  { id: 'cog_thought', cat: 'cog', label: { pt: 'Desconstruir um pensamento', en: 'Deconstruct a thought' } },
+  { id: 'cog_review', cat: 'cog', label: { pt: 'Rever (previa vs aconteceu)', en: 'Review (predicted vs happened)' } },
+  { id: 'cog_myth', cat: 'cog', label: { pt: 'Verdade ou mito', en: 'True or myth' } },
+  { id: 'acc_approach', cat: 'acc', label: { pt: 'Um passo de aproximação', en: 'One approach step' } },
+  { id: 'acc_values', cat: 'acc', label: { pt: 'Reler os meus valores', en: 'Re-read my values' } },
+  { id: 'acc_accept', cat: 'acc', label: { pt: 'Ficar com o desconforto sem lutar', en: 'Stay with discomfort without fighting' } },
+  { id: 'acc_wave', cat: 'acc', label: { pt: 'Deixar passar uma onda de ansiedade', en: 'Let a wave of anxiety pass' } },
+  { id: 'beh_drop', cat: 'beh', label: { pt: 'Largar um comportamento de segurança', en: 'Drop a safety behaviour' } },
+  { id: 'beh_expiry', cat: 'beh', label: { pt: 'Não verificar validades', en: "Don't check expiry dates" } },
+  { id: 'beh_reassure', cat: 'beh', label: { pt: 'Não pedir tranquilização', en: "Don't seek reassurance" } },
+  { id: 'beh_monitor', cat: 'beh', label: { pt: 'Não vigiar a barriga', en: "Don't monitor my stomach" } },
+  { id: 'care_breath', cat: 'care', label: { pt: 'Técnica de respiração', en: 'Breathing technique' } },
+  { id: 'care_ground', cat: 'care', label: { pt: 'Grounding (5-4-3-2-1)', en: 'Grounding (5-4-3-2-1)' } },
+  { id: 'care_journal', cat: 'care', label: { pt: 'Escrever no diário', en: 'Write in the journal' } },
+  { id: 'care_sounds', cat: 'care', label: { pt: 'Ouvir sons para acalmar', en: 'Listen to calming sounds' } },
+  { id: 'care_affirm', cat: 'care', label: { pt: 'Ler a afirmação do dia', en: 'Read the daily affirmation' } },
+  { id: 'care_move', cat: 'care', label: { pt: 'Mexer o corpo / caminhar', en: 'Move my body / walk' } },
+  { id: 'care_sleep', cat: 'care', label: { pt: 'Cuidar do sono', en: 'Look after my sleep' } },
+];
+// Ids antigos → novos (para planos criados na versão anterior).
+const LEGACY: Record<string, string> = {
+  exp: 'exp_day', rev: 'cog_review', approach: 'acc_approach',
+  mem: 'exp_mem', breath: 'care_breath', journal: 'care_journal', values: 'acc_values',
+};
+function migrate(list: PlanTask[]): PlanTask[] {
+  return list.map((t) => (!t.label && LEGACY[t.id] ? { id: LEGACY[t.id] } : t));
+}
 
 function ymd(d: Date) {
-  // Data local (evita o desvio de 1 dia do toISOString, que é UTC).
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function weekStartOf(d: Date) {
-  const dow = (d.getDay() + 6) % 7; // 0 = segunda
+  const dow = (d.getDay() + 6) % 7;
   return ymd(new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow));
 }
-// Tarefas-base do dia (sem o comportamento da semana).
-function baseTasks(dow: number): { key: string; label: L }[] {
-  if (dow <= 4) return [{ key: 'exp', label: L_EXP }, { key: 'rev', label: L_REV }];
-  if (dow === 5) return [{ key: 'mem', label: L_MEM }];
-  return [{ key: 'leve', label: L_LEVE }];
-}
-
-// Carrega o plano, renovando a semana (novo comportamento a escolher) se mudou.
 async function loadFreshPlan(): Promise<WeekPlan> {
   const p = await loadWeekPlan();
   const ws = weekStartOf(new Date());
@@ -47,94 +84,234 @@ async function loadFreshPlan(): Promise<WeekPlan> {
   return p;
 }
 
-// ---------- Cartão do dia (aba "Hoje") ----------
-export default function PlanToday() {
+function labelOf(tk: PlanTask, lang: 'pt' | 'en') {
+  return tk.label ?? (SUGGESTIONS.find((s) => s.id === tk.id)?.label[lang] ?? tk.id);
+}
+
+// ============ VISTA (checklist do dia, no ecrã inicial) ============
+export default function PlanView({ onEdit }: { onEdit: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
 
   const [plan, setPlan] = useState<WeekPlan | null>(null);
-  const [picking, setPicking] = useState(false);
-  const [custom, setCustom] = useState<{ id: string; label: string }[]>([]);
+  const [tasks, setTasks] = useState<PlanTask[]>([]);
 
   const today = ymd(new Date());
-  const dow = (new Date().getDay() + 6) % 7;
 
   useEffect(() => {
     loadFreshPlan().then(setPlan);
-    loadSafety().then((list) => setCustom(list.filter((s) => s.id.startsWith('custom:')).map((s) => ({ id: s.id, label: s.label }))));
+    loadPlanTasks().then((stored) => {
+      const m = migrate(stored);
+      setTasks(m);
+      if (JSON.stringify(m) !== JSON.stringify(stored)) savePlanTasks(m);
+    });
   }, []);
 
   if (!plan) return null;
 
-  function persist(next: WeekPlan) {
-    setPlan(next);
-    saveWeekPlan(next);
-  }
-  function toggle(key: string) {
+  function toggleDone(key: string) {
     if (!plan) return;
     const id = `${today}:${key}`;
     const done = plan.done.includes(id) ? plan.done.filter((x) => x !== id) : [...plan.done, id];
-    persist({ ...plan, done });
-  }
-  function chooseFocus(id: string, label: string) {
-    if (!plan) return;
-    persist({ ...plan, focusId: id, focusLabel: label });
-    setPicking(false);
+    setPlan({ ...plan, done });
+    saveWeekPlan({ ...plan, done });
   }
 
-  // Lista de comportamentos para escolher (catálogo + personalizados).
-  const options = [
-    ...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: b.label[lang] })),
-    ...custom,
-  ];
+  const focusDisplay = plan.focusLabel
+    ? (SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === plan!.focusId)?.label[lang] ?? plan.focusLabel)
+    : null;
+  const dayTasks: { key: string; label: string }[] = tasks.map((tk) => ({ key: tk.id, label: labelOf(tk, lang) }));
+  if (focusDisplay) dayTasks.push({ key: 'focus', label: Lx(`Resistir hoje a: ${focusDisplay}`, `Resist today: ${focusDisplay}`) });
+  const doneToday = dayTasks.filter((t) => plan.done.includes(`${today}:${t.key}`)).length;
 
-  const tasks = [...baseTasks(dow)];
-  if (plan.focusLabel) tasks.push({ key: 'focus', label: { pt: `Resistir hoje a: ${plan.focusLabel}`, en: `Resist today: ${plan.focusLabel}` } });
-  const doneToday = tasks.filter((t) => plan.done.includes(`${today}:${t.key}`)).length;
+  // Plano vazio → convite a criar.
+  if (dayTasks.length === 0) {
+    return (
+      <Card style={{ gap: spacing.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="list-outline" size={18} color={colors.primary} />
+          <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{Lx('O teu plano', 'Your plan')}</Text>
+        </View>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Ainda não tens um plano. Cria um.', "You don't have a plan yet. Create one.")}</Text>
+        <Pressable onPress={onEdit} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: radius.md, backgroundColor: colors.primary }}>
+          <Ionicons name="add" size={18} color="#fff" />
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Criar plano', 'Create plan')}</Text>
+        </Pressable>
+      </Card>
+    );
+  }
 
   return (
     <Card style={{ gap: spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{tt({ pt: 'O teu plano de hoje', en: 'Your plan for today' })}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13 }}>{doneToday}/{tasks.length}</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{Lx('O teu plano de hoje', "Your plan for today")}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13, marginRight: 12 }}>{doneToday}/{dayTasks.length}</Text>
+        <Pressable onPress={onEdit} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="create-outline" size={16} color={colors.primary} />
+          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{Lx('Editar', 'Edit')}</Text>
+        </Pressable>
       </View>
 
-      {tasks.map((task) => {
+      {dayTasks.map((task) => {
         const checked = plan.done.includes(`${today}:${task.key}`);
         return (
-          <Pressable key={task.key} onPress={() => toggle(task.key)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
+          <Pressable key={task.key} onPress={() => toggleDone(task.key)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
             <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
               {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
             </View>
-            <Text style={{ color: checked ? colors.textMuted : colors.text, fontSize: 15, flex: 1, textDecorationLine: checked ? 'line-through' : 'none' }}>{tt(task.label)}</Text>
+            <Text style={{ color: checked ? colors.textMuted : colors.text, fontSize: 15, flex: 1, textDecorationLine: checked ? 'line-through' : 'none' }}>{task.label}</Text>
           </Pressable>
         );
       })}
+    </Card>
+  );
+}
 
-      {/* Comportamento da semana */}
-      <View style={{ marginTop: 4, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
-        {plan.focusLabel ? (
+// ============ EDITOR (formulário, no sheet) ============
+export function PlanEditor() {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+
+  const [plan, setPlan] = useState<WeekPlan | null>(null);
+  const [tasks, setTasks] = useState<PlanTask[]>([]);
+  const [custom, setCustom] = useState<{ id: string; label: string }[]>([]);
+  const [newTask, setNewTask] = useState('');
+  const [picking, setPicking] = useState(false);
+
+  useEffect(() => {
+    loadFreshPlan().then(setPlan);
+    loadSafety().then((list) => setCustom(list.filter((s) => s.id.startsWith('custom:')).map((s) => ({ id: s.id, label: s.label }))));
+    loadPlanTasks().then((stored) => {
+      const m = migrate(stored);
+      setTasks(m);
+      if (JSON.stringify(m) !== JSON.stringify(stored)) savePlanTasks(m);
+    });
+  }, []);
+
+  if (!plan) return null;
+
+  function persistTasks(next: PlanTask[]) { setTasks(next); savePlanTasks(next); }
+  function addSuggestion(id: string) { if (!tasks.some((t) => t.id === id)) persistTasks([...tasks, { id }]); }
+  function addCustomTask() {
+    const v = newTask.trim();
+    if (!v) return;
+    persistTasks([...tasks, { id: 'c' + Date.now(), label: v }]);
+    setNewTask('');
+  }
+  function removeTask(id: string) { persistTasks(tasks.filter((t) => t.id !== id)); }
+  function chooseFocus(id: string, label: string) {
+    if (!plan) return;
+    setPlan({ ...plan, focusId: id, focusLabel: label });
+    saveWeekPlan({ ...plan, focusId: id, focusLabel: label });
+    setPicking(false);
+  }
+  function clearFocus() {
+    if (!plan) return;
+    setPlan({ ...plan, focusId: null, focusLabel: null });
+    saveWeekPlan({ ...plan, focusId: null, focusLabel: null });
+  }
+
+  const focusDisplay = plan.focusLabel
+    ? ([...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: b.label[lang] })), ...custom].find((o) => o.id === plan.focusId)?.label ?? plan.focusLabel)
+    : null;
+  const behaviourOptions = [
+    ...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: b.label[lang] })),
+    ...custom,
+  ];
+
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
+        {Lx('A emetofobia é diferente para cada pessoa — monta o plano com o que fizer sentido para ti. Escolhe das sugestões ou acrescenta as tuas tarefas.',
+            'Emetophobia is different for everyone — build the plan with whatever makes sense for you. Pick from the suggestions or add your own tasks.')}
+      </Text>
+
+      {/* As minhas tarefas */}
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('As minhas tarefas', 'My tasks')}</Text>
+        {tasks.length === 0 && !focusDisplay ? (
+          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Vazio. Acrescenta tarefas abaixo.', 'Empty. Add tasks below.')}</Text>
+        ) : (
+          <>
+            {tasks.map((tk) => (
+              <View key={tk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
+                <Ionicons name="ellipse" size={8} color={colors.primary} />
+                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{labelOf(tk, lang)}</Text>
+                <Pressable onPress={() => removeTask(tk.id)} hitSlop={6}>
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                </Pressable>
+              </View>
+            ))}
+            {focusDisplay && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
+                <Ionicons name="hand-left-outline" size={14} color={colors.primary} />
+                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx(`Resistir a: ${focusDisplay}`, `Resist: ${focusDisplay}`)}</Text>
+                <Pressable onPress={clearFocus} hitSlop={6}>
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                </Pressable>
+              </View>
+            )}
+          </>
+        )}
+      </Card>
+
+      {/* Acrescentar tarefa própria */}
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Acrescentar a minha tarefa', 'Add my own task')}</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TextInput value={newTask} onChangeText={setNewTask} onSubmitEditing={addCustomTask} placeholder={Lx('Escreve o que quiseres fazer…', 'Write whatever you want to do…')} placeholderTextColor={colors.textMuted}
+            style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+          <Pressable onPress={addCustomTask} style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#fff', fontWeight: '700' }}>{Lx('Adicionar', 'Add')}</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      {/* Sugestões por categoria */}
+      <View style={{ gap: spacing.md }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Sugestões (toca para adicionar)', 'Suggestions (tap to add)')}</Text>
+        {CATEGORIES.map((cat) => {
+          const items = SUGGESTIONS.filter((s) => s.cat === cat.key && !tasks.some((t) => t.id === s.id));
+          if (items.length === 0) return null;
+          return (
+            <View key={cat.key} style={{ gap: 8 }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{cat.title[lang]}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {items.map((s) => (
+                  <Pressable key={s.id} onPress={() => addSuggestion(s.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
+                    <Ionicons name="add" size={15} color={colors.primary} />
+                    <Text style={{ color: colors.text, fontSize: 13 }}>{s.label[lang]}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* Comportamento a largar esta semana */}
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Comportamento a largar esta semana', "This week's behaviour to drop")}</Text>
+        {focusDisplay ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ color: colors.textMuted, fontSize: 13, flex: 1 }}>
-              {tt({ pt: 'Esta semana vou largar:', en: 'This week I will drop:' })} <Text style={{ color: colors.text, fontWeight: '700' }}>{plan.focusLabel}</Text>
-            </Text>
+            <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{focusDisplay}</Text>
             <Pressable onPress={() => setPicking((o) => !o)} hitSlop={8}>
-              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'mudar', en: 'change' })}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{Lx('mudar', 'change')}</Text>
             </Pressable>
           </View>
         ) : (
           <Pressable onPress={() => setPicking((o) => !o)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{tt({ pt: 'Escolher o comportamento da semana', en: 'Choose this week\'s behaviour' })}</Text>
+            <Ionicons name={picking ? 'remove-circle-outline' : 'add-circle-outline'} size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{Lx('Escolher da minha lista', 'Choose from my list')}</Text>
           </Pressable>
         )}
-
         {picking && (
-          <View style={{ marginTop: spacing.sm, gap: 6 }}>
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tt({ pt: 'Escolhe da tua lista — começa pelos mais fáceis.', en: 'Choose from your list — start with the easier ones.' })}</Text>
+          <View style={{ gap: 8, marginTop: 4 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{Lx('Começa pelos mais fáceis.', 'Start with the easier ones.')}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {options.map((o) => (
+              {behaviourOptions.map((o) => (
                 <Pressable key={o.id} onPress={() => chooseFocus(o.id, o.label)} style={{ backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
                   <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{o.label}</Text>
                 </Pressable>
@@ -142,40 +319,36 @@ export default function PlanToday() {
             </View>
           </View>
         )}
-      </View>
-    </Card>
+      </Card>
+    </View>
   );
 }
 
-// ---------- Resumo (aba "Visão geral") ----------
+// ---------- Resumo pequeno (compatibilidade) ----------
 export function PlanSummary() {
   const { colors } = useTheme();
   const { lang } = useLang();
   const tt = (o: L) => o[lang];
   const [plan, setPlan] = useState<WeekPlan | null>(null);
+  const [tasks, setTasks] = useState<PlanTask[]>([]);
 
   const today = ymd(new Date());
-  const dow = (new Date().getDay() + 6) % 7;
 
   useEffect(() => {
     loadFreshPlan().then(setPlan);
+    loadPlanTasks().then((s) => setTasks(migrate(s)));
   }, []);
 
   if (!plan) return null;
 
-  const tasks = [...baseTasks(dow)];
-  if (plan.focusLabel) tasks.push({ key: 'focus', label: L_EXP });
-  const doneToday = tasks.filter((t) => plan.done.includes(`${today}:${t.key}`)).length;
+  const keys = [...tasks.map((t) => t.id), ...(plan.focusLabel ? ['focus'] : [])];
+  const total = keys.length;
+  const doneToday = keys.filter((k) => plan.done.includes(`${today}:${k}`)).length;
 
   return (
     <Card style={{ gap: 6 }}>
       <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{tt({ pt: 'Plano', en: 'Plan' })}</Text>
-      <Text style={{ color: colors.text, fontSize: 14 }}>
-        {plan.focusLabel
-          ? <>{tt({ pt: 'Esta semana: largar ', en: 'This week: drop ' })}<Text style={{ fontWeight: '700' }}>{plan.focusLabel}</Text></>
-          : tt({ pt: 'Escolhe o comportamento da semana na aba "Hoje".', en: 'Choose this week\'s behaviour in the "Today" tab.' })}
-      </Text>
-      <Text style={{ color: colors.textMuted, fontSize: 13 }}>{tt({ pt: 'Hoje', en: 'Today' })}: {doneToday}/{tasks.length}</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 13 }}>{tt({ pt: 'Hoje', en: 'Today' })}: {doneToday}/{total}</Text>
     </Card>
   );
 }

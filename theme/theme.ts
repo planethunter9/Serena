@@ -18,6 +18,11 @@ export const lightColors = {
   successSoft: '#e6f6ec',
   danger: '#e5484d',
   track: '#dbe9ee',
+  // Cores dos gráficos por nível (baixo → alto). Fixas por tema (não dependem
+  // da cor principal), para a leitura verde/amarelo/vermelho funcionar sempre.
+  chartLow: '#2fae66',
+  chartMid: '#e0922f',
+  chartHigh: '#e5484d',
 };
 
 export const darkColors: typeof lightColors = {
@@ -33,10 +38,19 @@ export const darkColors: typeof lightColors = {
   successSoft: '#12281d',
   danger: '#ff6b6f',
   track: '#243440',
+  // Versões mais claras/suaves para contraste no escuro.
+  chartLow: '#4cc985',
+  chartMid: '#f0a94e',
+  chartHigh: '#ff6b6f',
 };
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
 export const radius = { sm: 8, md: 12, lg: 18, xl: 26 };
+
+// Escala tipográfica única, para manter tamanhos consistentes entre ecrãs.
+// caption = legendas · body = texto · subtitle = subtítulos · title = títulos
+// de secção · screen = título de ecrã · display = número grande (estatísticas).
+export const fontSizes = { caption: 12, small: 13, body: 15, subtitle: 16, title: 18, screen: 22, display: 24, hero: 30 };
 
 // --- Paletas prontas (pagas). 'blue' é a grátis e usa as cores base acima. ---
 export type Palette = { id: string; name: { pt: string; en: string }; primary: string };

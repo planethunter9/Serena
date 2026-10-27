@@ -99,7 +99,7 @@ export default function MemoryView() {
     const now = new Date();
     const entry: MemorySession = {
       id: 'm' + now.getTime(),
-      date: now.toISOString().slice(0, 10),
+      date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
       ts: now.toISOString(),
       before: before ?? 0,
       after: current ?? before ?? 0,

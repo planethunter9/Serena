@@ -3,9 +3,14 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../lib/supabase';
 import { pullProfile, pushProfile } from '../lib/sync';
-import { setStorageUser } from '../storage/storage';
+import { setStorageUser, wipeLocalUserData } from '../storage/storage';
+
+// Permite que a janela do browser de OAuth se feche e devolva o controlo à app.
+WebBrowser.maybeCompleteAuthSession();
 
 export type User = { id: string; email: string; name: string };
 
@@ -22,6 +27,10 @@ type AuthContextValue = {
   signUp: (email: string, name: string, password: string) => Promise<Result>;
   signIn: (email: string, password: string) => Promise<Result>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  resetPassword: (email: string) => Promise<Result>;
+  confirmReset: (email: string, token: string, newPassword: string) => Promise<Result>;
+  socialSignIn: (provider: 'google' | 'apple') => Promise<Result>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -40,10 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
+  // Durante a reposição de password não queremos entrar na app (a sessão é
+  // temporária, só para trocar a password); este sinal suprime essa entrada.
+  const suppressSession = useRef(false);
 
   // Aplica uma sessão: define o utilizador, prepara o armazenamento e puxa a cloud.
   async function applySession(session: Session | null) {
-    if (session?.user) {
+    if (session?.user && !suppressSession.current) {
       const u: User = {
         id: session.user.id,
         email: session.user.email ?? '',
@@ -53,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await pullProfile(u.id); // traz os dados da cloud antes de mostrar a app
       userRef.current = u;
       setUser(u);
-    } else {
+    } else if (!session) {
       setStorageUser(null);
       userRef.current = null;
       setUser(null);
@@ -114,8 +126,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }
 
+  // Envia o email de recuperação (com um código de 6 dígitos, se o template do
+  // Supabase incluir {{ .Token }}). Tudo é resolvido dentro da app — sem site.
+  async function resetPassword(email: string): Promise<Result> {
+    const mail = email.trim().toLowerCase();
+    if (!mail) return { ok: false, error: 'empty' };
+    const { error } = await supabase.auth.resetPasswordForEmail(mail);
+    if (error) return mapError(error.message);
+    return { ok: true };
+  }
+
+  // Confirma o código do email e define a nova palavra-passe. NÃO entra na app:
+  // termina a sessão temporária para o utilizador iniciar sessão com a nova password.
+  async function confirmReset(email: string, token: string, newPassword: string): Promise<Result> {
+    const mail = email.trim().toLowerCase();
+    if (!mail || !token.trim() || !newPassword) return { ok: false, error: 'empty' };
+    suppressSession.current = true; // impede a entrada automática enquanto repomos
+    try {
+      const { error: vErr } = await supabase.auth.verifyOtp({ email: mail, token: token.trim(), type: 'recovery' });
+      if (vErr) { suppressSession.current = false; return mapError(vErr.message); }
+      const { error: uErr } = await supabase.auth.updateUser({ password: newPassword });
+      if (uErr) { suppressSession.current = false; return mapError(uErr.message); }
+      await supabase.auth.signOut(); // volta ao ecrã inicial para iniciar sessão
+      return { ok: true };
+    } finally {
+      suppressSession.current = false;
+    }
+  }
+
+  // Entrar com Google ou Apple (OAuth no browser). Abre a página do provider e,
+  // ao voltar, troca o código/token por uma sessão.
+  async function socialSignIn(provider: 'google' | 'apple'): Promise<Result> {
+    try {
+      const redirectTo = Linking.createURL('auth-callback');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo, skipBrowserRedirect: true },
+      });
+      if (error || !data?.url) return mapError(error?.message ?? 'oauth');
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (result.type !== 'success' || !result.url) return { ok: false };
+
+      const url = result.url;
+      // Fluxo PKCE: ?code=...
+      const code = Linking.parse(url).queryParams?.code as string | undefined;
+      if (code) {
+        const { error: exErr } = await supabase.auth.exchangeCodeForSession(code);
+        if (exErr) return mapError(exErr.message);
+        return { ok: true };
+      }
+      // Fluxo implícito: #access_token=...&refresh_token=...
+      const hash = url.includes('#') ? url.split('#')[1] : '';
+      const params = new URLSearchParams(hash);
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (access_token && refresh_token) {
+        const { error: sErr } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (sErr) return mapError(sErr.message);
+        return { ok: true };
+      }
+      return { ok: false };
+    } catch (e: any) {
+      return mapError(e?.message ?? 'oauth');
+    }
+  }
+
+  // Elimina a conta: apaga os dados na cloud + a conta de auth (via função no
+  // Supabase, porque o cliente não tem privilégios de admin) e limpa o local.
+  async function deleteAccount() {
+    const { error } = await supabase.rpc('delete_user');
+    if (error) throw error;
+    await wipeLocalUserData();      // limpa o local enquanto o prefixo ainda é o do utilizador
+    await supabase.auth.signOut();  // onAuthStateChange trata de limpar a sessão
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, deleteAccount, resetPassword, confirmReset, socialSignIn }}>
       {children}
     </AuthContext.Provider>
   );

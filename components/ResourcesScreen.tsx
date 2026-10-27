@@ -10,21 +10,20 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { ScreenTitle } from './ui';
 
-const ITEMS: { id: string; titleKey: TKey; icon: keyof typeof Ionicons.glyphMap }[] = [
+// Cada item usa uma chave i18n (titleKey) OU um título inline (title).
+const ITEMS: { id: string; titleKey?: TKey; title?: { pt: string; en: string }; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'lessons', titleKey: 'resources.lessons', icon: 'book-outline' },
   { id: 'exercises', titleKey: 'resources.exercises', icon: 'barbell-outline' },
   { id: 'goalsachievements', titleKey: 'resources.goalsachievements', icon: 'trophy-outline' },
   { id: 'reminders', titleKey: 'resources.reminders', icon: 'notifications-outline' },
+  { id: 'hardday', title: { pt: 'Plano para dias difíceis', en: 'Plan for hard days' }, icon: 'umbrella-outline' },
   { id: 'journal', titleKey: 'resources.journal', icon: 'create-outline' },
-  { id: 'fearprofile', titleKey: 'resources.fearprofile', icon: 'analytics-outline' },
   { id: 'safetyfeeding', titleKey: 'resources.safetyfeeding', icon: 'shield-checkmark-outline' },
-  { id: 'games', titleKey: 'resources.games', icon: 'game-controller-outline' },
   { id: 'crisislines', titleKey: 'resources.crisislines', icon: 'call-outline' },
-  { id: 'citations', titleKey: 'resources.citations', icon: 'library-outline' },
 ];
 
 // Ids que já têm ecrã a funcionar.
-const READY = ['lessons', 'exercises', 'games', 'goalsachievements', 'reminders', 'journal', 'fearprofile', 'safetyfeeding', 'crisislines', 'citations'];
+const READY = ['lessons', 'exercises', 'goalsachievements', 'reminders', 'hardday', 'journal', 'safetyfeeding', 'crisislines'];
 
 export default function ResourcesScreen({
   onOpen,
@@ -34,7 +33,7 @@ export default function ResourcesScreen({
   onSoon: (title: string) => void;
 }) {
   const { colors } = useTheme();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [order, setOrder] = useState<string[]>([]);
   const [reordering, setReordering] = useState(false);
 
@@ -71,7 +70,7 @@ export default function ResourcesScreen({
 
       <View style={{ gap: spacing.sm }}>
         {items.map((r, i) => {
-          const title = t(r.titleKey);
+          const title = r.title ? r.title[lang] : t(r.titleKey!);
           const body = (
             <>
               <View style={{ width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
@@ -86,10 +85,10 @@ export default function ResourcesScreen({
             return (
               <View key={r.id} style={rowStyle}>
                 {body}
-                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para cima' : 'Move up'} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-up" size={22} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === items.length - 1} style={{ padding: 4, opacity: i === items.length - 1 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === items.length - 1} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para baixo' : 'Move down'} style={{ padding: 4, opacity: i === items.length - 1 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-down" size={22} color={colors.primary} />
                 </Pressable>
               </View>

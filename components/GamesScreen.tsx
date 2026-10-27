@@ -10,8 +10,8 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { PrimaryButton, TopBackBar } from './ui';
 
-// ---- Jogo: palavra a palavra ----
-function WordGame() {
+// ---- Palavra a palavra (exposição a palavras/frases) ----
+export function WordGame() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const [i, setI] = useState(0);
@@ -41,8 +41,8 @@ function WordGame() {
   );
 }
 
-// ---- Jogo: verdade ou mito ----
-function MythGame() {
+// ---- Verdade ou mito (reestruturação cognitiva) ----
+export function MythGame() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const [i, setI] = useState(0);

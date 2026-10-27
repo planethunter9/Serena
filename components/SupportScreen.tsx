@@ -1,5 +1,6 @@
 // Separador "Apoio": ferramentas para os momentos de aflição —
 // estou com um gatilho, exposição não planeada, técnicas e sons.
+// Agrupado por secções; nada colapsável (tem de estar tudo a um toque).
 
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -26,7 +27,12 @@ export default function SupportScreen({
   onUrgeSurf: () => void;
 }) {
   const { colors } = useTheme();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const anchorNote = L(
+    'Usa isto como âncora para atravessar um momento difícil e não ficares horas em sofrimento — não para evitar, nem como prova de que "não vomitaste por causa disto".',
+    'Use this as an anchor to get through a hard moment and not spend hours in distress — not to avoid, nor as proof that "you didn\'t vomit because of it".',
+  );
 
   const techniques = [
     { key: 'breathing', title: t('tech.breathing'), desc: t('tech.breathingDesc'), icon: 'ellipse-outline' as const, onPress: onBreathing },
@@ -34,48 +40,46 @@ export default function SupportScreen({
     { key: 'positive', title: t('tech.positive'), desc: t('tech.positiveDesc'), icon: 'chatbubble-ellipses-outline' as const, onPress: onPositive },
   ];
 
+  const SectionHeader = ({ label }: { label: string }) => (
+    <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm }}>{label}</Text>
+  );
+
+  const Note = ({ text }: { text: string }) => (
+    <View style={{ flexDirection: 'row', gap: 8, backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: spacing.md }}>
+      <Ionicons name="information-circle-outline" size={18} color={colors.primary} style={{ marginTop: 1 }} />
+      <Text style={{ color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 }}>{text}</Text>
+    </View>
+  );
+
+  const Row = ({ title, desc, icon, onPress, highlight }: { title: string; desc: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; highlight?: boolean }) => (
+    <Pressable
+      onPress={onPress}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: highlight ? colors.primarySoft : colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: highlight ? colors.primarySoft : colors.border }}
+    >
+      <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: highlight ? colors.card : colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{title}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13 }}>{desc}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={highlight ? colors.primary : colors.textMuted} />
+    </Pressable>
+  );
+
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }}>
       <ScreenTitle title={t('support.title')} />
 
-      {/* Estou com um gatilho */}
-      <Pressable onPress={onTrigger} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.primarySoft }}>
-        <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="flash-outline" size={22} color={colors.primary} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('home.triggerTitle')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.triggerDesc')}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-      </Pressable>
-
-      {/* Surfar o impulso */}
-      <Pressable onPress={onUrgeSurf} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-        <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="water-outline" size={22} color={colors.primary} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('support.urgesurf')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('support.urgesurfDesc')}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-      </Pressable>
-
-      {/* Exposição não planeada */}
-      <Pressable onPress={onUnplanned} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-        <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="footsteps-outline" size={22} color={colors.primary} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('home.unplannedTitle')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('home.unplannedDesc')}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-      </Pressable>
+      {/* Agora mesmo — acessos urgentes */}
+      <SectionHeader label={L('Agora mesmo', 'Right now')} />
+      <Row title={t('home.triggerTitle')} desc={t('home.triggerDesc')} icon="flash-outline" onPress={onTrigger} highlight />
+      <Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} />
+      <Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} />
 
       {/* Técnicas */}
-      <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginTop: 4 }}>{t('home.techniquesTitle')}</Text>
+      <SectionHeader label={t('home.techniquesTitle')} />
+      <Note text={anchorNote} />
       {techniques.map((tech) => (
         <Pressable key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
           <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
@@ -90,7 +94,7 @@ export default function SupportScreen({
       ))}
 
       {/* Sons */}
-      <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginTop: 4 }}>{t('home.soundsTitle')}</Text>
+      <SectionHeader label={t('home.soundsTitle')} />
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         {[
           { key: 'calm' as const, label: t('home.soundsCalm'), icon: 'leaf-outline' as const },

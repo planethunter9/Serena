@@ -56,7 +56,7 @@ function AchievementsBody() {
       ]);
 
       const expSet = new Set(expDays);
-      const ymd = (d: Date) => d.toISOString().slice(0, 10);
+      const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const d0 = new Date();
       if (!expSet.has(ymd(d0))) d0.setDate(d0.getDate() - 1);
       let exposureStreak = 0;

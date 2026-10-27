@@ -1,5 +1,5 @@
-// Página única com "Comportamentos de segurança" e "Alimentar o medo",
-// alternados por um segmented control no topo.
+// Página única com "Alimentar o medo" (informativo) e "Comportamentos de
+// segurança", alternados por um segmented control no topo.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -19,6 +19,7 @@ function SafetyBody() {
   const [stored, setStored] = useState<SafetyItem[]>([]);
   const [droppedLog, setDroppedLog] = useState<DroppedBehavior[]>([]);
   const [newText, setNewText] = useState('');
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     loadSafety().then(setStored);
@@ -68,6 +69,7 @@ function SafetyBody() {
     if (!v) return;
     persist([...stored, { id: 'custom:' + Date.now(), label: v, doing: true, dropping: false }]);
     setNewText('');
+    setAdding(false);
   }
   function removeCustom(id: string) {
     persist(stored.filter((x) => x.id !== id));
@@ -82,7 +84,36 @@ function SafetyBody() {
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }}>
       <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('safety.intro')}</Text>
-      <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{t('safety.summary', { doing: doingCount, dropping: dropCount })}</Text>
+
+      {/* Resumo + botão "+" para adicionar (em vez de o input ficar no fundo) */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={{ flex: 1, color: colors.text, fontSize: 13, fontWeight: '600' }}>{t('safety.summary', { doing: doingCount, dropping: dropCount })}</Text>
+        <Pressable
+          onPress={() => setAdding((a) => !a)}
+          hitSlop={6}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.primarySoft, paddingHorizontal: 12, height: 36, borderRadius: 999 }}
+        >
+          <Ionicons name={adding ? 'close' : 'add'} size={18} color={colors.primary} />
+          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{lang === 'pt' ? 'Adicionar' : 'Add'}</Text>
+        </Pressable>
+      </View>
+
+      {adding && (
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TextInput
+            value={newText}
+            onChangeText={setNewText}
+            onSubmitEditing={addCustom}
+            autoFocus
+            placeholder={t('safety.add')}
+            placeholderTextColor={colors.textMuted}
+            style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }}
+          />
+          <Pressable onPress={addCustom} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
+          </Pressable>
+        </View>
+      )}
 
       {rows.map((r) => (
         <Card key={r.id} style={{ gap: 10 }}>
@@ -107,13 +138,6 @@ function SafetyBody() {
           )}
         </Card>
       ))}
-
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-        <TextInput value={newText} onChangeText={setNewText} onSubmitEditing={addCustom} placeholder={t('safety.add')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
-        <Pressable onPress={addCustom} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.primary, fontWeight: '700' }}>{t('common.add')}</Text>
-        </Pressable>
-      </View>
     </ScrollView>
   );
 }
@@ -201,18 +225,18 @@ function FeedingBody() {
 export default function SafetyFeeding({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const [tab, setTab] = useState<'safety' | 'feeding'>('safety');
-  const tabLabel = (v: 'safety' | 'feeding') =>
-    v === 'safety'
-      ? (lang === 'pt' ? 'Comportamentos' : 'Behaviours')
-      : (lang === 'pt' ? 'Alimentar o medo' : 'Feeding the fear');
+  const [tab, setTab] = useState<'feeding' | 'safety'>('feeding');
+  const tabLabel = (v: 'feeding' | 'safety') =>
+    v === 'feeding'
+      ? (lang === 'pt' ? 'Alimentar o medo' : 'Feeding the fear')
+      : (lang === 'pt' ? 'Comportamentos' : 'Behaviours');
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={t('safetyFeeding.title')} onBack={onBack} />
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm }}>
         <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-          {(['safety', 'feeding'] as const).map((v) => {
+          {(['feeding', 'safety'] as const).map((v) => {
             const active = tab === v;
             return (
               <Pressable key={v} onPress={() => setTab(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
@@ -224,7 +248,7 @@ export default function SafetyFeeding({ onBack }: { onBack: () => void }) {
           })}
         </View>
       </View>
-      {tab === 'safety' ? <SafetyBody /> : <FeedingBody />}
+      {tab === 'feeding' ? <FeedingBody /> : <SafetyBody />}
     </View>
   );
 }

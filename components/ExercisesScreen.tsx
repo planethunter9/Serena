@@ -4,18 +4,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { SUBTYPE_OPTIONS } from '../data/content';
 import { EXPOSURE_LADDER } from '../data/exercises';
+import { LADDER_TEMPLATES } from '../data/ladderTemplates';
 import { useLang } from '../i18n/i18n';
 import {
+  appendExerciseLog,
+  ExerciseLogEntry,
   ExperimentEntry,
   ExposureSession,
+  loadExerciseLog,
   loadExperiments,
   loadExposureDays,
   loadExposureHidden,
   loadExposureOrder,
   loadExposureSessions,
   loadExposureSteps,
+  loadOnboarding,
   loadThoughtRecords,
+  removeLastExerciseLog,
   ProfileItem,
   saveExposureDays,
   saveExposureHidden,
@@ -30,8 +37,10 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import MemoryView from './MemoryReprocessing';
 import ChallengesScreen from './ChallengesScreen';
+import { MythGame, WordGame } from './GamesScreen';
+import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 import InteroceptiveScreen from './InteroceptiveScreen';
-import SensationsGuide from './SensationsGuide';
+import AcceptanceView from './AcceptanceScreen';
 import { Card, PrimaryButton, TopBackBar } from './ui';
 
 type L = { pt: string; en: string };
@@ -80,20 +89,19 @@ const EXPOSURE_PHRASE_GROUPS: { title: L; phrases: L[] }[] = [
     ],
   },
   {
-    title: { pt: 'Para repetir durante os vídeos', en: 'To repeat during the videos' },
+    title: { pt: 'Para tolerar a incerteza (durante a exposição)', en: 'To tolerate uncertainty (during exposure)' },
     phrases: [
-      { pt: 'Isto não é nada de grave.', en: 'This is nothing serious.' },
-      { pt: 'É normal.', en: 'It is normal.' },
-      { pt: 'Eu estou bem.', en: 'I am okay.' },
-      { pt: 'Isto acontece e passa.', en: 'This happens and it passes.' },
-      { pt: 'Estou em segurança.', en: 'I am safe.' },
-      { pt: 'É só uma imagem — não me pode fazer mal.', en: 'It is just an image — it cannot harm me.' },
+      { pt: 'Posso sentir isto e continuar.', en: 'I can feel this and carry on.' },
+      { pt: 'Deixo a dúvida existir, sem a resolver.', en: 'I let the doubt be there, without resolving it.' },
+      { pt: 'Não preciso de ter a certeza para ficar.', en: 'I don\'t need to be certain to stay.' },
+      { pt: 'Isto é desconfortável, não é perigoso.', en: 'This is uncomfortable, not dangerous.' },
+      { pt: 'Deixo a onda subir e descer.', en: 'I let the wave rise and fall.' },
     ],
   },
 ];
 
 function ymd(d: Date) {
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function consecutiveDays(days: string[]): number {
   const set = new Set(days);
@@ -160,6 +168,10 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
   const [adding, setAdding] = useState(false);
   const [reordering, setReordering] = useState(false);
   const [openPhrase, setOpenPhrase] = useState<number | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [subtypeIds, setSubtypeIds] = useState<string[]>([]);
+  const [openTpl, setOpenTpl] = useState<string | null>(null);
+  const [chartW2, setChartW2] = useState(0);
   const [before, setBefore] = useState<number | null>(null);
   const [peak, setPeak] = useState<number | null>(null);
   const [after, setAfter] = useState<number | null>(null);
@@ -171,7 +183,31 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
     loadExposureHidden().then(setHidden);
     loadExposureSessions().then(setSessions);
     loadExposureDays().then(setExpDays);
+    loadOnboarding().then((d: any) => { if (d?.subtypes) setSubtypeIds(d.subtypes.map((x: any) => x.id)); });
   }, []);
+
+  // Importa os degraus de um modelo para a escada (sem duplicar os que já existem).
+  function importSteps(stepsL: L[]) {
+    const existing = new Set(base.map((s) => s.label.trim().toLowerCase()));
+    const toAdd = stepsL.map((s) => s[lang]).filter((label) => !existing.has(label.trim().toLowerCase()));
+    if (toAdd.length) {
+      const now = Date.now();
+      const added = toAdd.map((label, i) => ({ id: 'custom:' + (now + i), label }));
+      const nextCustom = [...custom, ...added];
+      setCustom(nextCustom);
+      saveExposureSteps(nextCustom);
+      const nextOrder = [...steps.map((s) => s.id), ...added.map((a) => a.id)];
+      setOrder(nextOrder);
+      saveExposureOrder(nextOrder);
+    }
+    setShowTemplates(false);
+    setOpenTpl(null);
+  }
+
+  // Modelos ordenados: os subtipos do próprio utilizador aparecem primeiro.
+  const templates = [...LADDER_TEMPLATES].sort((a, b) =>
+    (subtypeIds.includes(a.subtypeId) ? 0 : 1) - (subtypeIds.includes(b.subtypeId) ? 0 : 1)
+  );
 
   const todayStr = ymd(new Date());
   const markedToday = expDays.includes(todayStr);
@@ -251,7 +287,7 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
     const now = new Date();
     const entry: ExposureSession = {
       id: 'e' + now.getTime(), stepId: selected.id, stepLabel: selected.label,
-      date: now.toISOString().slice(0, 10), ts: now.toISOString(),
+      date: ymd(now), ts: now.toISOString(),
       before, peak: peak ?? before, after, note: note.trim(),
     };
     const next = [entry, ...sessions];
@@ -306,6 +342,50 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
     );
   }
 
+  // Escadas prontas (modelos por subtipo).
+  if (showTemplates) {
+    return (
+      <ScrollView contentContainerStyle={{ gap: spacing.md }}>
+        <Pressable onPress={() => { setShowTemplates(false); setOpenTpl(null); }} hitSlop={8}>
+          <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
+        </Pressable>
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{lang === 'pt' ? 'Escadas prontas' : 'Ready-made ladders'}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
+          {lang === 'pt'
+            ? 'Escolhe um modelo do teu medo. Os degraus são acrescentados à tua escada — podes editá-los, removê-los e reordená-los.'
+            : 'Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.'}
+        </Text>
+        {templates.map((tpl) => {
+          const label = SUBTYPE_OPTIONS.find((o) => o.id === tpl.subtypeId)?.label[lang] ?? tpl.subtypeId;
+          const mine = subtypeIds.includes(tpl.subtypeId);
+          const open = openTpl === tpl.subtypeId;
+          return (
+            <View key={tpl.subtypeId} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: mine ? colors.primary : colors.border, overflow: 'hidden' }}>
+              <Pressable onPress={() => setOpenTpl(open ? null : tpl.subtypeId)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{label}</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tpl.steps.length} {lang === 'pt' ? 'degraus' : 'steps'}{mine ? (lang === 'pt' ? ' · o teu medo' : ' · your fear') : ''}</Text>
+                </View>
+                <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+              </Pressable>
+              {open && (
+                <View style={{ padding: spacing.lg, paddingTop: 0, gap: 8 }}>
+                  {tpl.steps.map((s: L, i: number) => (
+                    <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+                      <Text style={{ color: colors.textMuted, fontSize: 13 }}>{i + 1}.</Text>
+                      <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{s[lang]}</Text>
+                    </View>
+                  ))}
+                  <PrimaryButton label={lang === 'pt' ? 'Adicionar estes degraus' : 'Add these steps'} onPress={() => importSteps(tpl.steps)} />
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </ScrollView>
+    );
+  }
+
   // Lista da escada (visual limpo).
   return (
     <ScrollView contentContainerStyle={{ gap: spacing.md }}>
@@ -318,10 +398,20 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
           <Text style={{ color: colors.text, fontWeight: '700' }}>{t('exposure.streakTitle')}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('exposure.streakHint')}</Text>
         </View>
-        <Pressable onPress={toggleToday} hitSlop={8} style={{ alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name={markedToday ? 'checkmark-circle' : 'add-circle-outline'} size={34} color={markedToday ? colors.success : colors.primary} />
+        <Pressable
+          onPress={toggleToday}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={markedToday ? (lang === 'pt' ? 'Registado hoje, toca para anular' : 'Logged today, tap to undo') : (lang === 'pt' ? 'Registar sessão de hoje' : "Log today's session")}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: markedToday ? colors.successSoft : colors.primary, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999 }}
+        >
+          <Ionicons name={markedToday ? 'checkmark' : 'add'} size={16} color={markedToday ? colors.success : '#fff'} />
+          <Text style={{ color: markedToday ? colors.success : '#fff', fontWeight: '700', fontSize: 13 }}>
+            {markedToday ? (lang === 'pt' ? 'Registado hoje' : 'Logged today') : (lang === 'pt' ? 'Registar hoje' : 'Log today')}
+          </Text>
         </Pressable>
       </View>
+
 
       {/* Referência recolhível (fechada por defeito) */}
       <Collapsible title={t('exposure.phasesTitle')} icon="list-outline">
@@ -375,6 +465,33 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
       </View>
       <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: -4 }}>{t('exposure.guide')}</Text>
 
+      {/* Escada pronta (modelos por subtipo) */}
+      <Pressable onPress={() => setShowTemplates(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.md }}>
+        <Ionicons name="library-outline" size={20} color={colors.primary} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>{lang === 'pt' ? 'Usar uma escada pronta' : 'Use a ready-made ladder'}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lang === 'pt' ? 'Degraus sugeridos para o teu medo' : 'Suggested steps for your fear'}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+      </Pressable>
+
+      {/* Adicionar degrau — no topo (não no fundo) */}
+      {adding ? (
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TextInput value={newStep} onChangeText={setNewStep} onSubmitEditing={addStep} autoFocus placeholder={t('exposure.addStep')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+          <Pressable onPress={addStep} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
+          </Pressable>
+        </View>
+      ) : (
+        !reordering && (
+          <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 14, height: 38, borderRadius: 999 }}>
+            <Ionicons name="add" size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('exposure.addStep')}</Text>
+          </Pressable>
+        )
+      )}
+
       {/* Degraus leves e numerados, num único cartão */}
       <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
         {steps.map((s, i) => (
@@ -388,13 +505,13 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
             {reordering ? (
               <>
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
-                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para cima' : 'Move up'} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-up" size={20} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para baixo' : 'Move down'} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-down" size={20} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => removeStep(s)} hitSlop={6} style={{ padding: 4, marginLeft: 2 }}>
+                <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? `Remover ${s.label}` : `Remove ${s.label}`} style={{ padding: 4, marginLeft: 2 }}>
                   <Ionicons name="trash-outline" size={19} color={colors.danger} />
                 </Pressable>
               </>
@@ -408,36 +525,33 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
         ))}
       </View>
 
-      {/* Adicionar degrau (escondido atrás de um botão) */}
-      {adding ? (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TextInput value={newStep} onChangeText={setNewStep} onSubmitEditing={addStep} autoFocus placeholder={t('exposure.addStep')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
-          <Pressable onPress={addStep} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
-          </Pressable>
-        </View>
-      ) : (
-        !reordering && (
-          <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12 }}>
-            <Ionicons name="add" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{t('exposure.addStep')}</Text>
-          </Pressable>
-        )
-      )}
-
       <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{t('exposure.safety')}</Text>
     </ScrollView>
   );
 }
 
-// ---- Reestruturação cognitiva (registo de pensamento) ----
+// ---- Reestruturação cognitiva (desconstruir pensamentos) ----
+// Lista de "armadilhas" (distorções) frequentes na emetofobia. O id é o texto PT
+// (estável); mostra-se no idioma atual.
+const THOUGHT_TRAPS: L[] = [
+  { pt: 'Catastrofizar (saltar para o pior)', en: 'Catastrophising (jumping to the worst)' },
+  { pt: 'Sobrestimar a probabilidade', en: 'Overestimating the odds' },
+  { pt: 'Confundir sentir com acontecer', en: 'Confusing feeling with happening' },
+  { pt: 'Hipervigilância aos sintomas', en: 'Hyper-focus on symptoms' },
+  { pt: 'Raciocínio emocional', en: 'Emotional reasoning' },
+  { pt: 'Pensamento tudo-ou-nada', en: 'All-or-nothing thinking' },
+  { pt: 'Preciso de ter a certeza', en: 'Needing to be certain' },
+];
+
 function ThoughtView() {
   const { colors } = useTheme();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
   const [records, setRecords] = useState<ThoughtRecord[]>([]);
   const [situation, setSituation] = useState('');
   const [thought, setThought] = useState('');
   const [before, setBefore] = useState<number | null>(null);
+  const [traps, setTraps] = useState<string[]>([]);
   const [evidenceFor, setEvidenceFor] = useState('');
   const [evidenceAgainst, setEvidenceAgainst] = useState('');
   const [balanced, setBalanced] = useState('');
@@ -447,41 +561,75 @@ function ThoughtView() {
     loadThoughtRecords().then(setRecords);
   }, []);
 
+  function toggleTrap(id: string) {
+    setTraps((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  }
+
   function save() {
     if (!thought.trim()) return;
     const now = new Date();
     const entry: ThoughtRecord = {
-      id: 'tr' + now.getTime(), date: now.toISOString().slice(0, 10), ts: now.toISOString(),
+      id: 'tr' + now.getTime(), date: ymd(now), ts: now.toISOString(),
       situation: situation.trim(), thought: thought.trim(), before: before ?? 0,
+      traps: [...traps],
       evidenceFor: evidenceFor.trim(), evidenceAgainst: evidenceAgainst.trim(), balanced: balanced.trim(), after: after ?? 0,
     };
     const next = [entry, ...records];
     setRecords(next);
     saveThoughtRecords(next);
-    setSituation(''); setThought(''); setBefore(null); setEvidenceFor(''); setEvidenceAgainst(''); setBalanced(''); setAfter(null);
+    setSituation(''); setThought(''); setBefore(null); setTraps([]);
+    setEvidenceFor(''); setEvidenceAgainst(''); setBalanced(''); setAfter(null);
   }
 
-  const field = (label: string, value: string, setValue: (v: string) => void) => (
+  const field = (label: string, value: string, setValue: (v: string) => void, ph?: string) => (
     <View style={{ gap: 6 }}>
       <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{label}</Text>
-      <TextInput value={value} onChangeText={setValue} multiline placeholderTextColor={colors.textMuted}
+      <TextInput value={value} onChangeText={setValue} multiline placeholder={ph} placeholderTextColor={colors.textMuted}
         style={{ minHeight: 48, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15, textAlignVertical: 'top' }} />
     </View>
   );
 
+  const trapLabel = (id: string) => THOUGHT_TRAPS.find((x) => x.pt === id)?.[lang] ?? id;
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ gap: spacing.md }}>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
+          {L('O medo costuma mentir: exagera o perigo e a probabilidade. Aqui pões o pensamento à prova, passo a passo — nomeias a armadilha, pesas as provas e escreves uma versão mais realista.',
+             'Fear tends to lie: it exaggerates danger and likelihood. Here you put the thought on trial, step by step — name the trap, weigh the evidence, and write a more realistic version.')}
+        </Text>
+
         <Card style={{ gap: spacing.md }}>
-          {field(t('thought.situation'), situation, setSituation)}
-          {field(t('thought.thought'), thought, setThought)}
+          {field(t('thought.situation'), situation, setSituation, L('O que estava a acontecer? (gatilho)', 'What was happening? (trigger)'))}
+          {field(t('thought.thought'), thought, setThought, L('O que o medo disse que ia acontecer?', 'What did the fear say would happen?'))}
+
           <View style={{ gap: 6 }}>
             <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{t('thought.before')}</Text>
             <Suds value={before} onChange={setBefore} />
           </View>
-          {field(t('thought.evidenceFor'), evidenceFor, setEvidenceFor)}
-          {field(t('thought.evidenceAgainst'), evidenceAgainst, setEvidenceAgainst)}
-          {field(t('thought.balanced'), balanced, setBalanced)}
+
+          {/* Armadilha(s) do pensamento */}
+          <View style={{ gap: 8 }}>
+            <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>
+              {L('Que armadilha é esta? (podes escolher várias)', 'Which trap is this? (pick any)')}
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {THOUGHT_TRAPS.map((tr) => {
+                const active = traps.includes(tr.pt);
+                return (
+                  <Pressable key={tr.pt} onPress={() => toggleTrap(tr.pt)}
+                    style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 2, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySoft : colors.cardAlt }}>
+                    <Text style={{ color: active ? colors.primary : colors.text, fontSize: 13, fontWeight: active ? '700' : '500' }}>{tr[lang]}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {field(t('thought.evidenceFor'), evidenceFor, setEvidenceFor, L('Que factos apoiam mesmo este pensamento?', 'What facts actually support this thought?'))}
+          {field(t('thought.evidenceAgainst'), evidenceAgainst, setEvidenceAgainst, L('Quantas vezes já temi isto e não aconteceu? Qual é a probabilidade real?', "How often have I feared this and it didn't happen? What are the real odds?"))}
+          {field(t('thought.balanced'), balanced, setBalanced, L('Uma forma mais justa e realista de ver isto…', 'A fairer, more realistic way to see this…'))}
+
           <View style={{ gap: 6 }}>
             <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{t('thought.after')}</Text>
             <Suds value={after} onChange={setAfter} />
@@ -490,9 +638,18 @@ function ThoughtView() {
         </Card>
 
         {records.map((r) => (
-          <Card key={r.id} style={{ gap: 4 }}>
+          <Card key={r.id} style={{ gap: 6 }}>
             <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{r.date.split('-').reverse().join('/')} · {r.before} → {r.after}</Text>
             <Text style={{ color: colors.text, fontSize: 15 }}>{r.balanced || r.thought}</Text>
+            {!!(r.traps && r.traps.length) && (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
+                {r.traps.map((id) => (
+                  <View key={id} style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: radius.sm, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 11 }}>{trapLabel(id)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </Card>
         ))}
       </ScrollView>
@@ -606,13 +763,84 @@ function ExperimentsView() {
   );
 }
 
+// Barra para registar sessões de um exercício (permite mais do que uma por dia).
+function ExerciseLogBar({ type }: { type: string }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const [log, setLog] = useState<ExerciseLogEntry[]>([]);
+  useEffect(() => { loadExerciseLog().then(setLog); }, []);
+  const today = ymd(new Date());
+  const todayCount = log.filter((e) => e.type === type && e.date === today).length;
+  async function add() { setLog(await appendExerciseLog(type)); }
+  async function undo() { setLog(await removeLastExerciseLog(type)); }
+  return (
+    <View style={{ marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Pressable onPress={add} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
+        <Ionicons name="checkmark" size={16} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Registar sessão de hoje', "Log today's session")}</Text>
+      </Pressable>
+      {todayCount > 0 && (
+        <>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{Lx(`feito ${todayCount}× hoje`, `done ${todayCount}× today`)}</Text>
+          <Pressable onPress={undo} hitSlop={6} style={{ marginLeft: 'auto' }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{Lx('anular', 'undo')}</Text>
+          </Pressable>
+        </>
+      )}
+    </View>
+  );
+}
+
+// Categoria colapsável no hub de exercícios (estilo "Lições").
+function HubGroup({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Pressable onPress={() => setOpen((o) => !o)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, marginTop: 4 }}>
+        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, flex: 1 }}>{title}</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+      </Pressable>
+      {open && <View style={{ gap: spacing.md }}>{children}</View>}
+    </View>
+  );
+}
+
+// Cartão de um exercício no hub.
+function HubRow({ icon, title, desc, onPress }: { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+      <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{title}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13 }}>{desc}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+    </Pressable>
+  );
+}
+
 export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const [view, setView] = useState<'hub' | 'exposure' | 'thought' | 'memory' | 'sensations' | 'challenges' | 'interoceptive' | 'experiments'>('hub');
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const [view, setView] = useState<'hub' | 'exposure' | 'thought' | 'memory' | 'challenges' | 'interoceptive' | 'experiments' | 'myth' | 'acceptance' | 'words'>('hub');
   const [expSelected, setExpSelected] = useState<Step | null>(null);
 
-  const title = view === 'exposure' ? t('exposure.title') : view === 'thought' ? t('thought.title') : view === 'memory' ? t('memory.title') : view === 'sensations' ? t('sensations.title') : view === 'challenges' ? t('challenges.title') : view === 'interoceptive' ? t('interoceptive.title') : view === 'experiments' ? (lang === 'pt' ? 'Experiências' : 'Experiments') : t('resources.exercises');
+  // Exercícios que usam o rodapé uniforme "Registar sessão de hoje".
+  // A exposição (ERP) fica de fora: tem o seu próprio registo de sessão.
+  // "Verdade ou mito" fica de fora: é psicoeducação, não conta para o contador.
+  const LOG_TYPES: Record<string, string | undefined> = {
+    thought: 'thought', memory: 'memory', interoceptive: 'interoceptive',
+    challenges: 'challenges', experiments: 'experiments',
+    acceptance: 'acceptance', words: 'words',
+  };
+
+  const title = view === 'exposure' ? t('exposure.title') : view === 'thought' ? t('thought.title') : view === 'memory' ? t('memory.title') : view === 'challenges' ? t('challenges.title') : view === 'interoceptive' ? t('interoceptive.title') : view === 'experiments' ? (lang === 'pt' ? 'Experiências' : 'Experiments') : view === 'myth' ? t('games.myth') : view === 'words' ? t('games.words') : view === 'acceptance' ? (lang === 'pt' ? 'Aceitação e valores' : 'Acceptance & values') : t('resources.exercises');
 
   // Voltar: de um degrau → escada; de uma vista → hub; do hub → sair.
   function handleBack() {
@@ -626,88 +854,46 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
       <TopBackBar title={title} onBack={handleBack} />
       <View style={{ flex: 1, padding: spacing.xl }}>
         {view === 'hub' && (
-          <ScrollView contentContainerStyle={{ gap: spacing.md }}>
+          <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.xxl }}>
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('exercises.intro')}</Text>
-            <Pressable onPress={() => { setExpSelected(null); setView('exposure'); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="trending-up-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.exposure')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.exposureDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('thought')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="bulb-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.thought')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.thoughtDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('memory')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="sparkles-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.memory')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.memoryDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('sensations')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="body-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.sensations')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.sensationsDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('interoceptive')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="pulse-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.interoceptive')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.interoceptiveDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('challenges')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="shuffle-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{t('exercises.challenges')}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exercises.challengesDesc')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
-            <Pressable onPress={() => setView('experiments')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="flask-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{lang === 'pt' ? 'Experiências' : 'Experiments'}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{lang === 'pt' ? 'Prever vs o que acontece mesmo' : 'Predict vs what actually happens'}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
+
+            <HubGroup title={L('Enfrentar o medo', 'Facing the fear')} defaultOpen>
+              <HubRow icon="trending-up-outline" title={t('exercises.exposure')} desc={t('exercises.exposureDesc')} onPress={() => { setExpSelected(null); setView('exposure'); }} />
+              <HubRow icon="pulse-outline" title={t('exercises.interoceptive')} desc={t('exercises.interoceptiveDesc')} onPress={() => setView('interoceptive')} />
+              <HubRow icon="text-outline" title={t('games.words')} desc={t('games.wordsDesc')} onPress={() => setView('words')} />
+              <HubRow icon="shuffle-outline" title={t('exercises.challenges')} desc={t('exercises.challengesDesc')} onPress={() => setView('challenges')} />
+            </HubGroup>
+
+            <HubGroup title={L('Trabalhar o pensamento', 'Working with thoughts')}>
+              <HubRow icon="bulb-outline" title={t('exercises.thought')} desc={t('exercises.thoughtDesc')} onPress={() => setView('thought')} />
+              <HubRow icon="flask-outline" title={L('Experiências', 'Experiments')} desc={L('Prever vs o que acontece mesmo', 'Predict vs what actually happens')} onPress={() => setView('experiments')} />
+              <HubRow icon="help-circle-outline" title={t('games.myth')} desc={t('games.mythDesc')} onPress={() => setView('myth')} />
+            </HubGroup>
+
+            <HubGroup title={L('Aceitação e memória', 'Acceptance & memory')}>
+              <HubRow icon="leaf-outline" title={L('Aceitação e valores', 'Acceptance & values')} desc={L('Princípios, valores e compromissos de aproximação', 'Principles, values and approach commitments')} onPress={() => setView('acceptance')} />
+              <HubRow icon="sparkles-outline" title={t('exercises.memory')} desc={t('exercises.memoryDesc')} onPress={() => setView('memory')} />
+            </HubGroup>
           </ScrollView>
         )}
         {view === 'exposure' && <ExposureView selected={expSelected} setSelected={setExpSelected} />}
         {view === 'thought' && <ThoughtView />}
         {view === 'memory' && <MemoryView />}
-        {view === 'sensations' && <SensationsGuide />}
         {view === 'interoceptive' && <InteroceptiveScreen />}
         {view === 'challenges' && <ChallengesScreen />}
         {view === 'experiments' && <ExperimentsView />}
+        {view === 'myth' && <MythGame />}
+        {view === 'words' && <WordGame />}
+        {view === 'acceptance' && <AcceptanceView />}
       </View>
+
+      {/* Rodapé uniforme: "Registar sessão de hoje" (permite várias por dia).
+          A exposição fica de fora porque já regista sessões com antes/pico/depois. */}
+      {LOG_TYPES[view] && (
+        <View style={{ paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.card }}>
+          <ExerciseLogBar key={view} type={LOG_TYPES[view]!} />
+        </View>
+      )}
     </View>
   );
 }

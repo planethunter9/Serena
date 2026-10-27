@@ -11,7 +11,7 @@ import { TopBackBar } from './ui';
 type L = { pt: string; en: string };
 type Source = { title: string; publisher: string; desc: L; url: string };
 
-const SOURCES: Source[] = [
+export const SOURCES: Source[] = [
   {
     title: 'David Veale — Treating a specific phobia of vomiting (SPOV): protocolo de CBT',
     publisher: 'The Cognitive Behaviour Therapist (2009)',

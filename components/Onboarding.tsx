@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, PLANS, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
+import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
 import { OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { OptionRow, PrimaryButton } from './ui';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 export default function Onboarding({ onComplete }: { onComplete: (data: OnboardingData) => void }) {
   const { colors } = useTheme();
@@ -41,8 +41,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const [coping, setCoping] = useState<string[]>([]);
   const [customCoping, setCustomCoping] = useState<{ id: string; label: string }[]>([]);
   const [copingText, setCopingText] = useState('');
-
-  const [plan, setPlan] = useState<string | null>(null);
 
   function toggle(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -79,7 +77,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
     : step === 4 ? symptoms.length > 0
     : step === 5 ? triggers.length > 0
     : step === 6 ? coping.length > 0
-    : step === 7 ? !!plan
     : true;
 
   function itemsFrom(selected: string[], catalog: { id: string; label: L2 }[], customs: { id: string; label: string }[]) {
@@ -97,7 +94,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
     } else {
       onComplete({
         phobiaId: PHOBIA.id,
-        plan,
+        plan: null,
         subtypes: itemsFrom(subtypes, SUBTYPE_OPTIONS, customSubtypes),
         coping: itemsFrom(coping, COPING_OPTIONS, customCoping),
         losses: itemsFrom(losses, LOSS_OPTIONS, customLosses),
@@ -238,26 +235,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
           </StepList>
         )}
 
-        {step === 7 && (
-          <StepList title={t('onb.q4Title')} subtitle={t('onb.q4Subtitle')}>
-            {PLANS.map((p) => {
-              const active = plan === p.id;
-              return (
-                <Pressable
-                  key={p.id}
-                  onPress={() => setPlan(p.id)}
-                  style={{ padding: spacing.lg, borderRadius: radius.lg, backgroundColor: active ? colors.primarySoft : colors.card, borderWidth: 2, borderColor: active ? colors.primary : colors.border, gap: 4 }}
-                >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{p.title[lang]}</Text>
-                    <Text style={{ color: colors.primary, fontWeight: '700' }}>{p.subtitle[lang]}</Text>
-                  </View>
-                  <Text style={{ color: colors.textMuted, fontSize: 14 }}>{p.desc[lang]}</Text>
-                </Pressable>
-              );
-            })}
-          </StepList>
-        )}
       </ScrollView>
 
       <View style={{ padding: spacing.xl, paddingBottom: (insets.bottom || 0) + spacing.md }}>

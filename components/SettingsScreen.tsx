@@ -3,11 +3,15 @@
 // (chip com ícone + título + seta).
 
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang } from '../i18n/i18n';
-import { OnboardingData, ProfileItem } from '../storage/storage';
+import { exportUserData, importUserData, isoLocal, OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -27,17 +31,82 @@ export default function SettingsScreen({
   onOpenChoices: () => void;
   onOpenProfile: () => void;
 }) {
-  const { colors, themeName, setThemeName } = useTheme();
+  const { colors } = useTheme();
   const { t, lang } = useLang();
   const auth = useAuth();
   const { user, signOut } = auth;
   const router = useRouter();
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const [backupBusy, setBackupBusy] = useState(false);
+
+  // Exporta todos os dados locais para um ficheiro JSON e abre a folha de partilha
+  // (para guardar na nuvem, enviar por email, etc.).
+  async function exportBackup() {
+    setBackupBusy(true);
+    try {
+      const data = await exportUserData();
+      const payload = JSON.stringify({ app: 'serena', version: 1, exportedAt: new Date().toISOString(), data }, null, 2);
+      const fileUri = FileSystem.documentDirectory + `serena-backup-${isoLocal()}.json`;
+      await FileSystem.writeAsStringAsync(fileUri, payload, { encoding: 'utf8' as any });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: 'application/json', dialogTitle: L('Guardar cópia de segurança', 'Save backup') });
+      } else {
+        Alert.alert(L('Cópia criada', 'Backup created'), fileUri);
+      }
+    } catch (e) {
+      Alert.alert(L('Erro', 'Error'), L('Não foi possível criar a cópia de segurança.', 'Could not create the backup.'));
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  // Importa de um ficheiro JSON criado pela exportação. Pede confirmação.
+  async function importBackup() {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+      if (res.canceled) return;
+      const uri = res.assets?.[0]?.uri;
+      if (!uri) return;
+      const raw = await FileSystem.readAsStringAsync(uri);
+      const parsed = JSON.parse(raw);
+      const data = parsed?.data ?? parsed;
+      if (!data || typeof data !== 'object') throw new Error('bad');
+      Alert.alert(
+        L('Restaurar cópia?', 'Restore backup?'),
+        L('Os dados desta cópia vão substituir os atuais. Esta ação não pode ser desfeita.',
+          'The data in this backup will replace your current data. This cannot be undone.'),
+        [
+          { text: L('Cancelar', 'Cancel'), style: 'cancel' },
+          {
+            text: L('Restaurar', 'Restore'),
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await importUserData(data as Record<string, string>);
+                Alert.alert(L('Cópia restaurada', 'Backup restored'), L('Fecha e volta a abrir a app para veres os teus dados.', 'Close and reopen the app to see your data.'));
+              } catch {
+                Alert.alert(L('Erro', 'Error'), L('Não foi possível restaurar.', 'Could not restore.'));
+              }
+            },
+          },
+        ],
+      );
+    } catch (e) {
+      Alert.alert(L('Ficheiro inválido', 'Invalid file'), L('Escolhe um ficheiro de cópia da Serena (.json).', 'Choose a Serena backup file (.json).'));
+    }
+  }
 
   function confirmLogout() {
-    Alert.alert(t('settings.logoutTitle'), t('settings.logoutBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('settings.logout'), style: 'destructive', onPress: () => signOut() },
-    ]);
+    const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+    Alert.alert(
+      L('Terminar sessão?', 'Sign out?'),
+      L('Os teus dados ficam guardados e sincronizados. Podes voltar a entrar com a mesma conta quando quiseres.',
+        'Your data is kept and synced. You can sign back in with the same account whenever you like.'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('settings.logout'), onPress: () => signOut() },
+      ],
+    );
   }
 
   // Eliminar conta: dois passos de confirmação (ação irreversível).
@@ -81,21 +150,6 @@ export default function SettingsScreen({
     }
   }
 
-  function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { key: T; label: string }[]; onChange: (v: T) => void }) {
-    return (
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {options.map((o) => {
-          const active = value === o.key;
-          return (
-            <Pressable key={o.key} onPress={() => onChange(o.key)} style={{ flex: 1, padding: 14, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
-              <Text style={{ color: active ? '#ffffff' : colors.text, fontWeight: '600' }}>{o.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    );
-  }
-
   // Linha de navegação no estilo dos Recursos.
   function NavRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
     return (
@@ -129,22 +183,40 @@ export default function SettingsScreen({
         {/* Navegação */}
         <NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />
         <NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />
-        <NavRow icon="sunny-outline" label={lang === 'pt' ? 'Afirmação do dia' : 'Affirmation of the day'} onPress={() => router.push('/affirmation' as any)} />
         <NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />
+        <NavRow icon="people-outline" label={lang === 'pt' ? 'Modo acompanhante' : 'Companion mode'} onPress={() => router.push('/companion' as any)} />
         <NavRow icon="chatbox-ellipses-outline" label={lang === 'pt' ? 'Sugestões' : 'Feedback'} onPress={() => router.push('/feedback' as any)} />
         <NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />
+        <NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />
 
-        {/* Sobre */}
-        <Card style={{ gap: 8, marginTop: 4 }}>
+        {/* Cópia de segurança */}
+        <Card style={{ gap: 10, marginTop: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.text, fontWeight: '700' }}>{lang === 'pt' ? 'Sobre a Serena' : 'About Serena'}</Text>
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{L('Cópia de segurança', 'Backup')}</Text>
           </View>
-          <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
-            {lang === 'pt'
-              ? 'A Serena é um apoio psicoeducativo para quem vive com emetofobia (o medo de vomitar). Ajuda-te a compreender a fobia e a praticar técnicas baseadas na terapia cognitivo-comportamental (CBT) e na exposição com prevenção de resposta (ERP).\n\nNão substitui o acompanhamento de um profissional de saúde nem é um tratamento médico. Em caso de crise, usa as linhas de apoio em Recursos. As fontes do conteúdo estão em Recursos › Fontes.'
-              : 'Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).\n\nIt does not replace care from a health professional and is not medical treatment. In a crisis, use the support lines in Resources. The content sources are in Resources › Sources.'}
+          <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
+            {L('Os teus dados ficam guardados neste telemóvel. Exporta uma cópia para a guardares em segurança ou passares para outro dispositivo.',
+               'Your data is stored on this phone. Export a copy to keep it safe or move it to another device.')}
           </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              onPress={exportBackup}
+              disabled={backupBusy}
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: radius.md, backgroundColor: colors.primary, opacity: backupBusy ? 0.6 : 1 }}
+            >
+              {backupBusy ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="download-outline" size={16} color="#fff" />}
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{L('Exportar', 'Export')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={importBackup}
+              disabled={backupBusy}
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: radius.md, borderWidth: 2, borderColor: colors.primary }}
+            >
+              <Ionicons name="cloud-download-outline" size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{L('Importar', 'Import')}</Text>
+            </Pressable>
+          </View>
         </Card>
 
         {/* Terminar sessão */}

@@ -49,10 +49,13 @@ function ThemedStatusBar() {
 let currentFontFamily: string | undefined;
 let fontPatched = false;
 
-// Junta a fontFamily ao style quando o elemento é um Text/TextInput.
+// Para Text/TextInput: aplica a fonte escolhida e um limite de escala do tipo
+// de letra (acessibilidade) — respeita o tamanho do sistema, sem partir layouts.
 function injectFont(type: any, props: any) {
-  if ((type === Text || type === TextInput) && currentFontFamily && props) {
-    return { ...props, style: [{ fontFamily: currentFontFamily }, props.style] };
+  if ((type === Text || type === TextInput) && props) {
+    const extra: any = { maxFontSizeMultiplier: props.maxFontSizeMultiplier ?? 2 };
+    if (currentFontFamily) extra.style = [{ fontFamily: currentFontFamily }, props.style];
+    return { ...props, ...extra };
   }
   return props;
 }

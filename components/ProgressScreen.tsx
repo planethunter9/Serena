@@ -1,140 +1,464 @@
-// Separador "Progresso": resumo "Num relance" + seletor Progresso/Atividade
-// com gráfico (intensidade do medo vs. registos por dia).
+// "Estatísticas": cartões de estatística + gráficos (medo por semana, atividade
+// por dia, comportamentos largados). (Pilares na Visão geral; lições em Recursos.)
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { CHAPTERS } from '../data/content';
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang } from '../i18n/i18n';
 import {
   AttackEntry,
+  DroppedBehavior,
   ExposureSession,
+  isoLocal,
   JournalEntry,
   loadAttacks,
+  loadDropped,
+  loadExposureDays,
   loadExposureSessions,
   loadJournal,
-  loadLessonsDone,
   loadSeverity,
-  loadStreakStart,
   SeverityEntry,
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import EmptyState from './EmptyState';
 import { Card, ScreenTitle } from './ui';
+
+function expStreakOf(days: string[]): number {
+  const set = new Set(days);
+  const d = new Date();
+  if (!set.has(isoLocal(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (set.has(isoLocal(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
 
 export default function ProgressScreen() {
   const { colors } = useTheme();
-  const { t } = useLang();
-  const [entries, setEntries] = useState<SeverityEntry[]>([]);
-  const [lessonsDone, setLessonsDone] = useState<string[]>([]);
-  const [attacks, setAttacks] = useState<AttackEntry[]>([]);
+  const { t, lang } = useLang();
+  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  // Cor por nível (0–5): verde baixo, amarelo médio, vermelho alto — do tema.
+  const valueColor = (v: number) => (v >= 3.5 ? colors.chartHigh : v >= 2 ? colors.chartMid : colors.chartLow);
+
+  const [severity, setSeverity] = useState<SeverityEntry[]>([]);
   const [exposures, setExposures] = useState<ExposureSession[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
-  const [streakDays, setStreakDays] = useState(0);
-  const [view, setView] = useState<'progress' | 'activity'>('progress');
+  const [attacks, setAttacks] = useState<AttackEntry[]>([]);
+  const [expDays, setExpDays] = useState<string[]>([]);
+  const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
+  const [chartView, setChartView] = useState<'anxiety' | 'severity' | 'exposures' | 'dropped'>('anxiety');
+  const [chartW, setChartW] = useState(0);
+  const fearScrollRef = useRef<any>(null); // ScrollView; tipado como any p/ aceder a scrollToEnd (tipos do SDK 58)
 
   useEffect(() => {
-    loadSeverity().then(setEntries);
-    loadLessonsDone().then(setLessonsDone);
-    loadAttacks().then(setAttacks);
+    loadSeverity().then(setSeverity);
     loadExposureSessions().then(setExposures);
     loadJournal().then(setJournal);
-    loadStreakStart().then((s) => setStreakDays(s ? Math.max(0, Math.floor((Date.now() - new Date(s).getTime()) / 86400000)) : 0));
+    loadAttacks().then(setAttacks);
+    loadExposureDays().then(setExpDays);
+    loadDropped().then(setDropped);
   }, []);
 
-  const totalLessons = CHAPTERS.flatMap((c) => c.lessons).length;
-  const CHART_HEIGHT = 130;
+  const expStreak = expStreakOf(expDays);
+  const totalExpDays = expDays.length;
+  const distinctSteps = new Set(exposures.map((e) => e.stepId)).size;
 
-  // --- Num relance ---
-  const glance = [
-    { icon: 'book-outline' as const, label: t('progress.glLessons'), value: `${lessonsDone.length}/${totalLessons}` },
-    { icon: 'trending-up-outline' as const, label: t('progress.glExposures'), value: `${exposures.length}` },
-    { icon: 'create-outline' as const, label: t('progress.glJournal'), value: `${new Set(journal.map((j) => j.date)).size}` },
-    { icon: 'flame-outline' as const, label: t('progress.glStreak'), value: `${streakDays}` },
+  const journeyMsg =
+    totalExpDays >= 7 ? L('Estás a ganhar ritmo a sério.', 'You are building real momentum.')
+    : totalExpDays >= 2 ? L('Estás a construir o teu hábito.', 'You are building your habit.')
+    : L('Cada pequeno passo conta. Começa por um.', 'Every small step counts. Start with one.');
+
+  // --- Alívio nas exposições (antes → depois) — usa dados que existem de facto ---
+  const expRel = exposures.filter((e) => typeof e.before === 'number' && typeof e.after === 'number');
+  const relBefore = expRel.length ? expRel.reduce((s, e) => s + e.before, 0) / expRel.length : 0;
+  const relAfter = expRel.length ? expRel.reduce((s, e) => s + e.after, 0) / expRel.length : 0;
+  const reliefPct = relBefore > 0 ? Math.max(0, Math.round(((relBefore - relAfter) / relBefore) * 100)) : 0;
+
+  // --- A tua semana (segunda a domingo) ---
+  const nowW = new Date();
+  const dowW = (nowW.getDay() + 6) % 7;
+  const mondayW = new Date(nowW.getFullYear(), nowW.getMonth(), nowW.getDate() - dowW);
+  const weekSet = new Set(Array.from({ length: 7 }, (_, d) => isoLocal(new Date(mondayW.getFullYear(), mondayW.getMonth(), mondayW.getDate() + d))));
+  const weekStats = [
+    { n: exposures.filter((e) => weekSet.has(e.date)).length, label: L('exposições', 'exposures') },
+    { n: expDays.filter((d) => weekSet.has(d)).length, label: L('dias de prática', 'practice days') },
+    { n: dropped.filter((d) => weekSet.has(d.date)).length, label: L('a largar', 'dropping') },
+    { n: new Set(journal.filter((j) => weekSet.has(j.date)).map((j) => j.date)).size, label: L('no diário', 'journal') },
   ];
 
-  // --- Gráfico: intensidade do medo (últimos registos) ---
-  const recentFear = entries.slice(-14);
-  const avg = entries.length ? entries.reduce((s, e) => s + e.value, 0) / entries.length : 0;
+  const stats = [
+    { icon: 'trending-down-outline' as const, value: expRel.length ? `${reliefPct}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRel.length ? `${relBefore.toFixed(1)} → ${relAfter.toFixed(1)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
+    { icon: 'flame-outline' as const, value: `${expStreak}`, label: L('dias seguidos', 'days in a row'), sub: L(`${totalExpDays} no total`, `${totalExpDays} total`), color: colors.primary, highlight: true },
+    { icon: 'barbell-outline' as const, value: `${exposures.length}`, label: L('exposições feitas', 'exposures done'), sub: L(`${distinctSteps} degraus`, `${distinctSteps} steps`), color: colors.primary },
+    { icon: 'leaf-outline' as const, value: `${dropped.length}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('que já não alimentam o medo', 'no longer feeding the fear'), color: colors.success },
+  ];
 
-  // --- Gráfico: atividade por dia (últimos 14 dias) ---
+  // --- Gráficos ---
+  const CHART_HEIGHT = 156;
+  const AX_LEFT = 26;
+  const AX_BOTTOM = 24;
+  const PAD = 12;
+  const PAD_X = 14;
+  const WEEKS = 12;
+  const plotH = CHART_HEIGHT - AX_BOTTOM;
+  const yAt = (v: number) => plotH - PAD - (v / 5) * (plotH - PAD * 2);
+  const dmShort = (iso: string) => { const p = iso.split('-'); return `${p[2]}/${p[1]}`; };
+  const WEEKDAYS = lang === 'pt'
+    ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Intensidade por dia (0–5): registos de medo, desconforto da exposição (SUDS 0–10 → 0–5)
+  // e ataques (puxam para cima). Dia sem dados = sem ponto.
+  const fearFor = (d: string): number | null => {
+    const cands: number[] = severity.filter((e) => e.date === d).map((e) => e.value);
+    exposures.filter((e) => e.date === d).forEach((e) => cands.push((typeof e.peak === 'number' ? e.peak : e.before) / 2));
+    if (attacks.some((a) => a.date === d)) cands.push(4);
+    return cands.length ? Math.min(5, Math.max(...cands)) : null;
+  };
+
+  const nowD = new Date();
+  const dow = (nowD.getDay() + 6) % 7;
+  const monday = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - dow);
+  const weeks: string[][] = [];
+  for (let w = WEEKS - 1; w >= 0; w--) {
+    const wk: string[] = [];
+    for (let d = 0; d < 7; d++) {
+      const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - w * 7 + d);
+      wk.push(isoLocal(dt));
+    }
+    weeks.push(wk);
+  }
+  const allFearVals = weeks.flat().map(fearFor).filter((v): v is number => v !== null);
+  const avg = allFearVals.length ? allFearVals.reduce((s, v) => s + v, 0) / allFearVals.length : 0;
+
+  // Variação da ansiedade desta semana face à anterior (negativo = desceu = bom).
+  const weekAvg = (wk: string[]): number | null => {
+    const vals = wk.map(fearFor).filter((v): v is number => v !== null);
+    return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+  };
+  const thisWeekAvg = weeks.length ? weekAvg(weeks[weeks.length - 1]) : null;
+  const lastWeekAvg = weeks.length > 1 ? weekAvg(weeks[weeks.length - 2]) : null;
+  const weekPct =
+    thisWeekAvg !== null && lastWeekAvg !== null && lastWeekAvg > 0
+      ? Math.round(((thisWeekAvg - lastWeekAvg) / lastWeekAvg) * 100)
+      : null;
+
+  const visibleW = Math.max(0, chartW - AX_LEFT);
+  const innerW = Math.max(0, visibleW - PAD_X * 2);
+  const xAt = (j: number) => PAD_X + (innerW / 6) * j;
+
+  const smoothLine = (ps: { x: number; y: number }[]) => {
+    if (ps.length < 2) return '';
+    let d = `M ${ps[0].x},${ps[0].y}`;
+    for (let i = 0; i < ps.length - 1; i++) {
+      const p0 = ps[i - 1] || ps[i];
+      const p1 = ps[i];
+      const p2 = ps[i + 1];
+      const p3 = ps[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+    }
+    return d;
+  };
+  const smoothArea = (ps: { x: number; y: number }[], baseY: number) => {
+    if (ps.length < 2) return '';
+    return `${smoothLine(ps)} L ${ps[ps.length - 1].x},${baseY} L ${ps[0].x},${baseY} Z`;
+  };
+
   const days: string[] = [];
-  for (let i = 13; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(Date.now() - i * 86400000)));
   const activityByDay = days.map((d) => {
     const ex = exposures.filter((e) => e.date === d).length;
     const jn = journal.filter((j) => j.date === d).length;
-    const sv = entries.filter((e) => e.date === d).length;
+    const sv = severity.filter((e) => e.date === d).length;
     return ex + jn + sv;
   });
   const maxActivity = Math.max(1, ...activityByDay);
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
-      <ScreenTitle title={t('progress.title')} />
+      <ScreenTitle title={L('A tua evolução', 'Your progress')} />
 
-      {/* Num relance */}
-      <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>{t('progress.glance')}</Text>
-      <View style={{ gap: spacing.sm }}>
-        {glance.map((g) => (
-          <Card key={g.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={g.icon} size={20} color={colors.primary} />
-            </View>
-            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{g.label}</Text>
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{g.value}</Text>
-          </Card>
+      {/* Percurso */}
+      <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 2 }}>
+        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700' }}>{L('O TEU PERCURSO', 'YOUR JOURNEY')}</Text>
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{journeyMsg}</Text>
+      </View>
+
+      {/* Estatísticas */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+        {stats.map((s) => (
+          <View
+            key={s.label}
+            style={{
+              width: '47%', flexGrow: 1, backgroundColor: colors.card, borderRadius: radius.lg,
+              borderWidth: s.highlight ? 2 : 1, borderColor: s.highlight ? colors.primary : colors.border,
+              padding: spacing.lg, gap: 4,
+            }}
+          >
+            <Ionicons name={s.icon} size={18} color={s.color} />
+            <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{s.value}</Text>
+            <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{s.label}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{s.sub}</Text>
+          </View>
         ))}
       </View>
 
-      {/* Seletor Progresso / Atividade */}
+      {/* A tua semana */}
+      <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg, gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, flex: 1 }}>{L('A tua semana', 'Your week')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+          {weekStats.map((s) => (
+            <View key={s.label} style={{ width: '47%', flexGrow: 1, backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.md, alignItems: 'center' }}>
+              <Text style={{ color: colors.primary, fontSize: 24, fontWeight: '800' }}>{s.n}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Seletor Ansiedade / Gravidade / Exposições / Largados */}
       <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-        {(['progress', 'activity'] as const).map((v) => {
-          const active = view === v;
+        {(['anxiety', 'severity', 'exposures', 'dropped'] as const).map((v) => {
+          const active = chartView === v;
+          const label = v === 'anxiety' ? L('Ansiedade', 'Anxiety') : v === 'severity' ? L('Gravidade', 'Severity') : v === 'exposures' ? L('Exposições', 'Exposures') : L('Largados', 'Dropped');
           return (
-            <Pressable key={v} onPress={() => setView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-              <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 14 }}>
-                {v === 'progress' ? t('progress.tabProgress') : t('progress.tabActivity')}
-              </Text>
+            <Pressable key={v} onPress={() => setChartView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
+              <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      {/* Gráfico */}
       <Card style={{ gap: 14 }}>
-        {view === 'progress' ? (
+        {chartView === 'anxiety' ? (
           <>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <Text style={{ color: colors.text, fontWeight: '600' }}>{t('progress.chartTitle')}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('progress.statAvg')} {avg.toFixed(1)}/5</Text>
-            </View>
-            {recentFear.length === 0 ? (
-              <Text style={{ color: colors.textMuted }}>{t('progress.chartEmpty')}</Text>
-            ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: CHART_HEIGHT }}>
-                {recentFear.map((e, idx) => (
-                  <View key={idx} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <View style={{ width: '70%', height: Math.max(6, (e.value / 5) * CHART_HEIGHT), backgroundColor: colors.primary, borderRadius: 4 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Ansiedade ao longo do tempo', 'Anxiety over time')}</Text>
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Intensidade diária (0–5) · média', 'Daily intensity (0–5) · average')} {avg.toFixed(1)}/5</Text>
+              </View>
+              {weekPct !== null && (() => {
+                const c = weekPct < 0 ? colors.success : weekPct > 0 ? colors.danger : colors.textMuted;
+                const icon = weekPct < 0 ? 'arrow-down' : weekPct > 0 ? 'arrow-up' : 'remove';
+                return (
+                  <View style={{ alignItems: 'flex-end', gap: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.cardAlt, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 }}>
+                      <Ionicons name={icon as any} size={13} color={c} />
+                      <Text style={{ color: c, fontWeight: '800', fontSize: 13 }}>{Math.abs(weekPct)}%</Text>
+                    </View>
+                    <Text style={{ color: colors.textMuted, fontSize: 10 }}>{L('vs. semana passada', 'vs. last week')}</Text>
                   </View>
-                ))}
+                );
+              })()}
+            </View>
+            {allFearVals.length === 0 ? (
+              <EmptyState compact icon="pulse-outline" title={t('progress.chartEmpty')} />
+            ) : (
+              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT + 24, alignItems: 'flex-start' }}>
+                <Svg width={AX_LEFT} height={CHART_HEIGHT}>
+                  {[0, 1, 2, 3, 4, 5].map((v) => (
+                    <SvgText key={'y' + v} x={AX_LEFT - 6} y={yAt(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
+                  ))}
+                </Svg>
+                {chartW > 0 && (
+                  <ScrollView
+                    ref={fearScrollRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    style={{ width: visibleW, height: CHART_HEIGHT + 24 }}
+                    onContentSizeChange={() => fearScrollRef.current?.scrollToEnd({ animated: false })}
+                  >
+                    {weeks.map((wk, wi) => {
+                      const pts = wk
+                        .map((d, j) => { const v = fearFor(d); return v === null ? null : { x: xAt(j), y: yAt(v), v }; })
+                        .filter((p): p is { x: number; y: number; v: number } => p !== null);
+                      const baseY = yAt(0);
+                      const line = smoothLine(pts);
+                      const area = smoothArea(pts, baseY);
+                      const last = pts[pts.length - 1];
+                      const gid = `fearGrad${wi}`;
+                      const lineGid = `fearLine${wi}`;
+                      const todayIso = isoLocal();
+                      const range = `${dmShort(wk[0])} – ${dmShort(wk[6])}`;
+                      return (
+                        <View key={wi} style={{ width: visibleW }}>
+                          <Svg width={visibleW} height={CHART_HEIGHT}>
+                            <Defs>
+                              <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                                <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
+                                <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
+                              </LinearGradient>
+                              {/* Cor da linha pela intensidade: vermelho em cima → amarelo → verde em baixo */}
+                              <LinearGradient id={lineGid} x1="0" y1={yAt(5)} x2="0" y2={yAt(0)} gradientUnits="userSpaceOnUse">
+                                <Stop offset="0" stopColor={colors.chartHigh} />
+                                <Stop offset="0.5" stopColor={colors.chartMid} />
+                                <Stop offset="1" stopColor={colors.chartLow} />
+                              </LinearGradient>
+                            </Defs>
+                            {[0, 1, 2, 3, 4, 5].map((v) => (
+                              <Line key={'g' + v} x1={PAD_X} y1={yAt(v)} x2={visibleW - PAD_X} y2={yAt(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={v === 0 ? 0.7 : 0.45} strokeLinecap="round" />
+                            ))}
+                            {WEEKDAYS.map((wd, j) => {
+                              const isToday = wk[j] === todayIso;
+                              return (
+                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '700' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
+                              );
+                            })}
+                            {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
+                            {pts.length > 1 && <Path d={line} fill="none" stroke={`url(#${lineGid})`} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
+                            {pts.length === 1 && <Circle cx={pts[0].x} cy={pts[0].y} r={5} fill={colors.card} stroke={valueColor(pts[0].v)} strokeWidth={3} />}
+                            {last && <Circle cx={last.x} cy={last.y} r={9} fill={valueColor(last.v)} opacity={0.14} />}
+                            {pts.map((p, i) => {
+                              const isLast = i === pts.length - 1;
+                              return (
+                                <Circle key={'p' + i} cx={p.x} cy={p.y} r={isLast ? 5 : 4} fill={colors.card} stroke={valueColor(p.v)} strokeWidth={isLast ? 3 : 2} />
+                              );
+                            })}
+                            {last && (
+                              <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="700" fill={valueColor(last.v)} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
+                            )}
+                          </Svg>
+                          <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{range}</Text>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
               </View>
             )}
           </>
-        ) : (
+        ) : chartView === 'severity' ? (
           <>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{t('progress.activityTitle')}</Text>
-            {activityByDay.every((n) => n === 0) ? (
-              <Text style={{ color: colors.textMuted }}>{t('progress.activityEmpty')}</Text>
+            <View style={{ gap: 2 }}>
+              <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Os teus check-ins de gravidade (0–5)', 'Your severity check-ins (0–5)')}</Text>
+            </View>
+            {severity.length < 2 ? (
+              <EmptyState compact icon="trending-down-outline" title={L('Regista a gravidade algumas vezes para veres a tendência aqui.', 'Log your severity a few times to see the trend here.')} />
             ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: CHART_HEIGHT }}>
-                {activityByDay.map((n, idx) => (
-                  <View key={idx} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <View style={{ width: '70%', height: Math.max(4, (n / maxActivity) * CHART_HEIGHT), backgroundColor: colors.success, borderRadius: 4 }} />
-                  </View>
-                ))}
+              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
+                {chartW > 0 && (() => {
+                  const chron = [...severity].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-16);
+                  const w = chartW, h = CHART_HEIGHT, nn = chron.length;
+                  const left = 22, padR = 12, padTop = 10, padBot = 10;
+                  const xA = (i: number) => (nn <= 1 ? (left + w - padR) / 2 : left + (i / (nn - 1)) * (w - left - padR));
+                  const yA = (v: number) => (h - padBot) - (v / 5) * (h - padBot - padTop);
+                  const pts = chron.map((s, i) => ({ x: xA(i), y: yA(s.value) }));
+                  const last = pts[pts.length - 1];
+                  const lastVal = chron[chron.length - 1].value;
+                  return (
+                    <Svg width={w} height={h}>
+                      <Defs>
+                        <LinearGradient id="sevGrad" x1="0" y1="0" x2="0" y2="1">
+                          <Stop offset="0" stopColor={colors.primary} stopOpacity={0.26} />
+                          <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
+                        </LinearGradient>
+                      </Defs>
+                      {[0, 1, 2, 3, 4, 5].map((v) => (
+                        <Line key={'g' + v} x1={left} y1={yA(v)} x2={w - padR} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={v === 0 ? 0.7 : 0.4} strokeLinecap="round" />
+                      ))}
+                      {[0, 1, 2, 3, 4, 5].map((v) => (
+                        <SvgText key={'yl' + v} x={left - 5} y={yA(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
+                      ))}
+                      {pts.length > 1 && <Path d={smoothArea(pts, yA(0))} fill="url(#sevGrad)" />}
+                      {pts.length > 1 && <Path d={smoothLine(pts)} fill="none" stroke={colors.primary} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
+                      {pts.map((p, i) => (
+                        <Circle key={'p' + i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={i === pts.length - 1 ? 3 : 2} />
+                      ))}
+                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={10} fontWeight="700" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
+                    </Svg>
+                  );
+                })()}
               </View>
             )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('progress.activityHint')}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Uma linha a descer mostra que a fobia está a pesar menos.', 'A downward line means the phobia is weighing on you less.')}</Text>
+          </>
+        ) : chartView === 'exposures' ? (
+          <>
+            <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')}</Text>
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('antes', 'before')}</Text></View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('depois', 'after')}</Text></View>
+            </View>
+            {exposures.length < 2 ? (
+              <EmptyState compact icon="barbell-outline" title={L('Regista sessões de exposição para veres a evolução aqui.', 'Log exposure sessions to see the trend here.')} />
+            ) : (
+              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
+                {chartW > 0 && (() => {
+                  const chrono = [...exposures].reverse().slice(-12); // mais antigas → recentes
+                  const w = chartW, h = CHART_HEIGHT, pad = 10, nn = chrono.length;
+                  const xA = (i: number) => (nn <= 1 ? w / 2 : pad + (i / (nn - 1)) * (w - pad * 2));
+                  const yA = (v: number) => (h - pad) - (v / 10) * (h - pad * 2);
+                  const bPts = chrono.map((s, i) => ({ x: xA(i), y: yA(s.before) }));
+                  const aPts = chrono.map((s, i) => ({ x: xA(i), y: yA(typeof s.after === 'number' ? s.after : s.before) }));
+                  return (
+                    <Svg width={w} height={h}>
+                      {[0, 5, 10].map((v) => (
+                        <Line key={v} x1={pad} y1={yA(v)} x2={w - pad} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={0.5} />
+                      ))}
+                      <Path d={smoothLine(bPts)} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                      <Path d={smoothLine(aPts)} fill="none" stroke={colors.success} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                      {bPts.map((p, i) => (<Circle key={'b' + i} cx={p.x} cy={p.y} r={3} fill={colors.primary} />))}
+                      {aPts.map((p, i) => (<Circle key={'a' + i} cx={p.x} cy={p.y} r={3} fill={colors.success} />))}
+                    </Svg>
+                  );
+                })()}
+              </View>
+            )}
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('A distância entre as linhas costuma encolher com a prática.', 'The gap between the lines tends to shrink with practice.')}</Text>
+          </>
+        ) : (
+          <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ color: colors.success, fontSize: 30, fontWeight: '800' }}>{dropped.length}</Text>
+              <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{L('comportamentos que estás a largar', 'behaviours you are dropping')}</Text>
+            </View>
+            {dropped.length === 0 ? (
+              <EmptyState compact icon="leaf-outline" title={L('Marca um comportamento como "a largar" em Recursos › Comportamentos para veres aqui o teu progresso.', 'Mark a behaviour as "dropping" in Resources › Behaviours to see your progress here.')} />
+            ) : (
+              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
+                {chartW > 0 && (() => {
+                  const sorted = [...dropped].sort((a, b) => (a.date < b.date ? -1 : 1));
+                  const map = new Map<string, number>();
+                  sorted.forEach((d, i) => map.set(d.date, i + 1));
+                  const dates = Array.from(map.keys());
+                  const maxC = sorted.length;
+                  const first = new Date(dates[0] + 'T00:00:00').getTime();
+                  const today = new Date(isoLocal() + 'T00:00:00').getTime();
+                  const span = Math.max(1, today - first);
+                  const w = chartW;
+                  const plotH2 = CHART_HEIGHT - 16;
+                  const xOf = (iso: string) => PAD_X + ((new Date(iso + 'T00:00:00').getTime() - first) / span) * (w - PAD_X * 2);
+                  const yOf = (c: number) => (plotH2 - PAD) - (c / maxC) * (plotH2 - PAD * 2);
+                  const pts = dates.map((iso) => ({ x: xOf(iso), y: yOf(map.get(iso)!) }));
+                  const lastPt = pts[pts.length - 1];
+                  const endPts = lastPt.x < w - PAD_X ? [...pts, { x: w - PAD_X, y: lastPt.y }] : pts;
+                  return (
+                    <Svg width={w} height={CHART_HEIGHT}>
+                      <Defs>
+                        <LinearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
+                          <Stop offset="0" stopColor={colors.success} stopOpacity={0.28} />
+                          <Stop offset="1" stopColor={colors.success} stopOpacity={0} />
+                        </LinearGradient>
+                      </Defs>
+                      {endPts.length > 1 && <Path d={smoothArea(endPts, plotH2 - PAD)} fill="url(#dropGrad)" />}
+                      {endPts.length > 1 && <Path d={smoothLine(endPts)} fill="none" stroke={colors.success} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
+                      {pts.map((p, i) => (
+                        <Circle key={i} cx={p.x} cy={p.y} r={4} fill={colors.card} stroke={colors.success} strokeWidth={2} />
+                      ))}
+                    </Svg>
+                  );
+                })()}
+              </View>
+            )}
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Total de comportamentos que começaste a largar ao longo do tempo.', 'Cumulative safety behaviours you have started dropping over time.')}</Text>
           </>
         )}
       </Card>

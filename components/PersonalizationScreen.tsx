@@ -4,9 +4,10 @@
 // o botão "Desbloquear" ativa o estado localmente para teste.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { loadRingMode, RingMode, saveRingMode } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { deriveColors, FONTS, lightColors, normalizeHex, PRESETS, radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -40,6 +41,15 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
   const tt = (o: L) => o[lang];
 
   const [hexInput, setHexInput] = useState(theme.customHex.replace('#', ''));
+
+  // Modo do círculo (grátis) e cores do círculo (pago).
+  const [ringMode, setRingMode] = useState<RingMode>('daily');
+  useEffect(() => { loadRingMode().then(setRingMode); }, []);
+  function changeRing(m: RingMode) { setRingMode(m); saveRingMode(m); }
+
+  const ringCols = theme.ringColors ?? theme.defaultRingColors;
+  const PILLAR_NAMES = [tt({ pt: 'Prática', en: 'Practice' }), tt({ pt: 'Repetição', en: 'Repetition' }), tt({ pt: 'Aproximação', en: 'Approach' })];
+  function pickRingColor(i: number, hx: string) { if (!requireUnlock()) return; theme.setRingColor(i, hx); }
 
   // Pede desbloqueio quando se toca numa opção paga sem acesso.
   function requireUnlock(): boolean {
@@ -184,6 +194,51 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
               <Text style={{ color: '#fff', fontWeight: '700' }}>{tt({ pt: 'Aplicar', en: 'Apply' })}</Text>
             </Pressable>
           </View>
+        </Card>
+
+        {/* Círculo de progresso (grátis) */}
+        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 4 }}>{tt({ pt: 'Círculo de progresso', en: 'Progress circle' })}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
+          {tt({ pt: 'O círculo do ecrã inicial pode mostrar o teu dia de hoje, a semana ou o mês.', en: 'The home circle can show today, this week or this month.' })}
+        </Text>
+        <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
+          {([['daily', { pt: 'Diário', en: 'Daily' }], ['weekly', { pt: 'Semanal', en: 'Weekly' }], ['monthly', { pt: 'Mensal', en: 'Monthly' }]] as const).map(([m, label]) => {
+            const active = ringMode === m;
+            return (
+              <Pressable key={m} onPress={() => changeRing(m)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
+                <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 13 }}>{tt(label)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Cores do círculo (pago) */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+          <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800' }}>{tt({ pt: 'Cores do círculo', en: 'Circle colors' })}</Text>
+          {!unlocked && <Lock />}
+        </View>
+        <Card style={{ gap: 14 }}>
+          {PILLAR_NAMES.map((pname, i) => (
+            <View key={i} style={{ gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: ringCols[i] }} />
+                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{pname}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {SWATCHES.map((hx) => {
+                  const sel = normalizeHex(ringCols[i]) === hx;
+                  return (
+                    <Pressable key={hx} onPress={() => pickRingColor(i, hx)} style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: hx, borderWidth: sel ? 3 : 1, borderColor: sel ? colors.text : colors.border }} />
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+          {theme.ringColors && (
+            <Pressable onPress={theme.resetRingColors} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' }}>{tt({ pt: 'repor cores predefinidas', en: 'reset default colors' })}</Text>
+            </Pressable>
+          )}
         </Card>
 
         {/* Tipos de letra */}

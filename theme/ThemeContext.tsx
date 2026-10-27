@@ -1,6 +1,7 @@
-// Tema global: claro/escuro + personalização (paleta, cor HEX e fonte).
-// Só o azul (paleta 'blue') e a fonte 'system' são grátis; o resto fica
-// disponível quando `unlocked` for verdadeiro (pack de personalização).
+// Tema global: claro/escuro + personalização (paleta, cor HEX, fonte e cores do
+// círculo de pilares). Só o azul (paleta 'blue') e a fonte 'system' são grátis;
+// o resto (incluindo as cores do círculo) fica disponível quando `unlocked` for
+// verdadeiro (pack de personalização).
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -20,6 +21,7 @@ const KEYS = {
   custom: 'app:customHex',
   font: 'app:font',
   unlocked: 'app:unlocked',
+  ring: 'app:ringColors',
 };
 
 type ThemeContextValue = {
@@ -38,6 +40,11 @@ type ThemeContextValue = {
   fontFamily?: string; // família resolvida (undefined = sistema)
   unlocked: boolean;
   setUnlocked: (v: boolean) => void;
+  // Cores do círculo de pilares (pago). null = usar as predefinidas do tema.
+  ringColors: string[] | null;
+  defaultRingColors: string[];
+  setRingColor: (index: number, hex: string) => void;
+  resetRingColors: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -48,13 +55,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [customHex, setCustomHexState] = useState('#2f8aa8');
   const [fontKey, setFontKeyState] = useState('system');
   const [unlocked, setUnlockedState] = useState(false);
+  const [ringColors, setRingColorsState] = useState<string[] | null>(null);
 
   // Carrega as preferências guardadas.
   useEffect(() => {
     (async () => {
       try {
         const pairs = await AsyncStorage.multiGet([
-          KEYS.theme, KEYS.palette, KEYS.custom, KEYS.font, KEYS.unlocked,
+          KEYS.theme, KEYS.palette, KEYS.custom, KEYS.font, KEYS.unlocked, KEYS.ring,
         ]);
         const map = Object.fromEntries(pairs);
         if (map[KEYS.theme] === 'light' || map[KEYS.theme] === 'dark') setThemeNameState(map[KEYS.theme] as ThemeName);
@@ -62,14 +70,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (map[KEYS.custom] && normalizeHex(map[KEYS.custom]!)) setCustomHexState(normalizeHex(map[KEYS.custom]!)!);
         if (map[KEYS.font]) setFontKeyState(map[KEYS.font]!);
         if (map[KEYS.unlocked] === '1') setUnlockedState(true);
+        if (map[KEYS.ring]) {
+          const arr = JSON.parse(map[KEYS.ring]!);
+          if (Array.isArray(arr) && arr.length === 3 && arr.every((x) => typeof x === 'string')) setRingColorsState(arr);
+        }
       } catch {}
     })();
   }, []);
 
   const isDark = themeName === 'dark';
 
-  // Se não estiver desbloqueado, força o grátis (azul + fonte do sistema),
-  // mesmo que haja algo guardado de um período em que esteve desbloqueado.
   const effPalette = unlocked ? paletteId : 'blue';
   const effFontKey = unlocked ? fontKey : 'system';
 
@@ -81,6 +91,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const colors = useMemo(() => resolveColors(isDark, primaryHex), [isDark, primaryHex]);
   const fontFamily = FONTS.find((f) => f.key === effFontKey)?.family;
 
+  // Cores predefinidas do círculo (seguem o tema). Cores próprias só se `unlocked`.
+  const defaultRingColors = [colors.primary, '#3b82f6', colors.success];
+  const effRingColors = unlocked ? ringColors : null;
+
   function setThemeName(n: ThemeName) { setThemeNameState(n); AsyncStorage.setItem(KEYS.theme, n).catch(() => {}); }
   function toggleTheme() { setThemeName(isDark ? 'light' : 'dark'); }
   function setPalette(id: string) { setPaletteIdState(id); AsyncStorage.setItem(KEYS.palette, id).catch(() => {}); }
@@ -91,11 +105,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
   function setFontKey(k: string) { setFontKeyState(k); AsyncStorage.setItem(KEYS.font, k).catch(() => {}); }
   function setUnlocked(v: boolean) { setUnlockedState(v); AsyncStorage.setItem(KEYS.unlocked, v ? '1' : '0').catch(() => {}); }
+  function setRingColor(index: number, hex: string) {
+    const n = normalizeHex(hex);
+    if (!n || index < 0 || index > 2) return;
+    const base = ringColors ?? [colors.primary, '#3b82f6', colors.success];
+    const next = [...base];
+    next[index] = n;
+    setRingColorsState(next);
+    AsyncStorage.setItem(KEYS.ring, JSON.stringify(next)).catch(() => {});
+  }
+  function resetRingColors() {
+    setRingColorsState(null);
+    AsyncStorage.removeItem(KEYS.ring).catch(() => {});
+  }
 
   const value: ThemeContextValue = {
     themeName, colors, isDark, setThemeName, toggleTheme,
     paletteId, setPalette, customHex, setCustomHex,
     fontKey, setFontKey, fontFamily, unlocked, setUnlocked,
+    ringColors: effRingColors, defaultRingColors, setRingColor, resetRingColors,
   };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

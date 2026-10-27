@@ -7,6 +7,7 @@ import { useLang } from '../i18n/i18n';
 import { Goal, loadGoals, saveGoals } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import EmptyState from './EmptyState';
 import { TopBackBar } from './ui';
 
 // Objetivos sugeridos (bilingue). O utilizador escolhe os que quiser.
@@ -107,7 +108,13 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
           </Pressable>
         </View>
 
-        {goals.length === 0 && <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 8 }}>{t('goals.empty')}</Text>}
+        {goals.length === 0 && (
+          <EmptyState
+            icon="flag-outline"
+            title={t('goals.empty')}
+            subtitle={lang === 'pt' ? 'Escolhe da lista ou escreve o teu primeiro objetivo acima.' : 'Pick from the list or write your first goal above.'}
+          />
+        )}
 
         {goals.map((g) => (
           <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border }}>

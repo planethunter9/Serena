@@ -27,7 +27,14 @@ export type OnboardingData = {
 };
 
 export type SeverityEntry = { date: string; value: number }; // 0 a 5
-export type AttackEntry = { ts: string; date: string; type: 'anxiety' | 'panic' | 'behavior' };
+export type AttackEntry = {
+  id?: string;
+  ts: string;
+  date: string;
+  type: 'anxiety' | 'panic' | 'behavior';
+  reason?: string;        // motivo/gatilho (opcional)
+  vomited?: boolean;      // acabou por vomitar? (opcional)
+};
 
 // --- Onboarding -----------------------------------------------------------
 
@@ -40,6 +47,11 @@ export async function loadOnboarding(): Promise<OnboardingData | null> {
 }
 export async function clearAll() {
   await AsyncStorage.multiRemove([k('onboarding'), k('severity'), k('lessonsDone'), k('attacks')]);
+}
+
+// Apaga TODOS os dados locais do utilizador atual (usado ao eliminar a conta).
+export async function wipeLocalUserData() {
+  await AsyncStorage.multiRemove(USER_KEY_NAMES.map((n) => k(n)));
 }
 
 // --- Intensidade do medo --------------------------------------------------
@@ -74,6 +86,9 @@ export async function addAttack(type: 'anxiety' | 'panic' | 'behavior'): Promise
   const next = [...list, { ts: now.toISOString(), date: isoLocal(now), type }];
   await AsyncStorage.setItem(k('attacks'), JSON.stringify(next));
   return next;
+}
+export async function saveAttacks(list: AttackEntry[]) {
+  await AsyncStorage.setItem(k('attacks'), JSON.stringify(list));
 }
 
 // --- Plano da semana ------------------------------------------------------
@@ -162,7 +177,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -185,7 +200,7 @@ export async function importUserData(data: Record<string, string>) {
 // --- Exercícios: exposição e reestruturação cognitiva --------------------
 
 export type ExposureSession = { id: string; stepId: string; stepLabel: string; date: string; ts: string; before: number; peak: number; after: number; note: string };
-export type ThoughtRecord = { id: string; date: string; ts: string; situation: string; thought: string; before: number; evidenceFor: string; evidenceAgainst: string; balanced: string; after: number };
+export type ThoughtRecord = { id: string; date: string; ts: string; situation: string; thought: string; before: number; traps?: string[]; evidenceFor: string; evidenceAgainst: string; balanced: string; after: number };
 
 export async function loadExposureSteps(): Promise<ProfileItem[]> {
   const raw = await AsyncStorage.getItem(k('exposureSteps'));
@@ -259,6 +274,34 @@ export async function loadResourcesOrder(): Promise<string[]> {
 }
 export async function saveResourcesOrder(order: string[]) {
   await AsyncStorage.setItem(k('resourcesOrder'), JSON.stringify(order));
+}
+
+// --- Resumo semanal (dispensado por semana) -------------------------------
+export async function loadRecapDismissed(): Promise<string> {
+  const raw = await AsyncStorage.getItem(k('recapDismissed'));
+  return raw ?? '';
+}
+export async function saveRecapDismissed(weekStart: string) {
+  await AsyncStorage.setItem(k('recapDismissed'), weekStart);
+}
+
+// --- Plano para dias difíceis (prevenção de recaída) ----------------------
+export type HardDayPlan = { signs: string; helps: string; reminders: string; contacts: string };
+export async function loadHardDayPlan(): Promise<HardDayPlan> {
+  const raw = await AsyncStorage.getItem(k('hardDayPlan'));
+  return raw ? JSON.parse(raw) : { signs: '', helps: '', reminders: '', contacts: '' };
+}
+export async function saveHardDayPlan(p: HardDayPlan) {
+  await AsyncStorage.setItem(k('hardDayPlan'), JSON.stringify(p));
+}
+
+// --- Desafios de incerteza concluídos (chaves `${data}:${id}`) ------------
+export async function loadChallengesDone(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(k('challengesDone'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveChallengesDone(list: string[]) {
+  await AsyncStorage.setItem(k('challengesDone'), JSON.stringify(list));
 }
 
 export async function loadExposureOrder(): Promise<string[]> {
@@ -368,4 +411,89 @@ export async function loadManualAchievements(): Promise<string[]> {
 }
 export async function saveManualAchievements(ids: string[]) {
   await AsyncStorage.setItem(k('manualAchievements'), JSON.stringify(ids));
+}
+
+// --- Aceitação e valores (ACT) -------------------------------------------
+export type ActValues = { values: string; reflection: string };
+export async function loadActValues(): Promise<ActValues> {
+  const raw = await AsyncStorage.getItem(k('actValues'));
+  return raw ? JSON.parse(raw) : { values: '', reflection: '' };
+}
+export async function saveActValues(v: ActValues) {
+  await AsyncStorage.setItem(k('actValues'), JSON.stringify(v));
+}
+
+// key = compromisso predefinido (rótulo vem do catálogo, bilingue);
+// label = compromisso escrito pela utilizadora. logs = datas em que o fez.
+export type ActCommitment = { id: string; key?: string; label?: string; logs: string[] };
+export async function loadActCommitments(): Promise<ActCommitment[]> {
+  const raw = await AsyncStorage.getItem(k('actCommitments'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveActCommitments(list: ActCommitment[]) {
+  await AsyncStorage.setItem(k('actCommitments'), JSON.stringify(list));
+}
+
+// --- Preferência do círculo de pilares (diário / semanal / mensal) --------
+export type RingMode = 'daily' | 'weekly' | 'monthly';
+export async function loadRingMode(): Promise<RingMode> {
+  const raw = await AsyncStorage.getItem(k('ringMode'));
+  if (raw === 'weekly' || raw === 'rolling') return 'weekly'; // 'rolling' (14 dias) antigo → semanal
+  if (raw === 'monthly') return 'monthly';
+  return 'daily'; // por omissão
+}
+export async function saveRingMode(m: RingMode) {
+  await AsyncStorage.setItem(k('ringMode'), m);
+}
+
+// --- Próximo passo (escolhido pelo utilizador) ----------------------------
+export async function loadNextStep(): Promise<string> {
+  const raw = await AsyncStorage.getItem(k('nextStep'));
+  return raw ?? '';
+}
+export async function saveNextStep(s: string) {
+  await AsyncStorage.setItem(k('nextStep'), s);
+}
+
+// --- Registo genérico de sessões de exercícios (para o contador/pilares) ---
+// Cada vez que o utilizador marca uma sessão de um exercício, fica aqui um
+// registo datado. Permite marcar MAIS do que uma sessão por dia.
+export type ExerciseLogEntry = { type: string; date: string; ts: string };
+export async function loadExerciseLog(): Promise<ExerciseLogEntry[]> {
+  const raw = await AsyncStorage.getItem(k('exerciseLog'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function appendExerciseLog(type: string): Promise<ExerciseLogEntry[]> {
+  const list = await loadExerciseLog();
+  const now = new Date();
+  const next = [...list, { type, date: isoLocal(now), ts: now.toISOString() }];
+  await AsyncStorage.setItem(k('exerciseLog'), JSON.stringify(next));
+  return next;
+}
+export async function removeLastExerciseLog(type: string): Promise<ExerciseLogEntry[]> {
+  const list = await loadExerciseLog();
+  const idx = [...list].reverse().findIndex((e) => e.type === type);
+  if (idx >= 0) list.splice(list.length - 1 - idx, 1);
+  await AsyncStorage.setItem(k('exerciseLog'), JSON.stringify(list));
+  return list;
+}
+
+// --- Plano ativo (opcional; ligado pelo botão no ecrã inicial) ------------
+export async function loadPlanEnabled(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(k('planEnabled'));
+  return raw === '1'; // por omissão: desligado
+}
+export async function savePlanEnabled(on: boolean) {
+  await AsyncStorage.setItem(k('planEnabled'), on ? '1' : '0');
+}
+
+// Tarefas do plano, escolhidas pelo utilizador. Uma tarefa predefinida guarda só
+// o id (o rótulo vem do catálogo, bilingue); uma tarefa própria guarda o label.
+export type PlanTask = { id: string; label?: string };
+export async function loadPlanTasks(): Promise<PlanTask[]> {
+  const raw = await AsyncStorage.getItem(k('planTasks'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function savePlanTasks(list: PlanTask[]) {
+  await AsyncStorage.setItem(k('planTasks'), JSON.stringify(list));
 }

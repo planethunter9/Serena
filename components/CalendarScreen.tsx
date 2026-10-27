@@ -3,9 +3,9 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
-import { AttackEntry, loadAttacks, loadExposureDays } from '../storage/storage';
+import { AttackEntry, loadAttacks, loadExposureDays, saveAttacks } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, ScreenTitle } from './ui';
@@ -32,6 +32,10 @@ export default function CalendarScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<AttackEntry[]>([]);
   const [expDays, setExpDays] = useState<string[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [newType, setNewType] = useState<'anxiety' | 'panic' | 'behavior'>('anxiety');
+  const [newReason, setNewReason] = useState('');
+  const [newVomited, setNewVomited] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadAttacks().then(setEvents);
@@ -67,7 +71,7 @@ export default function CalendarScreen() {
     ...Array(firstOffset).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const cellW = `${100 / 7}%`;
 
   function typeLabel(type: string) {
@@ -78,6 +82,31 @@ export default function CalendarScreen() {
   function timeOf(ts: string) {
     const d = new Date(ts);
     return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function resetForm() {
+    setAdding(false); setNewType('anxiety'); setNewReason(''); setNewVomited(null);
+  }
+  function addEntry() {
+    if (!selected) return;
+    const now = new Date();
+    const entry: AttackEntry = {
+      id: 'a' + now.getTime(),
+      ts: now.toISOString(),
+      date: selected,
+      type: newType,
+      reason: newReason.trim() || undefined,
+      vomited: newVomited === null ? undefined : newVomited,
+    };
+    const next = [...events, entry];
+    setEvents(next);
+    saveAttacks(next);
+    resetForm();
+  }
+  function deleteEntry(target: AttackEntry) {
+    const next = events.filter((x) => x !== target);
+    setEvents(next);
+    saveAttacks(next);
   }
 
   const selectedEvents = selected ? byDate[selected] ?? [] : [];
@@ -158,15 +187,68 @@ export default function CalendarScreen() {
           )}
 
           {selectedEvents.map((e, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />
-              <Text style={{ color: colors.text, fontSize: 15 }}>{typeLabel(e.type)}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
+            <View key={e.id ?? i} style={{ gap: 4, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border, paddingTop: i === 0 ? 0 : 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{typeLabel(e.type)}</Text>
+                {e.vomited !== undefined && (
+                  <View style={{ backgroundColor: e.vomited ? colors.danger : colors.successSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text style={{ color: e.vomited ? '#fff' : colors.success, fontSize: 11, fontWeight: '700' }}>{e.vomited ? (lang === 'pt' ? 'vomitou' : 'vomited') : (lang === 'pt' ? 'não vomitou' : 'did not vomit')}</Text>
+                  </View>
+                )}
+                <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
+                <Pressable onPress={() => deleteEntry(e)} hitSlop={6} style={{ padding: 2 }}>
+                  <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
+                </Pressable>
+              </View>
+              {!!e.reason && <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 14 }}>{e.reason}</Text>}
             </View>
           ))}
 
           {selectedEvents.length === 0 && !selectedHasExp && (
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('calendar.noneDay')}</Text>
+          )}
+
+          {/* Registar ataque / comportamento */}
+          {adding ? (
+            <View style={{ gap: 10, marginTop: 4, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border }}>
+              <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{lang === 'pt' ? 'O que aconteceu?' : 'What happened?'}</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {(['anxiety', 'panic', 'behavior'] as const).map((tp) => {
+                  const active = newType === tp;
+                  return (
+                    <Pressable key={tp} onPress={() => setNewType(tp)} style={{ flex: 1, paddingVertical: 8, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
+                      <Text numberOfLines={1} style={{ color: active ? '#fff' : colors.text, fontSize: 12, fontWeight: '700' }}>{typeLabel(tp)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <TextInput value={newReason} onChangeText={setNewReason} placeholder={lang === 'pt' ? 'Motivo / gatilho (opcional)' : 'Reason / trigger (optional)'} placeholderTextColor={colors.textMuted} style={{ padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+              <Text style={{ color: colors.text, fontSize: 14 }}>{lang === 'pt' ? 'Acabei por vomitar?' : 'Did I end up vomiting?'}</Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {([[true, lang === 'pt' ? 'Sim' : 'Yes'], [false, lang === 'pt' ? 'Não' : 'No']] as const).map(([val, label]) => {
+                  const active = newVomited === val;
+                  return (
+                    <Pressable key={String(val)} onPress={() => setNewVomited(val)} style={{ flex: 1, paddingVertical: 10, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
+                      <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Pressable onPress={resetForm} style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center', borderWidth: 2, borderColor: colors.border }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{lang === 'pt' ? 'Cancelar' : 'Cancel'}</Text>
+                </Pressable>
+                <Pressable onPress={addEntry} style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center', backgroundColor: colors.primary }}>
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>{lang === 'pt' ? 'Guardar' : 'Save'}</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: 4 }}>
+              <Ionicons name="add" size={18} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{lang === 'pt' ? 'Registar ataque / comportamento' : 'Log attack / behaviour'}</Text>
+            </Pressable>
           )}
         </Card>
       )}
