@@ -92,7 +92,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const fontFamily = FONTS.find((f) => f.key === effFontKey)?.family;
 
   // Cores predefinidas do círculo (seguem o tema). Cores próprias só se `unlocked`.
-  const defaultRingColors = [colors.primary, '#3b82f6', colors.success];
+  const defaultRingColors = ['#f43f5e', '#3b82f6', colors.success]; // Prática: rosa-vermelho
   const effRingColors = unlocked ? ringColors : null;
 
   function setThemeName(n: ThemeName) { setThemeNameState(n); AsyncStorage.setItem(KEYS.theme, n).catch(() => {}); }
@@ -108,7 +108,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   function setRingColor(index: number, hex: string) {
     const n = normalizeHex(hex);
     if (!n || index < 0 || index > 2) return;
-    const base = ringColors ?? [colors.primary, '#3b82f6', colors.success];
+    const base = ringColors ?? ['#f43f5e', '#3b82f6', colors.success];
     const next = [...base];
     next[index] = n;
     setRingColorsState(next);

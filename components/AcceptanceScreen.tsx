@@ -1,5 +1,6 @@
 // Aceitação e valores (ACT): princípios para interiorizar, a regra do "abranda
 // tudo" para a urgência, os meus valores e compromissos de aproximação.
+// Secções colapsáveis para o ecrã não ficar sobrecarregado.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -61,17 +62,34 @@ const VALUE_SUGGESTIONS: L[] = [
   { pt: 'Criatividade', en: 'Creativity' }, { pt: 'Natureza', en: 'Nature' }, { pt: 'Aventura', en: 'Adventure' },
 ];
 
+// Secção colapsável (cabeçalho + conteúdo), para aliviar o ecrã.
+function Section({ title, icon, defaultOpen, children }: { title: string; icon: keyof typeof Ionicons.glyphMap; defaultOpen?: boolean; children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Pressable onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 }}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
+        <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{title}</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+      </Pressable>
+      {open && <View style={{ gap: spacing.md }}>{children}</View>}
+    </View>
+  );
+}
+
 export default function AcceptanceView() {
   const { colors } = useTheme();
   const { lang } = useLang();
   const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
 
-  const [openPrinciple, setOpenPrinciple] = useState<number | null>(null);
   const [vals, setVals] = useState<ActValues>({ values: '', reflection: '' });
   const [valsSaved, setValsSaved] = useState(false);
   const [items, setItems] = useState<ActCommitment[]>([]);
   const [newC, setNewC] = useState('');
   const [adding, setAdding] = useState(false);
+  const [cardW, setCardW] = useState(0);   // largura do carrossel de princípios
+  const [pIdx, setPIdx] = useState(0);     // princípio visível (para os pontos)
 
   useEffect(() => {
     loadActValues().then(setVals);
@@ -85,12 +103,6 @@ export default function AcceptanceView() {
       }
     });
   }, []);
-
-  // Princípio do dia (roda sozinho, sem guardar nada).
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
-  const focus = PRINCIPLES[dayOfYear % PRINCIPLES.length];
 
   function persist(next: ActCommitment[]) {
     setItems(next);
@@ -136,50 +148,52 @@ export default function AcceptanceView() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ gap: spacing.md }}>
         <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-          {L('Recuperar é voltar a viver a tua vida ao lado do medo — não sem ele. Aqui tens os princípios para interiorizar, os teus valores e os compromissos de te aproximares do que importa.',
-             'Recovery is living your life alongside fear — not without it. Here are the principles to internalise, your values, and the commitments to move toward what matters.')}
+          {L('Recuperar é voltar a viver a tua vida ao lado do medo — não sem ele. Abre cada secção quando quiseres.',
+             'Recovery is living your life alongside fear — not without it. Open each section whenever you like.')}
         </Text>
 
-        {/* Princípio do dia */}
-        <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 4 }}>
-          <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{L('PRINCÍPIO DO DIA', 'PRINCIPLE OF THE DAY')}</Text>
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{focus.title[lang]}</Text>
-          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{focus.body[lang]}</Text>
-        </View>
-
-        {/* Princípios (cartões que abrem) */}
-        <Text style={{ color: colors.text, fontWeight: '700', marginTop: 4 }}>{L('Princípios', 'Principles')}</Text>
-        {PRINCIPLES.map((p, i) => {
-          const open = openPrinciple === i;
-          return (
-            <View key={i} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
-              <Pressable onPress={() => setOpenPrinciple(open ? null : i)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}>
-                <Ionicons name="leaf-outline" size={18} color={colors.primary} />
-                <Text style={{ color: colors.text, fontWeight: '600', flex: 1 }}>{p.title[lang]}</Text>
-                <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
-              </Pressable>
-              {open && <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21, paddingHorizontal: spacing.lg, paddingBottom: spacing.lg }}>{p.body[lang]}</Text>}
-            </View>
-          );
-        })}
-
-        {/* Regra da urgência */}
-        <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.primary, padding: spacing.lg, gap: 8, marginTop: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="hourglass-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.text, fontWeight: '800' }}>{L('Quando vier a urgência: abranda tudo', 'When urgency hits: slow everything down')}</Text>
+        {/* Princípios — carrossel (desliza por todos) */}
+        <View onLayout={(e) => setCardW(e.nativeEvent.layout.width)}>
+          {cardW > 0 && (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => setPIdx(Math.round(e.nativeEvent.contentOffset.x / cardW))}
+            >
+              {PRINCIPLES.map((p, i) => (
+                <View key={i} style={{ width: cardW }}>
+                  <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 6, minHeight: 150 }}>
+                    <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{L('PRINCÍPIO', 'PRINCIPLE')} {i + 1}/{PRINCIPLES.length}</Text>
+                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{p.title[lang]}</Text>
+                    <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{p.body[lang]}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+          {/* Pontos */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }}>
+            {PRINCIPLES.map((_, i) => (
+              <View key={i} style={{ width: i === pIdx ? 18 : 6, height: 6, borderRadius: 3, backgroundColor: i === pIdx ? colors.primary : colors.border }} />
+            ))}
           </View>
-          {URGENCY_STEPS.map((s, i) => (
-            <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
-              <Text style={{ color: colors.primary }}>•</Text>
-              <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{s[lang]}</Text>
-            </View>
-          ))}
         </View>
+
+        {/* Urgência */}
+        <Section title={L('Urgência', 'Urgency')} icon="hourglass-outline">
+          <View style={{ backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.lg, gap: 8 }}>
+            {URGENCY_STEPS.map((s, i) => (
+              <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+                <Text style={{ color: colors.primary }}>•</Text>
+                <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{s[lang]}</Text>
+              </View>
+            ))}
+          </View>
+        </Section>
 
         {/* Os meus valores */}
-        <Text style={{ color: colors.text, fontWeight: '700', marginTop: 4 }}>{L('Os meus valores', 'My values')}</Text>
-        <Card style={{ gap: spacing.md }}>
+        <Section title={L('Os meus valores', 'My values')} icon="heart-outline">
           <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
             {L('O que torna a tua vida tua? Escreve os teus valores e volta a eles quando o medo tentar decidir por ti.',
                'What makes your life yours? Write your values and return to them when fear tries to decide for you.')}
@@ -196,59 +210,60 @@ export default function AcceptanceView() {
           <TextInput value={vals.reflection} onChangeText={(t) => setVals((v) => ({ ...v, reflection: t }))} multiline
             placeholder={L('Porque importam? Como quero viver a partir deles?', 'Why do they matter? How do I want to live from them?')} placeholderTextColor={colors.textMuted} style={textInput} />
           <PrimaryButton label={valsSaved ? L('Guardado ✓', 'Saved ✓') : L('Guardar valores', 'Save values')} onPress={saveValues} />
-        </Card>
+        </Section>
 
-        {/* Compromissos de aproximação */}
-        <Text style={{ color: colors.text, fontWeight: '700', marginTop: 4 }}>{L('Compromissos de aproximação', 'Approach commitments')}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19, marginTop: -4 }}>
-          {L('Marca cada vez que te aproximas do que o medo te manda evitar. Cada registo é uma vitória — não há castigo por não o fazer.',
-             'Log each time you move toward what fear tells you to avoid. Every entry is a win — there is no penalty for not doing it.')}
-        </Text>
-        {/* Adicionar compromisso — no topo (não no fundo) */}
-        {adding ? (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TextInput value={newC} onChangeText={setNewC} onSubmitEditing={addCommitment} autoFocus
-              placeholder={L('O teu compromisso…', 'Your commitment…')} placeholderTextColor={colors.textMuted}
-              style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
-            <Pressable onPress={addCommitment} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{L('Adicionar', 'Add')}</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 14, height: 38, borderRadius: 999 }}>
-            <Ionicons name="add" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{L('Adicionar compromisso', 'Add commitment')}</Text>
-          </Pressable>
-        )}
-
-        {items.map((it) => (
-          <View key={it.id} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: 8 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 }}>{label(it)}</Text>
-              {!it.key && (
-                <Pressable onPress={() => removeCustom(it.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={L('Remover compromisso', 'Remove commitment')}>
-                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
-                </Pressable>
-              )}
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Pressable onPress={() => logDone(it.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, backgroundColor: colors.primary }}>
-                <Ionicons name="checkmark" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{L('Fiz isto', 'I did this')}</Text>
+        {/* Compromissos de aproximação — aberto por defeito (parte do dia-a-dia) */}
+        <Section title={L('Compromissos de aproximação', 'Approach commitments')} icon="footsteps-outline" defaultOpen>
+          <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
+            {L('Marca cada vez que te aproximas do que o medo te manda evitar. Cada registo é uma vitória — não há castigo por não o fazer.',
+               'Log each time you move toward what fear tells you to avoid. Every entry is a win — there is no penalty for not doing it.')}
+          </Text>
+          {/* Adicionar compromisso — no topo */}
+          {adding ? (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TextInput value={newC} onChangeText={setNewC} onSubmitEditing={addCommitment} autoFocus
+                placeholder={L('O teu compromisso…', 'Your commitment…')} placeholderTextColor={colors.textMuted}
+                style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+              <Pressable onPress={addCommitment} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: '#fff', fontWeight: '700' }}>{L('Adicionar', 'Add')}</Text>
               </Pressable>
-              {it.logs.length > 0 && (
-                <>
-                  <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-                    {L(`feito ${it.logs.length}×`, `done ${it.logs.length}×`)} · {it.logs[it.logs.length - 1].split('-').reverse().join('/')}
-                  </Text>
-                  <Pressable onPress={() => undoLast(it.id)} hitSlop={6} style={{ marginLeft: 'auto' }}>
-                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('anular', 'undo')}</Text>
-                  </Pressable>
-                </>
-              )}
             </View>
-          </View>
-        ))}
+          ) : (
+            <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 14, height: 38, borderRadius: 999 }}>
+              <Ionicons name="add" size={18} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{L('Adicionar compromisso', 'Add commitment')}</Text>
+            </Pressable>
+          )}
+
+          {items.map((it) => (
+            <View key={it.id} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 }}>{label(it)}</Text>
+                {!it.key && (
+                  <Pressable onPress={() => removeCustom(it.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={L('Remover compromisso', 'Remove commitment')}>
+                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                  </Pressable>
+                )}
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Pressable onPress={() => logDone(it.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, backgroundColor: colors.primary }}>
+                  <Ionicons name="checkmark" size={16} color="#fff" />
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{L('Fiz isto', 'I did this')}</Text>
+                </Pressable>
+                {it.logs.length > 0 && (
+                  <>
+                    <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+                      {L(`feito ${it.logs.length}×`, `done ${it.logs.length}×`)} · {it.logs[it.logs.length - 1].split('-').reverse().join('/')}
+                    </Text>
+                    <Pressable onPress={() => undoLast(it.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={L('Anular último registo', 'Undo last log')} style={{ marginLeft: 'auto' }}>
+                      <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('anular', 'undo')}</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            </View>
+          ))}
+        </Section>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -119,11 +119,11 @@ export default function CalendarScreen() {
       <Card style={{ gap: spacing.md }}>
         {/* Cabeçalho do mês */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Pressable onPress={prevMonth} hitSlop={10} style={{ padding: 6 }}>
+          <Pressable onPress={prevMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mês anterior' : 'Previous month'} style={{ padding: 6 }}>
             <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </Pressable>
           <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700' }}>{MONTHS[lang][month]} {year}</Text>
-          <Pressable onPress={nextMonth} hitSlop={10} style={{ padding: 6 }}>
+          <Pressable onPress={nextMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mês seguinte' : 'Next month'} style={{ padding: 6 }}>
             <Ionicons name="chevron-forward" size={24} color={colors.primary} />
           </Pressable>
         </View>

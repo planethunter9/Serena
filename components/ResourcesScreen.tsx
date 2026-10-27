@@ -16,14 +16,14 @@ const ITEMS: { id: string; titleKey?: TKey; title?: { pt: string; en: string }; 
   { id: 'exercises', titleKey: 'resources.exercises', icon: 'barbell-outline' },
   { id: 'goalsachievements', titleKey: 'resources.goalsachievements', icon: 'trophy-outline' },
   { id: 'reminders', titleKey: 'resources.reminders', icon: 'notifications-outline' },
-  { id: 'hardday', title: { pt: 'Plano para dias difíceis', en: 'Plan for hard days' }, icon: 'umbrella-outline' },
+  { id: 'plans', title: { pt: 'Os meus planos', en: 'My plans' }, icon: 'clipboard-outline' },
   { id: 'journal', titleKey: 'resources.journal', icon: 'create-outline' },
   { id: 'safetyfeeding', titleKey: 'resources.safetyfeeding', icon: 'shield-checkmark-outline' },
   { id: 'crisislines', titleKey: 'resources.crisislines', icon: 'call-outline' },
 ];
 
 // Ids que já têm ecrã a funcionar.
-const READY = ['lessons', 'exercises', 'goalsachievements', 'reminders', 'hardday', 'journal', 'safetyfeeding', 'crisislines'];
+const READY = ['lessons', 'exercises', 'goalsachievements', 'reminders', 'plans', 'journal', 'safetyfeeding', 'crisislines'];
 
 export default function ResourcesScreen({
   onOpen,

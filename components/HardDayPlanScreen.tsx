@@ -1,6 +1,6 @@
-// Plano para dias difíceis (prevenção de recaída): a pessoa prepara, com a
-// cabeça fria, o que fazer num dia mau — sinais, o que ajuda, frases e contactos.
-// Fica guardado e à mão para quando mais precisa.
+// Plano para dias difíceis: a pessoa prepara, com a cabeça fria, o que fazer num
+// dia mau — sinais, o que ajuda, frases e contactos. Guarda-se sozinho.
+// HardDayBody é usado também no ecrã "Os meus planos" (com abas).
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ import { Card, TopBackBar } from './ui';
 
 type Field = keyof HardDayPlan;
 
-export default function HardDayPlanScreen({ onBack }: { onBack: () => void }) {
+export function HardDayBody() {
   const { colors } = useTheme();
   const { lang } = useLang();
   const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
@@ -62,41 +62,50 @@ export default function HardDayPlanScreen({ onBack }: { onBack: () => void }) {
   ];
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
+          {tt('Prepara isto agora, com calma. Num dia mau é difícil pensar — ter o plano escrito e à mão faz toda a diferença. Guarda-se sozinho.',
+              'Prepare this now, calmly. On a bad day it\'s hard to think — having the plan written and ready makes all the difference. It saves itself.')}
+        </Text>
+
+        {fields.map((f) => (
+          <Card key={f.key} style={{ gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name={f.icon} size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{f.label}</Text>
+            </View>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{f.hint}</Text>
+            <TextInput
+              value={plan[f.key]}
+              onChangeText={(v) => update(f.key, v)}
+              multiline
+              placeholder={f.ph}
+              placeholderTextColor={colors.textMuted}
+              style={{ minHeight: 70, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15, textAlignVertical: 'top' }}
+            />
+          </Card>
+        ))}
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 }}>
+          <Ionicons name="call-outline" size={16} color={colors.textMuted} />
+          <Text style={{ color: colors.textMuted, fontSize: 12, flex: 1 }}>
+            {tt('Em crise, usa as linhas de apoio em Recursos.', 'In a crisis, use the support lines in Resources.')}
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+export default function HardDayPlanScreen({ onBack }: { onBack: () => void }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={tt('Plano para dias difíceis', 'Plan for hard days')} onBack={onBack} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 60 }}>
-          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-            {tt('Prepara isto agora, com calma. Num dia mau é difícil pensar — ter o plano escrito e à mão faz toda a diferença. Guarda-se sozinho.',
-                'Prepare this now, calmly. On a bad day it\'s hard to think — having the plan written and ready makes all the difference. It saves itself.')}
-          </Text>
-
-          {fields.map((f) => (
-            <Card key={f.key} style={{ gap: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name={f.icon} size={18} color={colors.primary} />
-                <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{f.label}</Text>
-              </View>
-              <Text style={{ color: colors.textMuted, fontSize: 12 }}>{f.hint}</Text>
-              <TextInput
-                value={plan[f.key]}
-                onChangeText={(v) => update(f.key, v)}
-                multiline
-                placeholder={f.ph}
-                placeholderTextColor={colors.textMuted}
-                style={{ minHeight: 70, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15, textAlignVertical: 'top' }}
-              />
-            </Card>
-          ))}
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 }}>
-            <Ionicons name="call-outline" size={16} color={colors.textMuted} />
-            <Text style={{ color: colors.textMuted, fontSize: 12, flex: 1 }}>
-              {tt('Em crise, usa as linhas de apoio em Recursos.', 'In a crisis, use the support lines in Resources.')}
-            </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <HardDayBody />
     </View>
   );
 }

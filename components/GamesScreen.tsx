@@ -11,7 +11,8 @@ import { radius, spacing } from '../theme/theme';
 import { PrimaryButton, TopBackBar } from './ui';
 
 // ---- Palavra a palavra (exposição a palavras/frases) ----
-export function WordGame() {
+// `footer` é mostrado no ecrã final (ex.: botão "Guardar registo").
+export function WordGame({ footer }: { footer?: React.ReactNode } = {}) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const [i, setI] = useState(0);
@@ -22,8 +23,9 @@ export function WordGame() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
         <Ionicons name="checkmark-circle-outline" size={60} color={colors.success} />
         <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800' }}>{t('word.done')}</Text>
-        <View style={{ alignSelf: 'stretch' }}>
+        <View style={{ alignSelf: 'stretch', gap: spacing.md }}>
           <PrimaryButton label={t('word.restart')} onPress={() => setI(0)} />
+          {footer}
         </View>
       </View>
     );

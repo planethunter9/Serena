@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
-import { loadRingMode, RingMode, saveRingMode } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { deriveColors, FONTS, lightColors, normalizeHex, PRESETS, radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -43,9 +42,6 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
   const [hexInput, setHexInput] = useState(theme.customHex.replace('#', ''));
 
   // Modo do círculo (grátis) e cores do círculo (pago).
-  const [ringMode, setRingMode] = useState<RingMode>('daily');
-  useEffect(() => { loadRingMode().then(setRingMode); }, []);
-  function changeRing(m: RingMode) { setRingMode(m); saveRingMode(m); }
 
   const ringCols = theme.ringColors ?? theme.defaultRingColors;
   const PILLAR_NAMES = [tt({ pt: 'Prática', en: 'Practice' }), tt({ pt: 'Repetição', en: 'Repetition' }), tt({ pt: 'Aproximação', en: 'Approach' })];
@@ -195,22 +191,6 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
             </Pressable>
           </View>
         </Card>
-
-        {/* Círculo de progresso (grátis) */}
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 4 }}>{tt({ pt: 'Círculo de progresso', en: 'Progress circle' })}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
-          {tt({ pt: 'O círculo do ecrã inicial pode mostrar o teu dia de hoje, a semana ou o mês.', en: 'The home circle can show today, this week or this month.' })}
-        </Text>
-        <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-          {([['daily', { pt: 'Diário', en: 'Daily' }], ['weekly', { pt: 'Semanal', en: 'Weekly' }], ['monthly', { pt: 'Mensal', en: 'Monthly' }]] as const).map(([m, label]) => {
-            const active = ringMode === m;
-            return (
-              <Pressable key={m} onPress={() => changeRing(m)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-                <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 13 }}>{tt(label)}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
 
         {/* Cores do círculo (pago) */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>

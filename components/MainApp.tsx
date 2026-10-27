@@ -4,12 +4,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
-import { loadProfile } from '../storage/storage';
+import { cancelUntrackedReminders } from '../notifications/notifications';
+import { loadProfile, loadReminders } from '../storage/storage';
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
@@ -37,6 +38,19 @@ export default function MainApp() {
       loadProfile().then((p) => setPhotoUri(p.photoUri));
     }, [])
   );
+
+  // No arranque: cancela notificações "fantasma" agendadas fora da lista (ex.: a
+  // das 22h de uma versão anterior), mesmo que o ecrã de Lembretes nunca seja aberto.
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await loadReminders();
+        await cancelUntrackedReminders(list.map((r) => r.notificationId));
+      } catch {
+        // best-effort; ignora falhas
+      }
+    })();
+  }, []);
 
   const TABS: { key: TabKey; labelKey: 'tabs.home' | 'tabs.support' | 'tabs.calendar' | 'tabs.resources'; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'home', labelKey: 'tabs.home', icon: 'home-outline', iconActive: 'home' },

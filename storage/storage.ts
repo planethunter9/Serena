@@ -177,7 +177,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -444,6 +444,16 @@ export async function loadRingMode(): Promise<RingMode> {
 }
 export async function saveRingMode(m: RingMode) {
   await AsyncStorage.setItem(k('ringMode'), m);
+}
+
+// --- Plano de prevenção de recaída ----------------------------------------
+export type RelapsePlan = { learned: string; warningSigns: string; ifItReturns: string };
+export async function loadRelapsePlan(): Promise<RelapsePlan> {
+  const raw = await AsyncStorage.getItem(k('relapsePlan'));
+  return raw ? JSON.parse(raw) : { learned: '', warningSigns: '', ifItReturns: '' };
+}
+export async function saveRelapsePlan(p: RelapsePlan) {
+  await AsyncStorage.setItem(k('relapsePlan'), JSON.stringify(p));
 }
 
 // --- Próximo passo (escolhido pelo utilizador) ----------------------------

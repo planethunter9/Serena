@@ -7,23 +7,45 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang } from '../i18n/i18n';
 import {
+  ActCommitment,
   AttackEntry,
   DroppedBehavior,
+  ExerciseLogEntry,
+  ExperimentEntry,
   ExposureSession,
   isoLocal,
   JournalEntry,
+  loadActCommitments,
   loadAttacks,
+  loadChallengesDone,
   loadDropped,
+  loadExerciseLog,
+  loadExperiments,
   loadExposureDays,
   loadExposureSessions,
   loadJournal,
+  loadMemorySessions,
   loadSeverity,
+  loadThoughtRecords,
+  MemorySession,
   SeverityEntry,
+  ThoughtRecord,
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import EmptyState from './EmptyState';
 import { Card, ScreenTitle } from './ui';
+
+// Ícone de chama com "cores de chama" (laranja por fora, amarelo no núcleo),
+// empilhando dois glifos — sem dependências extra.
+function FlameIcon({ size = 18 }: { size?: number }) {
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name="flame" size={size} color="#f97316" style={{ position: 'absolute' }} />
+      <Ionicons name="flame" size={size * 0.6} color="#fde047" style={{ position: 'absolute', bottom: 0 }} />
+    </View>
+  );
+}
 
 function expStreakOf(days: string[]): number {
   const set = new Set(days);
@@ -47,6 +69,13 @@ export default function ProgressScreen() {
   const [attacks, setAttacks] = useState<AttackEntry[]>([]);
   const [expDays, setExpDays] = useState<string[]>([]);
   const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
+  const [thoughts, setThoughts] = useState<ThoughtRecord[]>([]);
+  const [experiments, setExperiments] = useState<ExperimentEntry[]>([]);
+  const [memories, setMemories] = useState<MemorySession[]>([]);
+  const [challenges, setChallenges] = useState<string[]>([]);
+  const [commitments, setCommitments] = useState<ActCommitment[]>([]);
+  const [exerciseLog, setExerciseLog] = useState<ExerciseLogEntry[]>([]);
+  const [statScope, setStatScope] = useState<'all' | 'week'>('all');
   const [chartView, setChartView] = useState<'anxiety' | 'severity' | 'exposures' | 'dropped'>('anxiety');
   const [chartW, setChartW] = useState(0);
   const fearScrollRef = useRef<any>(null); // ScrollView; tipado como any p/ aceder a scrollToEnd (tipos do SDK 58)
@@ -58,7 +87,24 @@ export default function ProgressScreen() {
     loadAttacks().then(setAttacks);
     loadExposureDays().then(setExpDays);
     loadDropped().then(setDropped);
+    loadThoughtRecords().then(setThoughts);
+    loadExperiments().then(setExperiments);
+    loadMemorySessions().then(setMemories);
+    loadChallengesDone().then(setChallenges);
+    loadActCommitments().then(setCommitments);
+    loadExerciseLog().then(setExerciseLog);
   }, []);
+
+  // Todas as datas de exercícios feitos (para contar "exercícios no geral").
+  const allExerciseDates = [
+    ...exposures.map((e) => e.date),
+    ...thoughts.map((r) => r.date),
+    ...experiments.map((x) => x.date),
+    ...memories.map((m) => m.date),
+    ...challenges.map((k) => k.split(':')[0]),
+    ...commitments.flatMap((c) => c.logs),
+    ...exerciseLog.map((e) => e.date),
+  ];
 
   const expStreak = expStreakOf(expDays);
   const totalExpDays = expDays.length;
@@ -80,19 +126,31 @@ export default function ProgressScreen() {
   const dowW = (nowW.getDay() + 6) % 7;
   const mondayW = new Date(nowW.getFullYear(), nowW.getMonth(), nowW.getDate() - dowW);
   const weekSet = new Set(Array.from({ length: 7 }, (_, d) => isoLocal(new Date(mondayW.getFullYear(), mondayW.getMonth(), mondayW.getDate() + d))));
-  const weekStats = [
-    { n: exposures.filter((e) => weekSet.has(e.date)).length, label: L('exposições', 'exposures') },
-    { n: expDays.filter((d) => weekSet.has(d)).length, label: L('dias de prática', 'practice days') },
-    { n: dropped.filter((d) => weekSet.has(d.date)).length, label: L('a largar', 'dropping') },
-    { n: new Set(journal.filter((j) => weekSet.has(j.date)).map((j) => j.date)).size, label: L('no diário', 'journal') },
-  ];
+  // Os mesmos 4 cartões das estatísticas, mas só com o que aconteceu esta semana.
+  const expWeek = exposures.filter((e) => weekSet.has(e.date));
+  const expRelWeek = expWeek.filter((e) => typeof e.before === 'number' && typeof e.after === 'number');
+  const relBeforeWeek = expRelWeek.length ? expRelWeek.reduce((s, e) => s + e.before, 0) / expRelWeek.length : 0;
+  const relAfterWeek = expRelWeek.length ? expRelWeek.reduce((s, e) => s + e.after, 0) / expRelWeek.length : 0;
+  const reliefPctWeek = relBeforeWeek > 0 ? Math.max(0, Math.round(((relBeforeWeek - relAfterWeek) / relBeforeWeek) * 100)) : 0;
+  const practiceDaysWeek = expDays.filter((d) => weekSet.has(d)).length;
+  const droppedWeek = dropped.filter((d) => weekSet.has(d.date)).length;
+  const exercisesTotal = allExerciseDates.length;
+  const exercisesWeek = allExerciseDates.filter((d) => weekSet.has(d)).length;
 
-  const stats = [
+  // 4 cartões — mesmos indicadores, mudam conforme o âmbito escolhido (Geral / Semana).
+  const statsAll = [
     { icon: 'trending-down-outline' as const, value: expRel.length ? `${reliefPct}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRel.length ? `${relBefore.toFixed(1)} → ${relAfter.toFixed(1)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
     { icon: 'flame-outline' as const, value: `${expStreak}`, label: L('dias seguidos', 'days in a row'), sub: L(`${totalExpDays} no total`, `${totalExpDays} total`), color: colors.primary, highlight: true },
-    { icon: 'barbell-outline' as const, value: `${exposures.length}`, label: L('exposições feitas', 'exposures done'), sub: L(`${distinctSteps} degraus`, `${distinctSteps} steps`), color: colors.primary },
+    { icon: 'barbell-outline' as const, value: `${exercisesTotal}`, label: L('exercícios feitos', 'exercises done'), sub: L(`${exposures.length} de exposição`, `${exposures.length} exposure`), color: colors.primary },
     { icon: 'leaf-outline' as const, value: `${dropped.length}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('que já não alimentam o medo', 'no longer feeding the fear'), color: colors.success },
   ];
+  const statsWeek = [
+    { icon: 'trending-down-outline' as const, value: expRelWeek.length ? `${reliefPctWeek}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRelWeek.length ? `${relBeforeWeek.toFixed(1)} → ${relAfterWeek.toFixed(1)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
+    { icon: 'flame-outline' as const, value: `${practiceDaysWeek}`, label: L('dias de prática', 'practice days'), sub: L('esta semana', 'this week'), color: colors.primary, highlight: true },
+    { icon: 'barbell-outline' as const, value: `${exercisesWeek}`, label: L('exercícios feitos', 'exercises done'), sub: L('esta semana', 'this week'), color: colors.primary },
+    { icon: 'leaf-outline' as const, value: `${droppedWeek}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('esta semana', 'this week'), color: colors.success },
+  ];
+  const stats = statScope === 'week' ? statsWeek : statsAll;
 
   // --- Gráficos ---
   const CHART_HEIGHT = 156;
@@ -187,8 +245,27 @@ export default function ProgressScreen() {
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{journeyMsg}</Text>
       </View>
 
+      {/* Seletor Geral / Semana — chips estilo Notion (ativo preenchido, inativo contornado) */}
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {([['all', 'albums-outline'], ['week', 'calendar-outline']] as const).map(([v, icon]) => {
+          const active = statScope === v;
+          return (
+            <Pressable
+              key={v}
+              onPress={() => setStatScope(v)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, backgroundColor: active ? colors.primary : colors.card, borderWidth: active ? 0 : 1, borderColor: colors.border }}
+            >
+              <Ionicons name={icon} size={15} color={active ? '#fff' : colors.textMuted} />
+              <Text style={{ color: active ? '#fff' : colors.textMuted, fontWeight: '700', fontSize: 13 }}>{v === 'all' ? L('Geral', 'Overall') : L('Semana', 'This week')}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {/* Estatísticas */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: -spacing.sm }}>
         {stats.map((s) => (
           <View
             key={s.label}
@@ -198,28 +275,12 @@ export default function ProgressScreen() {
               padding: spacing.lg, gap: 4,
             }}
           >
-            <Ionicons name={s.icon} size={18} color={s.color} />
+            {s.icon === 'flame-outline' ? <FlameIcon size={18} /> : <Ionicons name={s.icon} size={18} color={s.color} />}
             <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{s.value}</Text>
             <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{s.label}</Text>
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>{s.sub}</Text>
           </View>
         ))}
-      </View>
-
-      {/* A tua semana */}
-      <View style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.lg, gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, flex: 1 }}>{L('A tua semana', 'Your week')}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          {weekStats.map((s) => (
-            <View key={s.label} style={{ width: '47%', flexGrow: 1, backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.md, alignItems: 'center' }}>
-              <Text style={{ color: colors.primary, fontSize: 24, fontWeight: '800' }}>{s.n}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{s.label}</Text>
-            </View>
-          ))}
-        </View>
       </View>
 
       {/* Seletor Ansiedade / Gravidade / Exposições / Largados */}

@@ -4,6 +4,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { SUBTYPE_OPTIONS } from '../data/content';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import { LADDER_TEMPLATES } from '../data/ladderTemplates';
@@ -35,16 +37,10 @@ import {
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import MemoryView from './MemoryReprocessing';
-import ChallengesScreen from './ChallengesScreen';
-import { MythGame, WordGame } from './GamesScreen';
-import Svg, { Circle, Line, Polyline } from 'react-native-svg';
-import InteroceptiveScreen from './InteroceptiveScreen';
-import AcceptanceView from './AcceptanceScreen';
 import { Card, PrimaryButton, TopBackBar } from './ui';
 
 type L = { pt: string; en: string };
-type Step = { id: string; label: string };
+export type Step = { id: string; label: string };
 
 const EXPOSURE_PHASES: L[] = [
   { pt: 'Dizer palavras ou frases', en: 'Say words or phrases' },
@@ -156,7 +152,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
 // ---- Exercício de exposição gradual ----
 // `selected` está no componente pai (ExercisesScreen) para que o botão de voltar
 // de cima regresse à escada e não ao menu dos exercícios.
-function ExposureView({ selected, setSelected }: { selected: Step | null; setSelected: (s: Step | null) => void }) {
+export function ExposureView({ selected, setSelected }: { selected: Step | null; setSelected: (s: Step | null) => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const [custom, setCustom] = useState<ProfileItem[]>([]);
@@ -214,6 +210,7 @@ function ExposureView({ selected, setSelected }: { selected: Step | null; setSel
   const streak = consecutiveDays(expDays);
 
   function toggleToday() {
+    if (!markedToday) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const next = markedToday ? expDays.filter((d) => d !== todayStr) : [...expDays, todayStr];
     setExpDays(next);
     saveExposureDays(next);
@@ -543,7 +540,7 @@ const THOUGHT_TRAPS: L[] = [
   { pt: 'Preciso de ter a certeza', en: 'Needing to be certain' },
 ];
 
-function ThoughtView() {
+export function ThoughtView() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
@@ -658,7 +655,7 @@ function ThoughtView() {
 }
 
 // ---- Experiências comportamentais (prever vs resultado) ----
-function ExperimentsView() {
+export function ExperimentsView() {
   const { colors } = useTheme();
   const { lang } = useLang();
   const tt = (o: L) => o[lang];
@@ -764,7 +761,7 @@ function ExperimentsView() {
 }
 
 // Barra para registar sessões de um exercício (permite mais do que uma por dia).
-function ExerciseLogBar({ type }: { type: string }) {
+export function ExerciseLogBar({ type }: { type: string }) {
   const { colors } = useTheme();
   const { lang } = useLang();
   const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
@@ -772,18 +769,21 @@ function ExerciseLogBar({ type }: { type: string }) {
   useEffect(() => { loadExerciseLog().then(setLog); }, []);
   const today = ymd(new Date());
   const todayCount = log.filter((e) => e.type === type && e.date === today).length;
-  async function add() { setLog(await appendExerciseLog(type)); }
+  async function add() {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    setLog(await appendExerciseLog(type));
+  }
   async function undo() { setLog(await removeLastExerciseLog(type)); }
   return (
-    <View style={{ marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <Pressable onPress={add} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Pressable onPress={add} accessibilityRole="button" accessibilityLabel={Lx('Guardar registo', 'Save entry')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
         <Ionicons name="checkmark" size={16} color="#fff" />
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Registar sessão de hoje', "Log today's session")}</Text>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Guardar registo', 'Save entry')}</Text>
       </Pressable>
       {todayCount > 0 && (
         <>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{Lx(`feito ${todayCount}× hoje`, `done ${todayCount}× today`)}</Text>
-          <Pressable onPress={undo} hitSlop={6} style={{ marginLeft: 'auto' }}>
+          <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>{Lx(`✓ feito ${todayCount}× hoje`, `✓ done ${todayCount}× today`)}</Text>
+          <Pressable onPress={undo} hitSlop={6} accessibilityRole="button" accessibilityLabel={Lx('Anular último registo', 'Undo last log')} style={{ marginLeft: 'auto' }}>
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>{Lx('anular', 'undo')}</Text>
           </Pressable>
         </>
@@ -828,72 +828,36 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
-  const [view, setView] = useState<'hub' | 'exposure' | 'thought' | 'memory' | 'challenges' | 'interoceptive' | 'experiments' | 'myth' | 'acceptance' | 'words'>('hub');
-  const [expSelected, setExpSelected] = useState<Step | null>(null);
-
-  // Exercícios que usam o rodapé uniforme "Registar sessão de hoje".
-  // A exposição (ERP) fica de fora: tem o seu próprio registo de sessão.
-  // "Verdade ou mito" fica de fora: é psicoeducação, não conta para o contador.
-  const LOG_TYPES: Record<string, string | undefined> = {
-    thought: 'thought', memory: 'memory', interoceptive: 'interoceptive',
-    challenges: 'challenges', experiments: 'experiments',
-    acceptance: 'acceptance', words: 'words',
-  };
-
-  const title = view === 'exposure' ? t('exposure.title') : view === 'thought' ? t('thought.title') : view === 'memory' ? t('memory.title') : view === 'challenges' ? t('challenges.title') : view === 'interoceptive' ? t('interoceptive.title') : view === 'experiments' ? (lang === 'pt' ? 'Experiências' : 'Experiments') : view === 'myth' ? t('games.myth') : view === 'words' ? t('games.words') : view === 'acceptance' ? (lang === 'pt' ? 'Aceitação e valores' : 'Acceptance & values') : t('resources.exercises');
-
-  // Voltar: de um degrau → escada; de uma vista → hub; do hub → sair.
-  function handleBack() {
-    if (view === 'exposure' && expSelected) { setExpSelected(null); return; }
-    if (view !== 'hub') { setView('hub'); return; }
-    onBack();
-  }
+  const router = useRouter();
+  // Cada exercício abre numa rota própria (/exercise?type=…), para o deslizar do
+  // iOS voltar a este hub e deste para os Recursos (hierarquia correta).
+  const open = (type: string) => () => router.push({ pathname: '/exercise', params: { type } } as any);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={title} onBack={handleBack} />
+      <TopBackBar title={t('resources.exercises')} onBack={onBack} />
       <View style={{ flex: 1, padding: spacing.xl }}>
-        {view === 'hub' && (
-          <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.xxl }}>
-            <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('exercises.intro')}</Text>
+        <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.xxl }}>
+          <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('exercises.intro')}</Text>
 
-            <HubGroup title={L('Enfrentar o medo', 'Facing the fear')} defaultOpen>
-              <HubRow icon="trending-up-outline" title={t('exercises.exposure')} desc={t('exercises.exposureDesc')} onPress={() => { setExpSelected(null); setView('exposure'); }} />
-              <HubRow icon="pulse-outline" title={t('exercises.interoceptive')} desc={t('exercises.interoceptiveDesc')} onPress={() => setView('interoceptive')} />
-              <HubRow icon="text-outline" title={t('games.words')} desc={t('games.wordsDesc')} onPress={() => setView('words')} />
-              <HubRow icon="shuffle-outline" title={t('exercises.challenges')} desc={t('exercises.challengesDesc')} onPress={() => setView('challenges')} />
-            </HubGroup>
+          <HubGroup title={L('Enfrentar o medo', 'Facing the fear')} defaultOpen>
+            <HubRow icon="trending-up-outline" title={t('exercises.exposure')} desc={t('exercises.exposureDesc')} onPress={open('exposure')} />
+            <HubRow icon="text-outline" title={t('games.words')} desc={t('games.wordsDesc')} onPress={open('words')} />
+            <HubRow icon="shuffle-outline" title={t('exercises.challenges')} desc={t('exercises.challengesDesc')} onPress={open('challenges')} />
+          </HubGroup>
 
-            <HubGroup title={L('Trabalhar o pensamento', 'Working with thoughts')}>
-              <HubRow icon="bulb-outline" title={t('exercises.thought')} desc={t('exercises.thoughtDesc')} onPress={() => setView('thought')} />
-              <HubRow icon="flask-outline" title={L('Experiências', 'Experiments')} desc={L('Prever vs o que acontece mesmo', 'Predict vs what actually happens')} onPress={() => setView('experiments')} />
-              <HubRow icon="help-circle-outline" title={t('games.myth')} desc={t('games.mythDesc')} onPress={() => setView('myth')} />
-            </HubGroup>
+          <HubGroup title={L('Trabalhar o pensamento', 'Working with thoughts')}>
+            <HubRow icon="bulb-outline" title={t('exercises.thought')} desc={t('exercises.thoughtDesc')} onPress={open('thought')} />
+            <HubRow icon="flask-outline" title={L('Experiências', 'Experiments')} desc={L('Prever vs o que acontece mesmo', 'Predict vs what actually happens')} onPress={open('experiments')} />
+            <HubRow icon="help-circle-outline" title={t('games.myth')} desc={t('games.mythDesc')} onPress={open('myth')} />
+          </HubGroup>
 
-            <HubGroup title={L('Aceitação e memória', 'Acceptance & memory')}>
-              <HubRow icon="leaf-outline" title={L('Aceitação e valores', 'Acceptance & values')} desc={L('Princípios, valores e compromissos de aproximação', 'Principles, values and approach commitments')} onPress={() => setView('acceptance')} />
-              <HubRow icon="sparkles-outline" title={t('exercises.memory')} desc={t('exercises.memoryDesc')} onPress={() => setView('memory')} />
-            </HubGroup>
-          </ScrollView>
-        )}
-        {view === 'exposure' && <ExposureView selected={expSelected} setSelected={setExpSelected} />}
-        {view === 'thought' && <ThoughtView />}
-        {view === 'memory' && <MemoryView />}
-        {view === 'interoceptive' && <InteroceptiveScreen />}
-        {view === 'challenges' && <ChallengesScreen />}
-        {view === 'experiments' && <ExperimentsView />}
-        {view === 'myth' && <MythGame />}
-        {view === 'words' && <WordGame />}
-        {view === 'acceptance' && <AcceptanceView />}
+          <HubGroup title={L('Aceitação e memória', 'Acceptance & memory')}>
+            <HubRow icon="leaf-outline" title={L('Aceitação e valores', 'Acceptance & values')} desc={L('Princípios, valores e compromissos de aproximação', 'Principles, values and approach commitments')} onPress={open('acceptance')} />
+            <HubRow icon="sparkles-outline" title={t('exercises.memory')} desc={t('exercises.memoryDesc')} onPress={open('memory')} />
+          </HubGroup>
+        </ScrollView>
       </View>
-
-      {/* Rodapé uniforme: "Registar sessão de hoje" (permite várias por dia).
-          A exposição fica de fora porque já regista sessões com antes/pico/depois. */}
-      {LOG_TYPES[view] && (
-        <View style={{ paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.card }}>
-          <ExerciseLogBar key={view} type={LOG_TYPES[view]!} />
-        </View>
-      )}
     </View>
   );
 }

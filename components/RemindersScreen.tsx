@@ -8,7 +8,7 @@ import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'rea
 import { AFFIRMATIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
-import { cancelReminder, ensureNotificationPermission, findUntrackedReminders, scheduleDailyReminder } from '../notifications/notifications';
+import { cancelReminder, cancelUntrackedReminders, ensureNotificationPermission, scheduleDailyReminder } from '../notifications/notifications';
 import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, saveAffirmationReminder, saveReminders } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -46,21 +46,21 @@ function RemindersBody() {
 
   useEffect(() => {
     (async () => {
-      const list = await loadReminders();
-      // "Adota" notificações antigas agendadas fora da lista (ex.: a das 22h de
-      // uma versão anterior), para aparecerem aqui e poderem ser geridas.
-      try {
-        const extras = await findUntrackedReminders(list.map((r) => r.notificationId));
-        if (extras.length) {
-          const merged = [...list, ...extras];
-          setReminders(merged);
-          saveReminders(merged);
-          return;
-        }
-      } catch {
-        // se a leitura das notificações falhar, mostra só a lista guardada
-      }
-      setReminders(list);
+      const raw = await loadReminders();
+      // Sanitiza a lista guardada (protege o render contra dados mal-formados
+      // de versões antigas) e grava a versão limpa.
+      const clean: Reminder[] = (Array.isArray(raw) ? raw : []).map((r: any) => ({
+        id: typeof r?.id === 'string' ? r.id : 'r' + Date.now() + Math.random().toString(36).slice(2, 6),
+        hour: Number.isFinite(r?.hour) ? r.hour : 9,
+        minute: Number.isFinite(r?.minute) ? r.minute : 0,
+        label: typeof r?.label === 'string' ? r.label : '',
+        enabled: !!r?.enabled,
+        notificationId: typeof r?.notificationId === 'string' ? r.notificationId : null,
+      }));
+      setReminders(clean);
+      saveReminders(clean);
+      // Cancela notificações "fantasma" que não estão na lista (ex.: a das 22h antiga).
+      try { await cancelUntrackedReminders(clean.map((r) => r.notificationId)); } catch {}
     })();
   }, []);
 

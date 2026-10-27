@@ -1,56 +1,33 @@
 // Ecrã de Lições (aberto a partir dos Recursos).
-// Mostra os capítulos com barra de progresso; tocar numa lição abre o conteúdo.
+// Mostra os capítulos com barra de progresso; tocar numa lição abre o detalhe
+// numa rota própria (/lesson) para o deslizar do iOS voltar aqui, não a Recursos.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CHAPTERS } from '../data/content';
 import { useLang } from '../i18n/i18n';
-import { loadLessonsDone, toggleLessonDone } from '../storage/storage';
+import { loadLessonsDone } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import { PrimaryButton, TopBackBar } from './ui';
-
-type Lesson = { id: string; title: { pt: string; en: string }; body: { pt: string; en: string } };
+import { TopBackBar } from './ui';
 
 export default function LessonsScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
+  const router = useRouter();
   const [done, setDone] = useState<string[]>([]);
-  const [selected, setSelected] = useState<Lesson | null>(null);
   // Capítulos abertos (colapsáveis). Começa com o 1.º aberto para não ficar vazio.
   const [expanded, setExpanded] = useState<string[]>(CHAPTERS.length ? [CHAPTERS[0].id] : []);
 
-  useEffect(() => {
-    loadLessonsDone().then(setDone);
-  }, []);
+  // Recarrega o estado "concluído" sempre que o ecrã volta a ficar em foco.
+  useFocusEffect(useCallback(() => { loadLessonsDone().then(setDone); }, []));
 
   function toggleChapter(id: string) {
     setExpanded((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   }
 
-  async function onToggle(id: string) {
-    setDone(await toggleLessonDone(id));
-  }
-
-  // Vista de detalhe de uma lição.
-  if (selected) {
-    const isDone = done.includes(selected.id);
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <TopBackBar title={selected.title[lang]} onBack={() => setSelected(null)} />
-        <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-          <Text style={{ color: colors.text, fontSize: 16, lineHeight: 26 }}>{selected.body[lang]}</Text>
-          <PrimaryButton
-            label={isDone ? t('lessons.markUndone') : t('lessons.markDone')}
-            onPress={() => onToggle(selected.id)}
-          />
-        </ScrollView>
-      </View>
-    );
-  }
-
-  // Lista de capítulos e lições (com barra de progresso por capítulo).
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={t('lessons.title')} onBack={onBack} />
@@ -89,7 +66,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                 return (
                   <Pressable
                     key={les.id}
-                    onPress={() => setSelected(les)}
+                    onPress={() => router.push({ pathname: '/lesson', params: { id: les.id } } as any)}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border }}
                   >
                     <View

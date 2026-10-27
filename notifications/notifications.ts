@@ -62,6 +62,26 @@ function readHourMinute(trigger: any): { hour: number; minute: number } | null {
   return null;
 }
 
+// Cancela as notificações agendadas que NÃO estão na lista conhecida (knownIds).
+// Usado para remover notificações "fantasma" de versões antigas (ex.: a das 22h)
+// sem mexer nos lembretes que o utilizador criou. Devolve quantas cancelou.
+export async function cancelUntrackedReminders(knownIds: (string | null)[]): Promise<number> {
+  const known = new Set(knownIds.filter((x): x is string => !!x));
+  let all: Notifications.NotificationRequest[] = [];
+  try {
+    all = await Notifications.getAllScheduledNotificationsAsync();
+  } catch {
+    return 0;
+  }
+  let n = 0;
+  for (const req of all) {
+    if (!known.has(req.identifier)) {
+      try { await Notifications.cancelScheduledNotificationAsync(req.identifier); n++; } catch {}
+    }
+  }
+  return n;
+}
+
 export type UntrackedReminder = {
   id: string;
   hour: number;

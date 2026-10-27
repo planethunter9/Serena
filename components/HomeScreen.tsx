@@ -5,9 +5,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Dimensions, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Reanimated, { runOnJS, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, G } from 'react-native-svg';
+import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import PlanView, { PlanEditor } from './Plan';
 import ProgressScreen from './ProgressScreen';
@@ -38,6 +39,7 @@ import {
   loadRecapDismissed,
   loadRingMode,
   loadSeverity,
+  saveRingMode,
   loadThoughtRecords,
   loadUnplanned,
   MemorySession,
@@ -308,7 +310,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
 
   function heroBlock() {
     const streakLine = expStreak === 0
-      ? L('ainda sem dias seguidos — começa hoje', 'no streak yet — start today')
+      ? L(`sem dias seguidos agora — e tudo bem · ${totalExpDays} no total`, `no streak right now — and that's okay · ${totalExpDays} total`)
       : L(`${expStreak} ${expStreak === 1 ? 'dia' : 'dias'} seguidos · ${totalExpDays} no total`, `${expStreak} ${expStreak === 1 ? 'day' : 'days'} in a row · ${totalExpDays} total`);
     return (
       <Card style={{ gap: spacing.md }}>
@@ -317,9 +319,29 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
           <Text style={{ color: colors.textMuted, fontSize: 13 }}>· {modeLabel}</Text>
         </View>
 
+        {/* Vista do círculo: diário / semanal / mensal (guarda-se) */}
+        <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 3 }}>
+          {([['daily', L('Diário', 'Daily')], ['weekly', L('Semanal', 'Weekly')], ['monthly', L('Mensal', 'Monthly')]] as const).map(([m, lbl]) => {
+            const active = ringMode === m;
+            return (
+              <Pressable key={m} onPress={() => { setRingMode(m); saveRingMode(m); }} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
+                <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{lbl}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
           <View style={{ width: RING, height: RING }}>
             <Svg width={RING} height={RING}>
+              <Defs>
+                {PILLARS.map((p, i) => (
+                  <LinearGradient key={i} id={`ringGrad${i}`} x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0" stopColor={p.color} stopOpacity={0.3} />
+                    <Stop offset="1" stopColor={p.color} stopOpacity={1} />
+                  </LinearGradient>
+                ))}
+              </Defs>
               <G rotation={-90} origin={`${RC}, ${RC}`}>
                 {PILLARS.map((p, i) => {
                   const r = radii[i];
@@ -327,7 +349,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   return (
                     <G key={i}>
                       <Circle cx={RC} cy={RC} r={r} stroke={colors.cardAlt} strokeWidth={SW} fill="none" opacity={0.5} />
-                      <Circle cx={RC} cy={RC} r={r} stroke={p.color} strokeWidth={SW} fill="none" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - p.pct / 100)} />
+                      <Circle cx={RC} cy={RC} r={r} stroke={`url(#ringGrad${i})`} strokeWidth={SW} fill="none" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - p.pct / 100)} />
                     </G>
                   );
                 })}
@@ -400,7 +422,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
             return (
               <Pressable
                 key={v}
-                onPress={() => { setSeverityToday(v); addSeverity(v); }}
+                onPress={() => { Haptics.selectionAsync().catch(() => {}); setSeverityToday(v); addSeverity(v); }}
                 accessibilityRole="button"
                 accessibilityLabel={L(`Gravidade ${v} de 5`, `Severity ${v} of 5`)}
                 style={{ flex: 1, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: sel ? colors.primary : colors.border }}
