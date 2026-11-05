@@ -10,8 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
-import { cancelUntrackedReminders } from '../notifications/notifications';
-import { loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
+import { cancelUntrackedReminders, knownNotificationIds } from '../notifications/notifications';
+import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { useCoach } from './CoachMarks';
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -68,7 +68,10 @@ export default function MainApp() {
     (async () => {
       try {
         const list = await loadReminders();
-        await cancelUntrackedReminders(list.map((r) => r.notificationId));
+        const aff = await loadAffirmationReminder();
+        // Lembretes desligados/eliminados não entram na lista → são cancelados.
+        // A afirmação do dia entra (antes era cancelada por engano).
+        await cancelUntrackedReminders(knownNotificationIds(Array.isArray(list) ? list : [], aff));
       } catch {
         // best-effort; ignora falhas
       }

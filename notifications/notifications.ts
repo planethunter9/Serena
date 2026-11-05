@@ -21,9 +21,17 @@ export async function ensureNotificationPermission(): Promise<boolean> {
   return asked.granted;
 }
 
+// Identificadores fixos: agendar com o mesmo identificador SUBSTITUI a notificação
+// anterior (não cria duplicados) e permite cancelar mesmo que o id guardado se perca.
+export const AFFIRMATION_NOTIF_ID = 'affirmation-daily';
+export function reminderNotifId(reminderId: string) {
+  return 'reminder-' + reminderId;
+}
+
 // Agenda uma notificação diária à hora indicada. Devolve o id (para poder cancelar).
-export async function scheduleDailyReminder(hour: number, minute: number, title: string, body: string): Promise<string> {
+export async function scheduleDailyReminder(hour: number, minute: number, title: string, body: string, identifier?: string): Promise<string> {
   return Notifications.scheduleNotificationAsync({
+    ...(identifier ? { identifier } : {}),
     content: { title, body },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -41,6 +49,49 @@ export async function cancelReminder(id: string | null) {
   } catch {
     // se já não existir, ignorar
   }
+}
+
+// Remove da central de notificações as que já foram entregues com este id
+// (para um lembrete eliminado não ficar lá "pendurado").
+export async function dismissDelivered(ids: (string | null)[]) {
+  const set = new Set(ids.filter((x): x is string => !!x));
+  if (!set.size) return;
+  try {
+    const presented = await Notifications.getPresentedNotificationsAsync();
+    for (const n of presented) {
+      if (set.has(n.request.identifier)) {
+        try { await Notifications.dismissNotificationAsync(n.request.identifier); } catch {}
+      }
+    }
+  } catch {
+    // best-effort
+  }
+}
+
+// Cancela tudo o que pertence a um lembrete: o id guardado e o id fixo.
+export async function cancelReminderFully(reminderId: string, notificationId: string | null) {
+  const ids = [notificationId, reminderNotifId(reminderId)];
+  for (const id of ids) await cancelReminder(id);
+  await dismissDelivered(ids);
+}
+
+// Lista de ids de notificações que DEVEM existir: os lembretes ativos e a
+// afirmação do dia (se ativa). Tudo o resto é "fantasma" e pode ser cancelado.
+export function knownNotificationIds(
+  reminders: { id: string; enabled: boolean; notificationId: string | null }[],
+  affirmation: { enabled: boolean; notificationId: string | null } | null,
+): string[] {
+  const out: string[] = [];
+  for (const r of reminders) {
+    if (!r.enabled) continue;
+    if (r.notificationId) out.push(r.notificationId);
+    out.push(reminderNotifId(r.id));
+  }
+  if (affirmation?.enabled) {
+    if (affirmation.notificationId) out.push(affirmation.notificationId);
+    out.push(AFFIRMATION_NOTIF_ID);
+  }
+  return out;
 }
 
 // --- Reconciliação de lembretes "órfãos" ----------------------------------
