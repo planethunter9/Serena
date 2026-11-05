@@ -129,18 +129,6 @@ function RemindersBody() {
     setEditing(null);
   }
 
-  // Botão de eliminar na lista (como nos alarmes), com confirmação.
-  function confirmRemove(r: Reminder) {
-    Alert.alert(
-      tr2(lang, 'Eliminar lembrete?', 'Delete reminder?'),
-      `${two(r.hour)}:${two(r.minute)}${String(r.label ?? '').trim() ? ' · ' + String(r.label).trim() : ''}`,
-      [
-        { text: tr2(lang, 'Cancelar', 'Cancel'), style: 'cancel' },
-        { text: tr2(lang, 'Eliminar', 'Delete'), style: 'destructive', onPress: () => { removeReminder(r); } },
-      ],
-    );
-  }
-
   function bump(field: 'hour' | 'minute', delta: number) {
     setEditing((c) => {
       if (!c) return c;
@@ -228,15 +216,6 @@ function RemindersBody() {
             disabled={busy}
             trackColor={{ true: colors.primary, false: colors.track }}
           />
-          <Pressable
-            onPress={() => confirmRemove(r)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={tr2(lang, 'Eliminar lembrete', 'Delete reminder')}
-            style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.danger} />
-          </Pressable>
         </Pressable>
       ))}
 
