@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import { HardDayBody } from './HardDayPlanScreen';
@@ -13,7 +14,7 @@ import { TopBackBar } from './ui';
 export default function PlansScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [tab, setTab] = useState<'hardday' | 'relapse'>('hardday');
 
   return (

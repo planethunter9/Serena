@@ -3,8 +3,35 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+// Traduções por língua (ficheiros gerados em ./translations, preenchidos por fase).
+import { dict as esDict, inline as esInline } from './translations/es';
+import { dict as frDict, inline as frInline } from './translations/fr';
+import { dict as deDict, inline as deInline } from './translations/de';
+import { dict as itDict, inline as itInline } from './translations/it';
+import { dict as ptBRDict, inline as ptBRInline } from './translations/pt-BR';
+import { dict as nlDict, inline as nlInline } from './translations/nl';
+import { dict as plDict, inline as plInline } from './translations/pl';
+import { dict as ruDict, inline as ruInline } from './translations/ru';
 
-export type Lang = 'pt' | 'en';
+// Línguas suportadas. pt e en estão traduzidas a 100%; as restantes vão sendo
+// preenchidas (ver EXTRA, mais abaixo) e, enquanto não estiverem, caem em inglês.
+export type Lang = 'pt' | 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt-BR' | 'nl' | 'pl' | 'ru';
+
+// Lista para o seletor de idioma (nome de cada língua na própria língua).
+// `beta: true` nas que ainda estão em revisão / tradução automática.
+export const LANGS: { code: Lang; label: string; beta?: boolean }[] = [
+  { code: 'pt', label: 'Português' },
+  { code: 'pt-BR', label: 'Português (Brasil)', beta: true },
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español', beta: true },
+  { code: 'fr', label: 'Français', beta: true },
+  { code: 'de', label: 'Deutsch', beta: true },
+  { code: 'it', label: 'Italiano', beta: true },
+  { code: 'nl', label: 'Nederlands', beta: true },
+  { code: 'pl', label: 'Polski', beta: true },
+  { code: 'ru', label: 'Русский', beta: true },
+];
+
 const STORAGE_KEY = 'app:lang';
 
 const TR = {
@@ -719,6 +746,63 @@ const TR = {
 
 export type TKey = keyof typeof TR.pt;
 
+// Traduções das chaves do dicionário t(), por língua. Vêm dos ficheiros em
+// ./translations; qualquer chave em falta cai no fallback (ver `t`).
+export const EXTRA: Partial<Record<Lang, Partial<Record<TKey, string>>>> = {
+  es: esDict,
+  fr: frDict,
+  de: deDict,
+  it: itDict,
+  'pt-BR': ptBRDict,
+  nl: nlDict,
+  pl: plDict,
+  ru: ruDict,
+};
+
+// Língua para onde cair quando falta a tradução: o pt-BR cai em português;
+// todas as outras caem em inglês.
+function fallbackOf(lang: Lang): 'pt' | 'en' {
+  return lang === 'pt-BR' ? 'pt' : 'en';
+}
+
+// Procura uma chave na língua atual, com cascata de fallback: língua → (pt|en) → en → pt.
+function lookup(lang: Lang, key: TKey): string | undefined {
+  if (lang === 'pt') return TR.pt[key];
+  if (lang === 'en') return TR.en[key];
+  return EXTRA[lang]?.[key] ?? TR[fallbackOf(lang)][key];
+}
+
+// Traduções dos textos "inline" (os escritos no código via L(pt,en) / tr2).
+// Chave = o texto em INGLÊS (2.º argumento). Começam vazias; em falta cai no fallback.
+// Preenchidas por fase — ficheiro gerado à parte substitui estes objetos.
+export const INLINE: Partial<Record<Lang, Record<string, string>>> = {
+  es: esInline,
+  fr: frInline,
+  de: deInline,
+  it: itInline,
+  'pt-BR': ptBRInline,
+  nl: nlInline,
+  pl: plInline,
+  ru: ruInline,
+};
+
+// Versão com consciência de língua do antigo L(pt, en). Mantém as 227 chamadas
+// intactas: em pt devolve pt, em en devolve en, nas restantes procura no INLINE
+// pelo texto inglês e, se faltar, cai em pt (pt-BR) ou en (restantes).
+export function tr2(lang: Lang, pt: string, en: string): string {
+  if (lang === 'pt') return pt;
+  if (lang === 'en') return en;
+  return INLINE[lang]?.[en] ?? (lang === 'pt-BR' ? pt : en);
+}
+
+// Ajudante para conteúdo guardado como objeto por língua ({ pt, en, es, ... }),
+// como em content.ts. Devolve a língua pedida ou cai em pt (pt-BR) / inglês.
+export type LText = { pt: string; en: string } & Partial<Record<Lang, string>>;
+export function pick(obj: LText | undefined, lang: Lang): string {
+  if (!obj) return '';
+  return obj[lang] ?? obj[fallbackOf(lang)] ?? obj.en ?? obj.pt ?? '';
+}
+
 type LangContextValue = {
   lang: Lang;
   setLang: (l: Lang) => void;
@@ -732,7 +816,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((saved) => {
-      if (saved === 'pt' || saved === 'en') setLangState(saved);
+      if (saved && LANGS.some((l) => l.code === saved)) setLangState(saved as Lang);
     });
   }, []);
 
@@ -742,7 +826,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }
 
   function t(key: TKey, params?: Record<string, string | number>) {
-    let text: string = TR[lang][key] ?? TR.pt[key] ?? key;
+    let text: string = lookup(lang, key) ?? TR.en[key] ?? TR.pt[key] ?? key;
     if (params) {
       for (const k of Object.keys(params)) {
         text = text.replace(`{${k}}`, String(params[k]));

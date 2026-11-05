@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthContext';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import PrivacyScreen from './PrivacyScreen';
@@ -14,12 +15,26 @@ import { PrimaryButton } from './ui';
 
 type Mode = 'login' | 'signup' | 'reset';
 
+// Força da palavra-passe: -1 vazia, 0 fraca, 1 média, 2 forte.
+// Conta critérios (comprimento, dígitos, maiúsculas+minúsculas, símbolos).
+function pwScore(pw: string): number {
+  if (!pw) return -1;
+  if (pw.length < 6) return 0;
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return s <= 1 ? 0 : s <= 3 ? 1 : 2;
+}
+
 export default function AuthScreen() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const { signIn, signUp, resetPassword, confirmReset, socialSignIn } = useAuth();
   const insets = useSafeAreaInsets();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
@@ -81,15 +96,7 @@ export default function AuthScreen() {
     setBusy(true);
     const res = await confirmReset(email, code, newPass);
     setBusy(false);
-    if (res.ok) {
-      // Não entra na app: volta ao login com confirmação, para iniciar sessão
-      // com a nova palavra-passe (o email fica preenchido).
-      setPassword('');
-      goMode('login');
-      setInfo(L('Palavra-passe reposta. Inicia sessão com a nova palavra-passe.',
-                'Password reset. Sign in with your new password.'));
-      return;
-    }
+    if (res.ok) return; // fica com sessão iniciada; o gate mostra a app
     setError(res.message ?? errorText(res.error) ?? L('Código inválido ou expirado.', 'Invalid or expired code.'));
   }
 
@@ -109,6 +116,25 @@ export default function AuthScreen() {
     borderColor: colors.border,
     color: colors.text,
     fontSize: 16,
+  };
+
+  // Medidor de força da palavra-passe (só aparece com texto escrito).
+  const PasswordMeter = ({ pw }: { pw: string }) => {
+    const lvl = pwScore(pw);
+    if (lvl < 0) return null;
+    const labels = [L('Fraca', 'Weak'), L('Média', 'Medium'), L('Forte', 'Strong')];
+    const barColors = [colors.danger, '#f59e0b', colors.success];
+    const c = barColors[lvl];
+    return (
+      <View style={{ gap: 6, marginTop: 2 }} accessibilityRole="text" accessibilityLabel={`${L('Força da palavra-passe', 'Password strength')}: ${labels[lvl]}`}>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: i <= lvl ? c : colors.border }} />
+          ))}
+        </View>
+        <Text style={{ color: c, fontSize: 12, fontWeight: '600' }}>{labels[lvl]}</Text>
+      </View>
+    );
   };
 
   if (showPolicy) {
@@ -132,6 +158,7 @@ export default function AuthScreen() {
               <>
                 <TextInput value={code} onChangeText={setCode} placeholder={L('Código do email', 'Code from email')} placeholderTextColor={colors.textMuted} style={inputStyle} keyboardType="number-pad" autoCapitalize="none" />
                 <TextInput value={newPass} onChangeText={setNewPass} placeholder={L('Nova palavra-passe', 'New password')} placeholderTextColor={colors.textMuted} style={inputStyle} secureTextEntry />
+                <PasswordMeter pw={newPass} />
               </>
             )}
 
@@ -161,6 +188,7 @@ export default function AuthScreen() {
               )}
               <TextInput value={email} onChangeText={setEmail} placeholder={t('auth.email')} placeholderTextColor={colors.textMuted} style={inputStyle} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
               <TextInput value={password} onChangeText={setPassword} placeholder={t('auth.password')} placeholderTextColor={colors.textMuted} style={inputStyle} secureTextEntry />
+              {isSignup && <PasswordMeter pw={password} />}
             </View>
 
             {!isSignup && (

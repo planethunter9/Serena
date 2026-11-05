@@ -177,7 +177,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -454,6 +454,14 @@ export async function loadRelapsePlan(): Promise<RelapsePlan> {
 }
 export async function saveRelapsePlan(p: RelapsePlan) {
   await AsyncStorage.setItem(k('relapsePlan'), JSON.stringify(p));
+}
+
+// --- Walkthrough de abertura (mostra-se uma vez após o onboarding) ---------
+export async function loadWalkthroughSeen(): Promise<boolean> {
+  return (await AsyncStorage.getItem(k('walkthroughSeen'))) === '1';
+}
+export async function saveWalkthroughSeen() {
+  await AsyncStorage.setItem(k('walkthroughSeen'), '1');
 }
 
 // --- Próximo passo (escolhido pelo utilizador) ----------------------------

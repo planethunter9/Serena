@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import {
   ActCommitment,
   AttackEntry,
@@ -59,7 +60,7 @@ function expStreakOf(days: string[]): number {
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   // Cor por nível (0–5): verde baixo, amarelo médio, vermelho alto — do tema.
   const valueColor = (v: number) => (v >= 3.5 ? colors.chartHigh : v >= 2 ? colors.chartMid : colors.chartLow);
 

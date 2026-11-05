@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { AffirmationReminder, loadAffirmationReminder, saveAffirmationReminder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -17,7 +18,7 @@ const two = (n: number) => (n < 10 ? '0' + n : '' + n);
 export default function AffirmationScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const tt = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [state, setState] = useState<AffirmationReminder | null>(null);
   const [busy, setBusy] = useState(false);

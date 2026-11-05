@@ -9,8 +9,10 @@ import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { cancelUntrackedReminders } from '../notifications/notifications';
-import { loadProfile, loadReminders } from '../storage/storage';
+import { loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
+import { useCoach } from './CoachMarks';
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
@@ -25,12 +27,33 @@ export default function MainApp() {
   const { colors, isDark } = useTheme();
   const iosMajor = Platform.OS === 'ios' ? parseInt(String(Platform.Version), 10) : 0;
   const glassSupported = iosMajor >= 26;
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const { data } = useData();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Coach marks (tutorial de abertura): percorre os quatro separadores,
+  // mudando de ecrã em cada passo e realçando um elemento real de cada um.
+  const coach = useCoach();
+  useEffect(() => {
+    (async () => {
+      if (await loadWalkthroughSeen()) return;
+      setTimeout(() => {
+        coach.start(
+          [
+            { name: 'pillars', show: () => setTab('home'), text: L('Estes são os teus pilares. Vão-se enchendo à medida que praticas — Prática, Repetição e Aproximação.', 'These are your pillars. They fill up as you practise — Practice, Repetition and Approach.') },
+            { name: 'support-now', show: () => setTab('support'), text: L('No separador Apoio tens o que precisas num momento difícil. Começa aqui, em "Agora mesmo", quando estiveres com um gatilho.', 'The Support tab has what you need in a hard moment. Start here, under "Right now", when a trigger hits.') },
+            { name: 'calendar-card', show: () => setTab('calendar'), text: L('No Calendário marcas os dias: a vermelho os ataques ou comportamentos, a verde os dias em que fizeste exposição.', 'In the Calendar you mark your days: red for attacks or behaviours, green for days you did exposure.') },
+            { name: 'resources-list', show: () => setTab('resources'), text: L('E em Recursos tens tudo o resto — lições, exercícios, planos e os teus registos.', 'And Resources has everything else — lessons, exercises, plans and your logs.') },
+          ],
+          () => { saveWalkthroughSeen(); setTab('home'); },
+        );
+      }, 700);
+    })();
+  }, []);
 
   // Recarrega a foto de perfil sempre que este ecrã volta a ficar em foco.
   useFocusEffect(
@@ -118,7 +141,11 @@ export default function MainApp() {
           {TABS.map((tb) => {
             const active = tab === tb.key;
             return (
-              <Pressable key={tb.key} onPress={() => setTab(tb.key)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <Pressable
+                key={tb.key}
+                onPress={() => setTab(tb.key)}
+                style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}
+              >
                 <Ionicons name={active ? tb.iconActive : tb.icon} size={24} color={active ? colors.primary : colors.textMuted} />
                 <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: active ? '700' : '500', fontSize: 12 }}>
                   {t(tb.labelKey)}

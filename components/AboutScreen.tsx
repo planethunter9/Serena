@@ -4,6 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { SOURCES } from './CitationsScreen';
@@ -12,7 +13,7 @@ import { Card, TopBackBar } from './ui';
 export default function AboutScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const open = (url: string) => Linking.openURL(url).catch(() => {});
 
   return (

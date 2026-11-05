@@ -10,6 +10,7 @@ import { SUBTYPE_OPTIONS } from '../data/content';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import { LADDER_TEMPLATES } from '../data/ladderTemplates';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import {
   appendExerciseLog,
   ExerciseLogEntry,
@@ -346,7 +347,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
         <Pressable onPress={() => { setShowTemplates(false); setOpenTpl(null); }} hitSlop={8}>
           <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
         </Pressable>
-        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{lang === 'pt' ? 'Escadas prontas' : 'Ready-made ladders'}</Text>
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{tr2(lang, 'Escadas prontas', 'Ready-made ladders')}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
           {lang === 'pt'
             ? 'Escolhe um modelo do teu medo. Os degraus são acrescentados à tua escada — podes editá-los, removê-los e reordená-los.'
@@ -361,7 +362,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
               <Pressable onPress={() => setOpenTpl(open ? null : tpl.subtypeId)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{label}</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tpl.steps.length} {lang === 'pt' ? 'degraus' : 'steps'}{mine ? (lang === 'pt' ? ' · o teu medo' : ' · your fear') : ''}</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tpl.steps.length} {tr2(lang, 'degraus', 'steps')}{mine ? (tr2(lang, ' · o teu medo', ' · your fear')) : ''}</Text>
                 </View>
                 <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
               </Pressable>
@@ -373,7 +374,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
                       <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{s[lang]}</Text>
                     </View>
                   ))}
-                  <PrimaryButton label={lang === 'pt' ? 'Adicionar estes degraus' : 'Add these steps'} onPress={() => importSteps(tpl.steps)} />
+                  <PrimaryButton label={tr2(lang, 'Adicionar estes degraus', 'Add these steps')} onPress={() => importSteps(tpl.steps)} />
                 </View>
               )}
             </View>
@@ -399,12 +400,12 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
           onPress={toggleToday}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={markedToday ? (lang === 'pt' ? 'Registado hoje, toca para anular' : 'Logged today, tap to undo') : (lang === 'pt' ? 'Registar sessão de hoje' : "Log today's session")}
+          accessibilityLabel={markedToday ? (tr2(lang, 'Registado hoje, toca para anular', 'Logged today, tap to undo')) : (tr2(lang, 'Registar sessão de hoje', "Log today's session"))}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: markedToday ? colors.successSoft : colors.primary, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999 }}
         >
           <Ionicons name={markedToday ? 'checkmark' : 'add'} size={16} color={markedToday ? colors.success : '#fff'} />
           <Text style={{ color: markedToday ? colors.success : '#fff', fontWeight: '700', fontSize: 13 }}>
-            {markedToday ? (lang === 'pt' ? 'Registado hoje' : 'Logged today') : (lang === 'pt' ? 'Registar hoje' : 'Log today')}
+            {markedToday ? (tr2(lang, 'Registado hoje', 'Logged today')) : (tr2(lang, 'Registar hoje', 'Log today'))}
           </Text>
         </Pressable>
       </View>
@@ -466,8 +467,8 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
       <Pressable onPress={() => setShowTemplates(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.md }}>
         <Ionicons name="library-outline" size={20} color={colors.primary} />
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>{lang === 'pt' ? 'Usar uma escada pronta' : 'Use a ready-made ladder'}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lang === 'pt' ? 'Degraus sugeridos para o teu medo' : 'Suggested steps for your fear'}</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>{tr2(lang, 'Usar uma escada pronta', 'Use a ready-made ladder')}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tr2(lang, 'Degraus sugeridos para o teu medo', 'Suggested steps for your fear')}</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.primary} />
       </Pressable>
@@ -502,13 +503,13 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
             {reordering ? (
               <>
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
-                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para cima' : 'Move up'} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-up" size={20} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para baixo' : 'Move down'} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-down" size={20} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? `Remover ${s.label}` : `Remove ${s.label}`} style={{ padding: 4, marginLeft: 2 }}>
+                <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, `Remover ${s.label}`, `Remove ${s.label}`)} style={{ padding: 4, marginLeft: 2 }}>
                   <Ionicons name="trash-outline" size={19} color={colors.danger} />
                 </Pressable>
               </>
@@ -543,7 +544,7 @@ const THOUGHT_TRAPS: L[] = [
 export function ThoughtView() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [records, setRecords] = useState<ThoughtRecord[]>([]);
   const [situation, setSituation] = useState('');
   const [thought, setThought] = useState('');
@@ -764,7 +765,7 @@ export function ExperimentsView() {
 export function ExerciseLogBar({ type }: { type: string }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const Lx = (pt: string, en: string) => tr2(lang, pt, en);
   const [log, setLog] = useState<ExerciseLogEntry[]>([]);
   useEffect(() => { loadExerciseLog().then(setLog); }, []);
   const today = ymd(new Date());
@@ -827,7 +828,7 @@ function HubRow({ icon, title, desc, onPress }: { icon: keyof typeof Ionicons.gl
 export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const router = useRouter();
   // Cada exercício abre numa rota própria (/exercise?type=…), para o deslizar do
   // iOS voltar a este hub e deste para os Recursos (hierarquia correta).

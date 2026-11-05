@@ -15,6 +15,7 @@ import {
   saveActValues,
 } from '../storage/storage';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, PrimaryButton } from './ui';
@@ -81,7 +82,7 @@ function Section({ title, icon, defaultOpen, children }: { title: string; icon: 
 export default function AcceptanceView() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [vals, setVals] = useState<ActValues>({ values: '', reflection: '' });
   const [valsSaved, setValsSaved] = useState(false);

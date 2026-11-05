@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { TKey, useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { loadResourcesOrder, saveResourcesOrder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { CoachTarget } from './CoachMarks';
 import { ScreenTitle } from './ui';
 
 // Cada item usa uma chave i18n (titleKey) OU um título inline (title).
@@ -68,7 +70,7 @@ export default function ResourcesScreen({
         </Pressable>
       </View>
 
-      <View style={{ gap: spacing.sm }}>
+      <CoachTarget name="resources-list" style={{ gap: spacing.sm }}>
         {items.map((r, i) => {
           const title = r.title ? r.title[lang] : t(r.titleKey!);
           const body = (
@@ -85,10 +87,10 @@ export default function ResourcesScreen({
             return (
               <View key={r.id} style={rowStyle}>
                 {body}
-                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para cima' : 'Move up'} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-up" size={22} color={colors.primary} />
                 </Pressable>
-                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === items.length - 1} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mover para baixo' : 'Move down'} style={{ padding: 4, opacity: i === items.length - 1 ? 0.3 : 1 }}>
+                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === items.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === items.length - 1 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-down" size={22} color={colors.primary} />
                 </Pressable>
               </View>
@@ -102,7 +104,7 @@ export default function ResourcesScreen({
             </Pressable>
           );
         })}
-      </View>
+      </CoachTarget>
     </ScrollView>
   );
 }

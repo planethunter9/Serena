@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { AttackEntry, loadAttacks, loadExposureDays, saveAttacks } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { CoachTarget } from './CoachMarks';
 import { Card, ScreenTitle } from './ui';
 
 const MONTHS = {
@@ -116,14 +118,15 @@ export default function CalendarScreen() {
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
       <ScreenTitle title={t('calendar.title')} />
 
+      <CoachTarget name="calendar-card">
       <Card style={{ gap: spacing.md }}>
         {/* Cabeçalho do mês */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Pressable onPress={prevMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mês anterior' : 'Previous month'} style={{ padding: 6 }}>
+          <Pressable onPress={prevMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mês anterior', 'Previous month')} style={{ padding: 6 }}>
             <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </Pressable>
           <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700' }}>{MONTHS[lang][month]} {year}</Text>
-          <Pressable onPress={nextMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={lang === 'pt' ? 'Mês seguinte' : 'Next month'} style={{ padding: 6 }}>
+          <Pressable onPress={nextMonth} hitSlop={10} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mês seguinte', 'Next month')} style={{ padding: 6 }}>
             <Ionicons name="chevron-forward" size={24} color={colors.primary} />
           </Pressable>
         </View>
@@ -161,6 +164,7 @@ export default function CalendarScreen() {
           })}
         </View>
       </Card>
+      </CoachTarget>
 
       {/* Legenda */}
       <View style={{ gap: 6, paddingHorizontal: 4 }}>
@@ -193,11 +197,11 @@ export default function CalendarScreen() {
                 <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{typeLabel(e.type)}</Text>
                 {e.vomited !== undefined && (
                   <View style={{ backgroundColor: e.vomited ? colors.danger : colors.successSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-                    <Text style={{ color: e.vomited ? '#fff' : colors.success, fontSize: 11, fontWeight: '700' }}>{e.vomited ? (lang === 'pt' ? 'vomitou' : 'vomited') : (lang === 'pt' ? 'não vomitou' : 'did not vomit')}</Text>
+                    <Text style={{ color: e.vomited ? '#fff' : colors.success, fontSize: 11, fontWeight: '700' }}>{e.vomited ? (tr2(lang, 'vomitou', 'vomited')) : (tr2(lang, 'não vomitou', 'did not vomit'))}</Text>
                   </View>
                 )}
                 <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
-                <Pressable onPress={() => deleteEntry(e)} hitSlop={6} style={{ padding: 2 }}>
+                <Pressable onPress={() => deleteEntry(e)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Apagar registo', 'Delete entry')} style={{ padding: 2 }}>
                   <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
                 </Pressable>
               </View>
@@ -212,7 +216,7 @@ export default function CalendarScreen() {
           {/* Registar ataque / comportamento */}
           {adding ? (
             <View style={{ gap: 10, marginTop: 4, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border }}>
-              <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{lang === 'pt' ? 'O que aconteceu?' : 'What happened?'}</Text>
+              <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{tr2(lang, 'O que aconteceu?', 'What happened?')}</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {(['anxiety', 'panic', 'behavior'] as const).map((tp) => {
                   const active = newType === tp;
@@ -223,10 +227,10 @@ export default function CalendarScreen() {
                   );
                 })}
               </View>
-              <TextInput value={newReason} onChangeText={setNewReason} placeholder={lang === 'pt' ? 'Motivo / gatilho (opcional)' : 'Reason / trigger (optional)'} placeholderTextColor={colors.textMuted} style={{ padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
-              <Text style={{ color: colors.text, fontSize: 14 }}>{lang === 'pt' ? 'Acabei por vomitar?' : 'Did I end up vomiting?'}</Text>
+              <TextInput value={newReason} onChangeText={setNewReason} placeholder={tr2(lang, 'Motivo / gatilho (opcional)', 'Reason / trigger (optional)')} placeholderTextColor={colors.textMuted} style={{ padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+              <Text style={{ color: colors.text, fontSize: 14 }}>{tr2(lang, 'Acabei por vomitar?', 'Did I end up vomiting?')}</Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
-                {([[true, lang === 'pt' ? 'Sim' : 'Yes'], [false, lang === 'pt' ? 'Não' : 'No']] as const).map(([val, label]) => {
+                {([[true, tr2(lang, 'Sim', 'Yes')], [false, tr2(lang, 'Não', 'No')]] as const).map(([val, label]) => {
                   const active = newVomited === val;
                   return (
                     <Pressable key={String(val)} onPress={() => setNewVomited(val)} style={{ flex: 1, paddingVertical: 10, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
@@ -237,17 +241,17 @@ export default function CalendarScreen() {
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <Pressable onPress={resetForm} style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center', borderWidth: 2, borderColor: colors.border }}>
-                  <Text style={{ color: colors.text, fontWeight: '700' }}>{lang === 'pt' ? 'Cancelar' : 'Cancel'}</Text>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{tr2(lang, 'Cancelar', 'Cancel')}</Text>
                 </Pressable>
                 <Pressable onPress={addEntry} style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center', backgroundColor: colors.primary }}>
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>{lang === 'pt' ? 'Guardar' : 'Save'}</Text>
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>{tr2(lang, 'Guardar', 'Save')}</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
             <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: 4 }}>
               <Ionicons name="add" size={18} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{lang === 'pt' ? 'Registar ataque / comportamento' : 'Log attack / behaviour'}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{tr2(lang, 'Registar ataque / comportamento', 'Log attack / behaviour')}</Text>
             </Pressable>
           )}
         </Card>

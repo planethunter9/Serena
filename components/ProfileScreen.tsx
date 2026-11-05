@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { loadProfile, OnboardingData, ProfileData, ProfileItem, saveProfile } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -22,7 +23,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
   const { user } = useAuth();
   const [p, setP] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   useEffect(() => {
     loadProfile().then((loaded) => setP({ ...loaded, name: loaded.name || user?.name || '' }));

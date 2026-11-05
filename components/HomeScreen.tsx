@@ -13,6 +13,7 @@ import { EXPOSURE_LADDER } from '../data/exercises';
 import PlanView, { PlanEditor } from './Plan';
 import ProgressScreen from './ProgressScreen';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import {
   ActCommitment,
   DroppedBehavior,
@@ -55,6 +56,7 @@ import {
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { CoachTarget } from './CoachMarks';
 import { Card } from './ui';
 
 type L = { pt: string; en: string };
@@ -82,7 +84,7 @@ function expStreakOf(days: string[]): number {
 export default function HomeScreen({ startDate }: { startDate: string }) {
   const { colors, unlocked, ringColors, defaultRingColors } = useTheme();
   const { t, lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [tab, setTab] = useState<'overview' | 'stats'>('overview');
 
@@ -245,7 +247,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     { name: L('Repetição', 'Repetition'), pct: repetitionPct, color: ringCols[1] },
     { name: L('Aproximação', 'Approach'), pct: approachPct, color: ringCols[2] },
   ];
-  const modeLabel = ringMode === 'daily' ? L('hoje', 'today') : ringMode === 'weekly' ? L('esta semana', 'this week') : L('este mês', 'this month');
 
   // --- Próximo passo: sugestão a partir da escada ---
   const hiddenSet = new Set(stepHidden);
@@ -314,10 +315,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
       : L(`${expStreak} ${expStreak === 1 ? 'dia' : 'dias'} seguidos · ${totalExpDays} no total`, `${expStreak} ${expStreak === 1 ? 'day' : 'days'} in a row · ${totalExpDays} total`);
     return (
       <Card style={{ gap: spacing.md }}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{L('Os teus pilares', 'Your pillars')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>· {modeLabel}</Text>
-        </View>
+        <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{L('Os teus pilares', 'Your pillars')}</Text>
 
         {/* Vista do círculo: diário / semanal / mensal (guarda-se) */}
         <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 3 }}>
@@ -503,6 +501,8 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   </Pressable>
                 </View>
               </View>
+            ) : key === 'hero' ? (
+              <CoachTarget key={key} name="pillars">{DASH[key]?.()}</CoachTarget>
             ) : (
               <View key={key}>{DASH[key]?.()}</View>
             )

@@ -7,6 +7,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { CoachTarget } from './CoachMarks';
 import { ScreenTitle } from './ui';
 
 export default function SupportScreen({
@@ -73,7 +74,9 @@ export default function SupportScreen({
 
       {/* Agora mesmo — acessos urgentes */}
       <SectionHeader label={L('Agora mesmo', 'Right now')} />
-      <Row title={t('home.triggerTitle')} desc={t('home.triggerDesc')} icon="flash-outline" onPress={onTrigger} highlight />
+      <CoachTarget name="support-now">
+        <Row title={t('home.triggerTitle')} desc={t('home.triggerDesc')} icon="flash-outline" onPress={onTrigger} highlight />
+      </CoachTarget>
       <Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} />
       <Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} />
 

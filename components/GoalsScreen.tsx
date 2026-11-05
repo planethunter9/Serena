@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { Goal, loadGoals, saveGoals } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -112,7 +113,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
           <EmptyState
             icon="flag-outline"
             title={t('goals.empty')}
-            subtitle={lang === 'pt' ? 'Escolhe da lista ou escreve o teu primeiro objetivo acima.' : 'Pick from the list or write your first goal above.'}
+            subtitle={tr2(lang, 'Escolhe da lista ou escreve o teu primeiro objetivo acima.', 'Pick from the list or write your first goal above.')}
           />
         )}
 
@@ -124,7 +125,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
               </View>
             </Pressable>
             <Text style={{ color: g.done ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: g.done ? 'line-through' : 'none' }}>{g.text}</Text>
-            <Pressable onPress={() => remove(g.id)} hitSlop={8} style={{ padding: 4 }}>
+            <Pressable onPress={() => remove(g.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Remover objetivo', 'Remove goal')} style={{ padding: 4 }}>
               <Ionicons name="trash-outline" size={20} color={colors.danger} />
             </Pressable>
           </View>

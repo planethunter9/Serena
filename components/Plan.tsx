@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import {
   loadPlanTasks,
   loadSafety,
@@ -92,7 +93,7 @@ function labelOf(tk: PlanTask, lang: 'pt' | 'en') {
 export default function PlanView({ onEdit }: { onEdit: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const Lx = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [plan, setPlan] = useState<WeekPlan | null>(null);
   const [tasks, setTasks] = useState<PlanTask[]>([]);
@@ -172,7 +173,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
 export function PlanEditor() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const Lx = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const Lx = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [plan, setPlan] = useState<WeekPlan | null>(null);
   const [tasks, setTasks] = useState<PlanTask[]>([]);

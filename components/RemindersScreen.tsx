@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { cancelReminder, cancelUntrackedReminders, ensureNotificationPermission, scheduleDailyReminder } from '../notifications/notifications';
 import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, saveAffirmationReminder, saveReminders } from '../storage/storage';
@@ -24,11 +25,11 @@ function Stepper({ value, onUp, onDown }: { value: string; onUp: () => void; onD
   const { colors } = useTheme();
   return (
     <View style={{ alignItems: 'center', gap: 6 }}>
-      <Pressable onPress={onUp} hitSlop={8} style={{ padding: 6 }}>
+      <Pressable onPress={onUp} hitSlop={8} accessibilityRole="button" accessibilityLabel="+" style={{ padding: 6 }}>
         <Ionicons name="chevron-up" size={28} color={colors.primary} />
       </Pressable>
       <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800', width: 70, textAlign: 'center' }}>{value}</Text>
-      <Pressable onPress={onDown} hitSlop={8} style={{ padding: 6 }}>
+      <Pressable onPress={onDown} hitSlop={8} accessibilityRole="button" accessibilityLabel="−" style={{ padding: 6 }}>
         <Ionicons name="chevron-down" size={28} color={colors.primary} />
       </Pressable>
     </View>
@@ -181,7 +182,7 @@ function RemindersBody() {
         <EmptyState
           icon="notifications-outline"
           title={t('reminders.none')}
-          subtitle={lang === 'pt' ? 'Cria um lembrete para praticares à hora que escolheres.' : 'Create a reminder to practise at the time you choose.'}
+          subtitle={tr2(lang, 'Cria um lembrete para praticares à hora que escolheres.', 'Create a reminder to practise at the time you choose.')}
         />
       )}
 
@@ -219,7 +220,7 @@ function RemindersBody() {
 function AffirmationBody() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const tt = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [state, setState] = useState<AffirmationReminder | null>(null);
   const [busy, setBusy] = useState(false);
@@ -293,12 +294,12 @@ export default function RemindersScreen({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<'reminders' | 'affirmation'>('reminders');
   const tabLabel = (v: 'reminders' | 'affirmation') =>
     v === 'reminders'
-      ? (lang === 'pt' ? 'Lembretes' : 'Reminders')
-      : (lang === 'pt' ? 'Afirmação do dia' : 'Affirmation');
+      ? (tr2(lang, 'Lembretes', 'Reminders'))
+      : (tr2(lang, 'Afirmação do dia', 'Affirmation'));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={lang === 'pt' ? 'Lembretes' : 'Reminders'} onBack={onBack} />
+      <TopBackBar title={tr2(lang, 'Lembretes', 'Reminders')} onBack={onBack} />
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm }}>
         <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
           {(['reminders', 'affirmation'] as const).map((v) => {

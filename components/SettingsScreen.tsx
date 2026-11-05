@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { exportUserData, importUserData, isoLocal, OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -36,7 +37,7 @@ export default function SettingsScreen({
   const auth = useAuth();
   const { user, signOut } = auth;
   const router = useRouter();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [backupBusy, setBackupBusy] = useState(false);
 
   // Exporta todos os dados locais para um ficheiro JSON e abre a folha de partilha
@@ -97,7 +98,7 @@ export default function SettingsScreen({
   }
 
   function confirmLogout() {
-    const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+    const L = (pt: string, en: string) => tr2(lang, pt, en);
     Alert.alert(
       L('Terminar sessão?', 'Sign out?'),
       L('Os teus dados ficam guardados e sincronizados. Podes voltar a entrar com a mesma conta quando quiseres.',
@@ -111,7 +112,7 @@ export default function SettingsScreen({
 
   // Eliminar conta: dois passos de confirmação (ação irreversível).
   function confirmDeleteAccount() {
-    const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+    const L = (pt: string, en: string) => tr2(lang, pt, en);
     Alert.alert(
       L('Eliminar conta', 'Delete account'),
       L('Isto apaga para sempre a tua conta e todos os teus dados (progresso, exercícios, lembretes). Não pode ser desfeito.',
@@ -136,7 +137,7 @@ export default function SettingsScreen({
   }
 
   async function runDeleteAccount() {
-    const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+    const L = (pt: string, en: string) => tr2(lang, pt, en);
     const del = (auth as any).deleteAccount;
     try {
       if (typeof del === 'function') {
@@ -182,10 +183,11 @@ export default function SettingsScreen({
 
         {/* Navegação */}
         <NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />
+        <NavRow icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} />
         <NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />
         <NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />
-        <NavRow icon="people-outline" label={lang === 'pt' ? 'Modo acompanhante' : 'Companion mode'} onPress={() => router.push('/companion' as any)} />
-        <NavRow icon="chatbox-ellipses-outline" label={lang === 'pt' ? 'Sugestões' : 'Feedback'} onPress={() => router.push('/feedback' as any)} />
+        <NavRow icon="people-outline" label={tr2(lang, 'Modo acompanhante', 'Companion mode')} onPress={() => router.push('/companion' as any)} />
+        <NavRow icon="chatbox-ellipses-outline" label={tr2(lang, 'Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} />
         <NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />
         <NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />
 
@@ -227,7 +229,7 @@ export default function SettingsScreen({
         {/* Eliminar conta (irreversível) */}
         <Pressable onPress={confirmDeleteAccount} style={{ padding: 14, alignItems: 'center', marginTop: 2 }}>
           <Text style={{ color: colors.danger, fontWeight: '700', textDecorationLine: 'underline' }}>
-            {lang === 'pt' ? 'Eliminar conta' : 'Delete account'}
+            {tr2(lang, 'Eliminar conta', 'Delete account')}
           </Text>
         </Pressable>
       </ScrollView>

@@ -55,7 +55,42 @@
       "expo-status-bar",
       "expo-web-browser",
       "expo-asset",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-dynamic-app-icon",
+        {
+          "rose": {
+            "ios": "./assets/images/lotus-rose.png",
+            "android": "./assets/images/lotus-rose.png",
+            "prerendered": true
+          },
+          "blue": {
+            "ios": "./assets/images/lotus-blue.png",
+            "android": "./assets/images/lotus-blue.png",
+            "prerendered": true
+          },
+          "green": {
+            "ios": "./assets/images/lotus-green.png",
+            "android": "./assets/images/lotus-green.png",
+            "prerendered": true
+          },
+          "violet": {
+            "ios": "./assets/images/lotus-violet.png",
+            "android": "./assets/images/lotus-violet.png",
+            "prerendered": true
+          },
+          "amber": {
+            "ios": "./assets/images/lotus-amber.png",
+            "android": "./assets/images/lotus-amber.png",
+            "prerendered": true
+          },
+          "noir": {
+            "ios": "./assets/images/lotus-noir.png",
+            "android": "./assets/images/lotus-noir.png",
+            "prerendered": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

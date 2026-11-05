@@ -6,6 +6,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
 import { CHAPTERS } from '../data/content';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import {
   Goal,
   loadExposureDays,
@@ -223,7 +224,7 @@ function GoalsBody() {
             </View>
           </Pressable>
           <Text style={{ color: g.done ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: g.done ? 'line-through' : 'none' }}>{g.text}</Text>
-          <Pressable onPress={() => remove(g.id)} hitSlop={8} style={{ padding: 4 }}>
+          <Pressable onPress={() => remove(g.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Remover objetivo', 'Remove goal')} style={{ padding: 4 }}>
             <Ionicons name="trash-outline" size={20} color={colors.danger} />
           </Pressable>
         </View>

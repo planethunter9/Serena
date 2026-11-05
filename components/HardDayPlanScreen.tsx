@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { HardDayPlan, loadHardDayPlan, saveHardDayPlan } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -16,7 +17,7 @@ type Field = keyof HardDayPlan;
 export function HardDayBody() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const tt = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [plan, setPlan] = useState<HardDayPlan | null>(null);
 
@@ -101,7 +102,7 @@ export function HardDayBody() {
 export default function HardDayPlanScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const tt = (pt: string, en: string) => tr2(lang, pt, en);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={tt('Plano para dias difíceis', 'Plan for hard days')} onBack={onBack} />

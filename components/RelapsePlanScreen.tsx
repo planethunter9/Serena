@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
+import { tr2 } from '../i18n/i18n';
 import { loadRelapsePlan, RelapsePlan, saveRelapsePlan } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -14,7 +15,7 @@ import { Card, TopBackBar } from './ui';
 export function RelapseBody() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [p, setP] = useState<RelapsePlan | null>(null);
 
   useEffect(() => { loadRelapsePlan().then(setP); }, []);
@@ -106,7 +107,7 @@ export function RelapseBody() {
 export default function RelapsePlanScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const L = (pt: string, en: string) => (lang === 'pt' ? pt : en);
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={L('Plano de prevenção de recaída', 'Relapse-prevention plan')} onBack={onBack} />
