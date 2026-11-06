@@ -177,7 +177,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen'];
 
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -302,6 +302,17 @@ export async function loadChallengesDone(): Promise<string[]> {
 }
 export async function saveChallengesDone(list: string[]) {
   await AsyncStorage.setItem(k('challengesDone'), JSON.stringify(list));
+}
+
+// "Os meus desafios" de incerteza: escolhidos das sugestões (só o id, ex. "c3")
+// ou criados pelo utilizador (id "u…" + texto).
+export type CustomChallenge = { id: string; text?: string };
+export async function loadCustomChallenges(): Promise<CustomChallenge[]> {
+  const raw = await AsyncStorage.getItem(k('customChallenges'));
+  return raw ? JSON.parse(raw) : [];
+}
+export async function saveCustomChallenges(list: CustomChallenge[]) {
+  await AsyncStorage.setItem(k('customChallenges'), JSON.stringify(list));
 }
 
 export async function loadExposureOrder(): Promise<string[]> {

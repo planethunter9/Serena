@@ -251,7 +251,8 @@ export function PlanEditor() {
       </Text>
 
       {/* As minhas tarefas */}
-      <Section title={Lx('As minhas tarefas', 'My tasks')} icon="checkbox-outline" badge={tasks.length + (focusDisplay ? 1 : 0)} defaultOpen>
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('As minhas tarefas', 'My tasks')}</Text>
         {tasks.length === 0 && !focusDisplay ? (
           <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Vazio. Acrescenta tarefas abaixo.', 'Empty. Add tasks below.')}</Text>
         ) : (
@@ -276,10 +277,11 @@ export function PlanEditor() {
             )}
           </>
         )}
-      </Section>
+      </Card>
 
       {/* Acrescentar tarefa própria */}
-      <Section title={Lx('Acrescentar a minha tarefa', 'Add my own task')} icon="create-outline">
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Acrescentar a minha tarefa', 'Add my own task')}</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput value={newTask} onChangeText={setNewTask} onSubmitEditing={addCustomTask} placeholder={Lx('Escreve o que quiseres fazer…', 'Write whatever you want to do…')} placeholderTextColor={colors.textMuted}
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
@@ -287,7 +289,7 @@ export function PlanEditor() {
             <Text style={{ color: '#fff', fontWeight: '700' }}>{Lx('Adicionar', 'Add')}</Text>
           </Pressable>
         </View>
-      </Section>
+      </Card>
 
       {/* Sugestões por categoria — cada categoria abre/fecha */}
       <View style={{ gap: spacing.md }}>
@@ -311,7 +313,8 @@ export function PlanEditor() {
       </View>
 
       {/* Comportamento a largar esta semana */}
-      <Section title={Lx('Comportamento a largar esta semana', "This week's behaviour to drop")} icon="hand-left-outline">
+      <Card style={{ gap: spacing.sm }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Comportamento a largar esta semana', "This week's behaviour to drop")}</Text>
         {focusDisplay ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{focusDisplay}</Text>
@@ -337,7 +340,7 @@ export function PlanEditor() {
             </View>
           </View>
         )}
-      </Section>
+      </Card>
     </View>
   );
 }
