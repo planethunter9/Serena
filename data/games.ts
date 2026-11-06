@@ -82,7 +82,7 @@ export const MYTHS: { text: L; isMyth: boolean; explanation: L }[] = [
     explanation: { pt: 'Verdade: a sensibilidade ao nojo é um dos melhores indicadores da intensidade da fobia.', en: 'True: disgust sensitivity is one of the best predictors of how intense the phobia is.' },
   },
   {
-    text: { pt: 'Verificar validades e cheirar a comida mantém-me mesmo segura.', en: 'Checking expiry dates and smelling food really keeps me safe.' },
+    text: { pt: 'Verificar validades e cheirar a comida mantém-me mesmo em segurança.', en: 'Checking expiry dates and smelling food really keeps me safe.' },
     isMyth: true,
     explanation: { pt: 'Dá certeza por instantes, mas alimenta a necessidade de controlo total — um comportamento de segurança.', en: 'It gives certainty for a moment, but feeds the need for total control — a safety behavior.' },
   },

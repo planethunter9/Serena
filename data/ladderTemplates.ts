@@ -35,7 +35,7 @@ export const LADDER_TEMPLATES: { subtypeId: string; steps: L[] }[] = [
     subtypeId: 'nausea',
     steps: [
       { pt: 'Ler que a náusea é comum e inofensiva', en: 'Read that nausea is common and harmless' },
-      { pt: 'Dizer "estou enjoada e está tudo bem"', en: 'Say "I feel sick and that\'s okay"' },
+      { pt: 'Dizer "sinto enjoo e está tudo bem"', en: 'Say "I feel sick and that\'s okay"' },
       { pt: 'Rodar numa cadeira para sentir leve tontura', en: 'Spin on a chair to feel slightly dizzy' },
       { pt: 'Respirar mais depressa alguns segundos', en: 'Breathe faster for a few seconds' },
       { pt: 'Ficar com uma náusea ligeira sem tomar nada nem verificar', en: 'Stay with mild nausea without taking anything or checking' },

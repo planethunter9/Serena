@@ -160,11 +160,11 @@ export default function MemoryView() {
           </Text>
           <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
             {tt({
-              pt: 'Antes de tocar na memória, cria uma âncora de calma. Fecha os olhos por uns segundos e imagina um sítio onde te sentes segura e tranquila — real ou inventado. Repara nas cores, nos sons, na temperatura. Respira devagar, com a expiração mais longa. Podes voltar aqui sempre que precisares durante o exercício.',
+              pt: 'Antes de tocar na memória, cria uma âncora de calma. Fecha os olhos por uns segundos e imagina um sítio onde te sentes em segurança e em paz — real ou inventado. Repara nas cores, nos sons, na temperatura. Respira devagar, com a expiração mais longa. Podes voltar aqui sempre que precisares durante o exercício.',
               en: 'Before touching the memory, create an anchor of calm. Close your eyes for a few seconds and picture a place where you feel safe and at ease — real or imagined. Notice the colours, the sounds, the temperature. Breathe slowly, with a longer out-breath. You can come back here any time you need during the exercise.',
             })}
           </Text>
-          <PrimaryButton label={tt({ pt: 'Estou pronta', en: "I'm ready" })} onPress={() => setStep('setup')} />
+          <PrimaryButton label={tt({ pt: 'Vamos começar', en: "I'm ready" })} onPress={() => setStep('setup')} />
           <Pressable onPress={() => setStep('intro')} hitSlop={8} style={{ alignItems: 'center', paddingVertical: 6 }}>
             <Text style={{ color: colors.textMuted }}>{tt({ pt: 'Voltar atrás', en: 'Go back' })}</Text>
           </Pressable>

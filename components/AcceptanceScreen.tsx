@@ -49,7 +49,7 @@ const URGENCY_STEPS: L[] = [
 ];
 
 export const COMMITMENTS: { key: string; label: L }[] = [
-  { key: 'eatNauseous', label: { pt: 'Comer mesmo enjoada (ansiedade ou doença)', en: 'Eat even when nauseous (anxiety or illness)' } },
+  { key: 'eatNauseous', label: { pt: 'Comer mesmo com enjoo (ansiedade ou doença)', en: 'Eat even when nauseous (anxiety or illness)' } },
   { key: 'keepPlans', label: { pt: 'Fazer o que planeei, mesmo sem me sentir bem', en: 'Do what I planned, even when I feel off' } },
   { key: 'approach', label: { pt: 'Ir atrás do que costumo evitar', en: 'Go toward what I usually avoid' } },
   { key: 'scaryFood', label: { pt: 'Comer comidas "assustadoras"', en: 'Eat "scary" foods' } },

@@ -29,7 +29,7 @@ export default function CrisisLinesScreen({ onBack }: { onBack: () => void }) {
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 40 }}>
         <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
           {tt({
-            pt: 'Se estás em sofrimento intenso ou em crise, não tens de passar por isto sozinha. Fala com alguém agora — tocar num contacto liga diretamente.',
+            pt: 'Se estás em sofrimento intenso ou em crise, não tens de passar por isto sem ninguém. Fala com alguém agora — tocar num contacto liga diretamente.',
             en: 'If you are in intense distress or crisis, you do not have to go through this alone. Talk to someone now — tapping a contact calls directly.',
           })}
         </Text>
