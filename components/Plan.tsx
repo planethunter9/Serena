@@ -169,6 +169,27 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
   );
 }
 
+// Secção recolhível (mesmo estilo das secções dos Exercícios).
+function Section({ title, icon, badge, defaultOpen, children }: { title: string; icon: keyof typeof Ionicons.glyphMap; badge?: number; defaultOpen?: boolean; children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
+      <Pressable onPress={() => setOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}>
+        <Ionicons name={icon} size={20} color={colors.primary} />
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{title}</Text>
+        {!!badge && (
+          <View style={{ minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{badge}</Text>
+          </View>
+        )}
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+      </Pressable>
+      {open && <View style={{ padding: spacing.lg, paddingTop: 0, gap: spacing.sm }}>{children}</View>}
+    </View>
+  );
+}
+
 // ============ EDITOR (formulário, no sheet) ============
 export function PlanEditor() {
   const { colors } = useTheme();
@@ -230,8 +251,7 @@ export function PlanEditor() {
       </Text>
 
       {/* As minhas tarefas */}
-      <Card style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('As minhas tarefas', 'My tasks')}</Text>
+      <Section title={Lx('As minhas tarefas', 'My tasks')} icon="checkbox-outline" badge={tasks.length + (focusDisplay ? 1 : 0)} defaultOpen>
         {tasks.length === 0 && !focusDisplay ? (
           <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Vazio. Acrescenta tarefas abaixo.', 'Empty. Add tasks below.')}</Text>
         ) : (
@@ -256,11 +276,10 @@ export function PlanEditor() {
             )}
           </>
         )}
-      </Card>
+      </Section>
 
       {/* Acrescentar tarefa própria */}
-      <Card style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Acrescentar a minha tarefa', 'Add my own task')}</Text>
+      <Section title={Lx('Acrescentar a minha tarefa', 'Add my own task')} icon="create-outline">
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput value={newTask} onChangeText={setNewTask} onSubmitEditing={addCustomTask} placeholder={Lx('Escreve o que quiseres fazer…', 'Write whatever you want to do…')} placeholderTextColor={colors.textMuted}
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
@@ -268,17 +287,16 @@ export function PlanEditor() {
             <Text style={{ color: '#fff', fontWeight: '700' }}>{Lx('Adicionar', 'Add')}</Text>
           </Pressable>
         </View>
-      </Card>
+      </Section>
 
-      {/* Sugestões por categoria */}
+      {/* Sugestões por categoria — cada categoria abre/fecha */}
       <View style={{ gap: spacing.md }}>
         <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Sugestões (toca para adicionar)', 'Suggestions (tap to add)')}</Text>
         {CATEGORIES.map((cat) => {
           const items = SUGGESTIONS.filter((s) => s.cat === cat.key && !tasks.some((t) => t.id === s.id));
           if (items.length === 0) return null;
           return (
-            <View key={cat.key} style={{ gap: 8 }}>
-              <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{cat.title[lang]}</Text>
+            <Section key={cat.key} title={cat.title[lang]} icon="bulb-outline" badge={items.length}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {items.map((s) => (
                   <Pressable key={s.id} onPress={() => addSuggestion(s.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
@@ -287,14 +305,13 @@ export function PlanEditor() {
                   </Pressable>
                 ))}
               </View>
-            </View>
+            </Section>
           );
         })}
       </View>
 
       {/* Comportamento a largar esta semana */}
-      <Card style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.text, fontWeight: '700' }}>{Lx('Comportamento a largar esta semana', "This week's behaviour to drop")}</Text>
+      <Section title={Lx('Comportamento a largar esta semana', "This week's behaviour to drop")} icon="hand-left-outline">
         {focusDisplay ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{focusDisplay}</Text>
@@ -320,7 +337,7 @@ export function PlanEditor() {
             </View>
           </View>
         )}
-      </Card>
+      </Section>
     </View>
   );
 }

@@ -9,7 +9,9 @@ import { AFFIRMATIONS } from '../data/content';
 import { useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
-import { cancelReminder, cancelUntrackedReminders, ensureNotificationPermission, scheduleDailyReminder } from '../notifications/notifications';
+import { cancelReminderFully, cancelUntrackedReminders, ensureNotificationPermission, knownNotificationIds, reminderNotifId, scheduleDailyReminder } from '../notifications/notifications';
+import { useAuth } from '../auth/AuthContext';
+import { pushProfile } from '../lib/sync';
 import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, saveAffirmationReminder, saveReminders } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -44,6 +46,7 @@ function RemindersBody() {
   const [editing, setEditing] = useState<Reminder | null>(null); // rascunho (novo ou existente)
   const [isNew, setIsNew] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -61,24 +64,30 @@ function RemindersBody() {
       setReminders(clean);
       saveReminders(clean);
       // Cancela notificações "fantasma" que não estão na lista (ex.: a das 22h antiga).
-      try { await cancelUntrackedReminders(clean.map((r) => r.notificationId)); } catch {}
+      try {
+        const aff = await loadAffirmationReminder();
+        await cancelUntrackedReminders(knownNotificationIds(clean, aff));
+      } catch {}
     })();
   }, []);
 
-  function persist(list: Reminder[]) {
+  // Grava localmente e envia logo para a cloud: senão, ao reabrir a app, a cópia
+  // antiga da cloud podia repor lembretes que já tinham sido eliminados.
+  async function persist(list: Reminder[]) {
     setReminders(list);
-    saveReminders(list);
+    await saveReminders(list);
+    if (user) pushProfile(user.id);
   }
 
   async function scheduleOne(r: Reminder): Promise<Reminder> {
-    await cancelReminder(r.notificationId);
+    await cancelReminderFully(r.id, r.notificationId);
     if (!r.enabled) return { ...r, notificationId: null };
     const ok = await ensureNotificationPermission();
     if (!ok) {
       Alert.alert(t('reminders.permTitle'), t('reminders.permBody'));
       return { ...r, enabled: false, notificationId: null };
     }
-    const id = await scheduleDailyReminder(r.hour, r.minute, t('reminders.notifTitle'), String(r.label ?? '').trim() || t('reminders.notifBody'));
+    const id = await scheduleDailyReminder(r.hour, r.minute, t('reminders.notifTitle'), String(r.label ?? '').trim() || t('reminders.notifBody'), reminderNotifId(r.id));
     return { ...r, notificationId: id };
   }
 
@@ -108,10 +117,15 @@ function RemindersBody() {
     setEditing(null);
   }
 
+  async function removeReminder(r: Reminder) {
+    // Guarda primeiro a lista sem o lembrete (para nunca "voltar"), depois cancela.
+    await persist(reminders.filter((x) => x.id !== r.id));
+    await cancelReminderFully(r.id, r.notificationId);
+  }
+
   async function removeEditing() {
     if (!editing) return;
-    await cancelReminder(editing.notificationId);
-    persist(reminders.filter((x) => x.id !== editing.id));
+    await removeReminder(editing);
     setEditing(null);
   }
 

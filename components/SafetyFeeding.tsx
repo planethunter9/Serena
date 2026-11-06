@@ -169,7 +169,7 @@ function FeedingBody() {
         return (
           <Pressable
             key={b.id}
-            onPress={() => router.push({ pathname: '/feeding', params: { id: b.id } } as any)}
+            onPress={() => router.push({ pathname: '/feedingdet', params: { id: b.id } } as any)}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: isWorking ? colors.success : colors.border }}
           >
             <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>

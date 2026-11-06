@@ -5,11 +5,21 @@
 
 import { AFFIRMATIONS } from '../data/content';
 import { loadAffirmationReminder, saveAffirmationReminder } from '../storage/storage';
-import { cancelReminder, ensureNotificationPermission, scheduleDailyReminder } from './notifications';
+import { AFFIRMATION_NOTIF_ID, cancelReminder, ensureNotificationPermission, scheduleDailyReminder } from './notifications';
 
-export async function syncAffirmationReminder(lang: 'pt' | 'en'): Promise<void> {
+// Serializa as chamadas: se duas correrem ao mesmo tempo (arranque + ecrã),
+// uma podia apagar o id da outra e deixar uma notificação órfã a disparar.
+let queue: Promise<void> = Promise.resolve();
+export function syncAffirmationReminder(lang: 'pt' | 'en'): Promise<void> {
+  const run = queue.then(() => doSync(lang));
+  queue = run.catch(() => {});
+  return run;
+}
+
+async function doSync(lang: 'pt' | 'en'): Promise<void> {
   const s = await loadAffirmationReminder();
   await cancelReminder(s.notificationId);
+  await cancelReminder(AFFIRMATION_NOTIF_ID);
 
   if (!s.enabled) {
     await saveAffirmationReminder({ ...s, notificationId: null });
@@ -22,6 +32,6 @@ export async function syncAffirmationReminder(lang: 'pt' | 'en'): Promise<void> 
   }
   const phrase = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)][lang];
   const title = lang === 'pt' ? 'Afirmação do dia' : 'Affirmation of the day';
-  const id = await scheduleDailyReminder(s.hour, s.minute, title, phrase);
+  const id = await scheduleDailyReminder(s.hour, s.minute, title, phrase, AFFIRMATION_NOTIF_ID);
   await saveAffirmationReminder({ ...s, notificationId: id });
 }

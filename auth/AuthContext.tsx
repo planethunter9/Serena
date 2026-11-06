@@ -62,7 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: (session.user.user_metadata?.name as string) ?? '',
       };
       setStorageUser(u.id);
-      await pullProfile(u.id); // traz os dados da cloud antes de mostrar a app
+      // Só puxa da cloud quando o utilizador muda (login / arranque). O Supabase
+      // volta a emitir a sessão em cada refresh do token (e no INITIAL_SESSION);
+      // puxar aí substituía as alterações locais recentes pela cópia antiga da
+      // cloud — era isso que fazia reaparecer lembretes já eliminados.
+      if (userRef.current?.id !== u.id) {
+        await pullProfile(u.id); // traz os dados da cloud antes de mostrar a app
+      }
       userRef.current = u;
       setUser(u);
     } else if (!session) {

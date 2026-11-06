@@ -1,5 +1,5 @@
 // Detalhe de um comportamento que "alimenta o medo" — ecrã próprio (rota
-// /feeding?id=…), para o deslizar do iOS voltar à lista e não aos Recursos.
+// /feedingdet?id=…), para o deslizar do iOS voltar à lista e não aos Recursos.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
