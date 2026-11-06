@@ -12,7 +12,7 @@ import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import PlanView, { PlanEditor } from './Plan';
 import ProgressScreen from './ProgressScreen';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import {
   ActCommitment,
@@ -178,8 +178,8 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     loadSeverity().then((list) => { const today = list.find((e) => e.date === isoLocal()); setSeverityToday(today ? today.value : null); });
     loadRecapDismissed().then(setRecapDismissed);
     loadDashboardOrder().then((o) => {
-      const valid = o.filter((k) => k === 'hero' || k === 'plan');
-      const full = [...valid, ...['hero', 'plan'].filter((k) => !valid.includes(k))];
+      const valid = o.filter((k): k is 'hero' | 'plan' => k === 'hero' || k === 'plan');
+      const full = [...valid, ...(['hero', 'plan'] as const).filter((k) => !valid.includes(k))];
       setDashOrder(full);
     });
   }, []);
@@ -251,7 +251,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
   // --- Próximo passo: sugestão a partir da escada ---
   const hiddenSet = new Set(stepHidden);
   const base = [
-    ...EXPOSURE_LADDER.map((s) => ({ id: s.id, label: s.label[lang] })),
+    ...EXPOSURE_LADDER.map((s) => ({ id: s.id, label: pick(s.label, lang) })),
     ...customSteps.map((c) => ({ id: c.id, label: c.label })),
   ].filter((s) => !hiddenSet.has(s.id));
   const byId = new Map(base.map((s) => [s.id, s]));
@@ -478,7 +478,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
         <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg, paddingBottom: 120 }}>
           <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="sunny-outline" size={20} color={colors.primary} />
-            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1, lineHeight: 21 }}>{affirmation[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1, lineHeight: 21 }}>{pick(affirmation, lang)}</Text>
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -spacing.sm }}>

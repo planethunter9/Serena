@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { CHAPTERS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadLessonsDone, toggleLessonDone } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
@@ -34,9 +34,9 @@ export default function LessonDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={lesson.title[lang]} onBack={() => router.back()} />
+      <TopBackBar title={pick(lesson.title, lang)} onBack={() => router.back()} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-        <Text style={{ color: colors.text, fontSize: 16, lineHeight: 26 }}>{lesson.body[lang]}</Text>
+        <Text style={{ color: colors.text, fontSize: 16, lineHeight: 26 }}>{pick(lesson.body, lang)}</Text>
         <PrimaryButton label={isDone ? t('lessons.markUndone') : t('lessons.markDone')} onPress={onToggle} />
       </ScrollView>
     </View>

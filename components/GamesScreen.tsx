@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { FEAR_WORDS, MYTHS } from '../data/games';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { PrimaryButton, TopBackBar } from './ui';
@@ -36,7 +36,7 @@ export function WordGame({ footer }: { footer?: React.ReactNode } = {}) {
       <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('word.intro')}</Text>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: colors.textMuted, fontSize: 13, marginBottom: 8 }}>{i + 1} / {FEAR_WORDS.length}</Text>
-        <Text style={{ color: colors.text, fontSize: 30, fontWeight: '800', textAlign: 'center' }}>{FEAR_WORDS[i][lang]}</Text>
+        <Text style={{ color: colors.text, fontSize: 30, fontWeight: '800', textAlign: 'center' }}>{pick(FEAR_WORDS[i], lang)}</Text>
       </View>
       <PrimaryButton label={t('word.next')} onPress={() => setI(i + 1)} />
     </View>
@@ -81,7 +81,7 @@ export function MythGame() {
     <View style={{ flex: 1, justifyContent: 'space-between' }}>
       <Text style={{ color: colors.textMuted, fontSize: 14 }}>{i + 1} / {MYTHS.length}</Text>
       <View style={{ flex: 1, justifyContent: 'center', gap: spacing.lg }}>
-        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700', textAlign: 'center', lineHeight: 30 }}>{item.text[lang]}</Text>
+        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700', textAlign: 'center', lineHeight: 30 }}>{pick(item.text, lang)}</Text>
 
         {answered === null ? (
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -97,7 +97,7 @@ export function MythGame() {
             <Text style={{ color: correct ? colors.success : colors.danger, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
               {correct ? t('myth.correct') : t('myth.wrong')}
             </Text>
-            <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 21, textAlign: 'center' }}>{item.explanation[lang]}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 21, textAlign: 'center' }}>{pick(item.explanation, lang)}</Text>
             <PrimaryButton label={t('myth.next')} onPress={nextQ} />
           </View>
         )}

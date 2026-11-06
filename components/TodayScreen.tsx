@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CHAPTERS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadLessonsDone, toggleLessonDone } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -36,7 +36,7 @@ export default function TodayScreen() {
         {nextLesson ? (
           <>
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('today.upNext')}</Text>
-            <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>{nextLesson.title[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>{pick(nextLesson.title, lang)}</Text>
             <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{t('today.heroSubtitle')}</Text>
             <Pressable
               onPress={() => onToggle(nextLesson.id)}
@@ -73,7 +73,7 @@ export default function TodayScreen() {
           <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {t('today.chapter', { n: i + 1 })}
           </Text>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginBottom: 4 }}>{ch.title[lang]}</Text>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginBottom: 4 }}>{pick(ch.title, lang)}</Text>
 
           {ch.lessons.map((les) => {
             const isDone = done.includes(les.id);
@@ -94,7 +94,7 @@ export default function TodayScreen() {
                   {isDone && <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
                 </View>
                 <Text style={{ color: isDone ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: isDone ? 'line-through' : 'none' }}>
-                  {les.title[lang]}
+                  {pick(les.title, lang)}
                 </Text>
               </Pressable>
             );

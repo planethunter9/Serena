@@ -4,19 +4,20 @@
 // app (ver app/_layout.tsx), para a frase ir variando.
 
 import { AFFIRMATIONS } from '../data/content';
+import { Lang, pick, tr2 } from '../i18n/i18n';
 import { loadAffirmationReminder, saveAffirmationReminder } from '../storage/storage';
 import { AFFIRMATION_NOTIF_ID, cancelReminder, ensureNotificationPermission, scheduleDailyReminder } from './notifications';
 
 // Serializa as chamadas: se duas correrem ao mesmo tempo (arranque + ecrã),
 // uma podia apagar o id da outra e deixar uma notificação órfã a disparar.
 let queue: Promise<void> = Promise.resolve();
-export function syncAffirmationReminder(lang: 'pt' | 'en'): Promise<void> {
+export function syncAffirmationReminder(lang: Lang): Promise<void> {
   const run = queue.then(() => doSync(lang));
   queue = run.catch(() => {});
   return run;
 }
 
-async function doSync(lang: 'pt' | 'en'): Promise<void> {
+async function doSync(lang: Lang): Promise<void> {
   const s = await loadAffirmationReminder();
   await cancelReminder(s.notificationId);
   await cancelReminder(AFFIRMATION_NOTIF_ID);
@@ -30,8 +31,8 @@ async function doSync(lang: 'pt' | 'en'): Promise<void> {
     await saveAffirmationReminder({ ...s, enabled: false, notificationId: null });
     return;
   }
-  const phrase = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)][lang];
-  const title = lang === 'pt' ? 'Afirmação do dia' : 'Affirmation of the day';
+  const phrase = pick(AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)], lang);
+  const title = tr2(lang, 'Afirmação do dia', 'Affirmation of the day');
   const id = await scheduleDailyReminder(s.hour, s.minute, title, phrase, AFFIRMATION_NOTIF_ID);
   await saveAffirmationReminder({ ...s, notificationId: id });
 }

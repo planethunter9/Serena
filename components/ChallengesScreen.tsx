@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { CustomChallenge, loadChallengesDone, loadCustomChallenges, saveChallengesDone, saveCustomChallenges } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -41,7 +41,7 @@ function ymd(d: Date) {
 export default function ChallengesScreen() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [done, setDone] = useState<string[]>([]);
   const [mine, setMine] = useState<CustomChallenge[]>([]);

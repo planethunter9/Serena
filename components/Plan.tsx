@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { useLang } from '../i18n/i18n';
+import { Lang, pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import {
   loadPlanTasks,
@@ -85,8 +85,8 @@ async function loadFreshPlan(): Promise<WeekPlan> {
   return p;
 }
 
-function labelOf(tk: PlanTask, lang: 'pt' | 'en') {
-  return tk.label ?? (SUGGESTIONS.find((s) => s.id === tk.id)?.label[lang] ?? tk.id);
+function labelOf(tk: PlanTask, lang: Lang) {
+  return tk.label ?? (pick(SUGGESTIONS.find((s) => s.id === tk.id)?.label, lang) || tk.id);
 }
 
 // ============ VISTA (checklist do dia, no ecrã inicial) ============
@@ -120,7 +120,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
   }
 
   const focusDisplay = plan.focusLabel
-    ? (SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === plan!.focusId)?.label[lang] ?? plan.focusLabel)
+    ? (pick(SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === plan!.focusId)?.label, lang) || plan.focusLabel)
     : null;
   const dayTasks: { key: string; label: string }[] = tasks.map((tk) => ({ key: tk.id, label: labelOf(tk, lang) }));
   if (focusDisplay) dayTasks.push({ key: 'focus', label: Lx(`Resistir hoje a: ${focusDisplay}`, `Resist today: ${focusDisplay}`) });
@@ -236,10 +236,10 @@ export function PlanEditor() {
   }
 
   const focusDisplay = plan.focusLabel
-    ? ([...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: b.label[lang] })), ...custom].find((o) => o.id === plan.focusId)?.label ?? plan.focusLabel)
+    ? ([...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: pick(b.label, lang) })), ...custom].find((o) => o.id === plan.focusId)?.label ?? plan.focusLabel)
     : null;
   const behaviourOptions = [
-    ...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: b.label[lang] })),
+    ...SAFETY_BEHAVIORS.map((b: { id: string; label: L }) => ({ id: b.id, label: pick(b.label, lang) })),
     ...custom,
   ];
 
@@ -298,12 +298,12 @@ export function PlanEditor() {
           const items = SUGGESTIONS.filter((s) => s.cat === cat.key && !tasks.some((t) => t.id === s.id));
           if (items.length === 0) return null;
           return (
-            <Section key={cat.key} title={cat.title[lang]} icon="bulb-outline" badge={items.length}>
+            <Section key={cat.key} title={pick(cat.title, lang)} icon="bulb-outline" badge={items.length}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {items.map((s) => (
                   <Pressable key={s.id} onPress={() => addSuggestion(s.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
                     <Ionicons name="add" size={15} color={colors.primary} />
-                    <Text style={{ color: colors.text, fontSize: 13 }}>{s.label[lang]}</Text>
+                    <Text style={{ color: colors.text, fontSize: 13 }}>{pick(s.label, lang)}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -349,7 +349,7 @@ export function PlanEditor() {
 export function PlanSummary() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
   const [plan, setPlan] = useState<WeekPlan | null>(null);
   const [tasks, setTasks] = useState<PlanTask[]>([]);
 

@@ -3,7 +3,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import { Goal, loadGoals, saveGoals } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -58,7 +58,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
   }
 
   // Sugestões que ainda não foram adicionadas.
-  const available = GOAL_SUGGESTIONS.map((g) => g[lang]).filter((label) => !goals.some((x) => x.text === label));
+  const available = GOAL_SUGGESTIONS.map((g) => pick(g, lang)).filter((label) => !goals.some((x) => x.text === label));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

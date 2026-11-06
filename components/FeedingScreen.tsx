@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadFeeding, saveFeeding } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -34,15 +34,15 @@ export default function FeedingScreen({ onBack }: { onBack: () => void }) {
     const isWorking = working.includes(selected.id);
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <TopBackBar title={selected.label[lang]} onBack={() => setSelectedId(null)} />
+        <TopBackBar title={pick(selected.label, lang)} onBack={() => setSelectedId(null)} />
         <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
           <Card style={{ gap: 8 }}>
             <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 14 }}>{t('feeding.why')}</Text>
-            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{selected.why[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{pick(selected.why, lang)}</Text>
           </Card>
           <Card style={{ gap: 8, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{t('feeding.alternative')}</Text>
-            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{selected.alternative[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{pick(selected.alternative, lang)}</Text>
           </Card>
           <Pressable
             onPress={() => toggleWorking(selected.id)}
@@ -83,7 +83,7 @@ export default function FeedingScreen({ onBack }: { onBack: () => void }) {
               <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="flame-outline" size={20} color={colors.primary} />
               </View>
-              <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{b.label[lang]}</Text>
+              <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{pick(b.label, lang)}</Text>
               {isWorking && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </Pressable>

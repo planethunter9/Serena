@@ -3,7 +3,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
@@ -21,7 +21,7 @@ const LINES: Line[] = [
 export default function CrisisLinesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

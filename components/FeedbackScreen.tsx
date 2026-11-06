@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -24,7 +24,7 @@ export default function FeedbackScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
   const { user } = useAuth();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [kind, setKind] = useState<Kind>('suggestion');
   const [message, setMessage] = useState('');

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
 import { CHAPTERS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import {
   Goal,
@@ -110,8 +110,8 @@ function AchievementsBody() {
               <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: unlocked ? colors.primarySoft : colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name={unlocked ? a.icon : 'lock-closed'} size={26} color={unlocked ? colors.primary : colors.textMuted} />
               </View>
-              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center' }}>{a.title[lang]}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{a.desc[lang]}</Text>
+              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center' }}>{pick(a.title, lang)}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{pick(a.desc, lang)}</Text>
 
               {unlocked ? (
                 <View style={{ backgroundColor: colors.primarySoft, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}>
@@ -167,7 +167,7 @@ function GoalsBody() {
     persist(goals.filter((g) => g.id !== id));
   }
 
-  const available = GOAL_SUGGESTIONS.map((g) => g[lang]).filter((label) => !goals.some((x) => x.text === label));
+  const available = GOAL_SUGGESTIONS.map((g) => pick(g, lang)).filter((label) => !goals.some((x) => x.text === label));
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }}>

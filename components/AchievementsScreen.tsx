@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
 import { CHAPTERS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadExposureDays, loadGoals, loadJournal, loadLessonsDone, loadManualAchievements, loadSeverity, loadStreakStart, saveManualAchievements } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -97,8 +97,8 @@ export default function AchievementsScreen({ onBack }: { onBack: () => void }) {
                 <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: unlocked ? colors.primarySoft : colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
                   <Ionicons name={unlocked ? a.icon : 'lock-closed'} size={26} color={unlocked ? colors.primary : colors.textMuted} />
                 </View>
-                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center' }}>{a.title[lang]}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{a.desc[lang]}</Text>
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center' }}>{pick(a.title, lang)}</Text>
+                <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{pick(a.desc, lang)}</Text>
 
                 {unlocked ? (
                   <View style={{ backgroundColor: colors.primarySoft, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}>

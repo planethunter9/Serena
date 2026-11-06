@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadSafety, SafetyItem, saveSafety } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -29,7 +29,7 @@ export default function SafetyScreen({ onBack }: { onBack: () => void }) {
   // Lista a mostrar: catálogo + itens personalizados guardados.
   const catalogRows = SAFETY_BEHAVIORS.map((b) => {
     const s = stored.find((x) => x.id === b.id);
-    return { id: b.id, label: b.label[lang], doing: s?.doing ?? false, dropping: s?.dropping ?? false, custom: false };
+    return { id: b.id, label: pick(b.label, lang), doing: s?.doing ?? false, dropping: s?.dropping ?? false, custom: false };
   });
   const customRows = stored
     .filter((s) => s.id.startsWith('custom:'))

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { BODY_PARTS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import { PrimaryButton, TopBackBar } from './ui';
@@ -14,7 +14,7 @@ export default function BodyScanScreen({ onBack }: { onBack: () => void }) {
   const [i, setI] = useState(0);
 
   const total = BODY_PARTS.length;
-  const part = BODY_PARTS[i][lang];
+  const part = pick(BODY_PARTS[i], lang);
   const isLast = i === total - 1;
 
   return (

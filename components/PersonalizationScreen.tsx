@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { deriveColors, FONTS, lightColors, normalizeHex, PRESETS, radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -37,7 +37,7 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
   const theme = useTheme();
   const { colors, unlocked } = theme;
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [hexInput, setHexInput] = useState(theme.customHex.replace('#', ''));
 

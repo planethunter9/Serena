@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadMemorySessions, MemorySession, saveMemorySessions } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -41,7 +41,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
 export default function MemoryView() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [step, setStep] = useState<Step>('intro');
   const [before, setBefore] = useState<number | null>(null);

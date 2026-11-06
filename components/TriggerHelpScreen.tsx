@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { GENERAL_TRIGGER_PHRASES, TRIGGER_PHRASES } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -26,7 +26,7 @@ export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void
   // Frases para o gatilho escolhido (ou frases gerais se for personalizado/sem frases).
   function phrasesFor(id: string) {
     const list = TRIGGER_PHRASES[id] ?? GENERAL_TRIGGER_PHRASES;
-    return list.map((p) => p[lang]);
+    return list.map((p) => pick(p, lang));
   }
 
   // Vista de detalhe: frases do gatilho escolhido.

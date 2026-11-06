@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { cancelReminderFully, cancelUntrackedReminders, ensureNotificationPermission, knownNotificationIds, reminderNotifId, scheduleDailyReminder } from '../notifications/notifications';
@@ -291,7 +291,7 @@ function AffirmationBody() {
       {/* Pré-visualização */}
       <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg }}>
         <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}>{tt('Exemplo', 'Example')}</Text>
-        <Text style={{ color: colors.text, fontSize: 16, fontStyle: 'italic' }}>“{sample[lang]}”</Text>
+        <Text style={{ color: colors.text, fontSize: 16, fontStyle: 'italic' }}>“{pick(sample, lang)}”</Text>
       </View>
 
       <PrimaryButton label={tt('Guardar', 'Save')} onPress={save} disabled={busy} />

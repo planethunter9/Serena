@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadSafety, SafetyItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -47,7 +47,7 @@ const MOMENT: L[] = [
 export default function CompanionScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [dropping, setDropping] = useState<string[]>([]);
 
@@ -55,7 +55,7 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
     loadSafety().then((stored: SafetyItem[]) => {
       const labels = stored
         .filter((s) => s.dropping)
-        .map((s) => SAFETY_BEHAVIORS.find((b) => b.id === s.id)?.label[lang] ?? s.label);
+        .map((s) => pick(SAFETY_BEHAVIORS.find((b) => b.id === s.id)?.label, lang) || s.label);
       setDropping(labels);
     });
   }, [lang]);

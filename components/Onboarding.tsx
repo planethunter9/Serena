@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -62,12 +62,12 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
     setText('');
   }
 
-  const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSubtypes];
-  const allLosses = [...LOSS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customLosses];
-  const allRecover = [...RECOVER_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customRecover];
-  const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSymptoms];
-  const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customCoping];
-  const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customTriggers];
+  const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customSubtypes];
+  const allLosses = [...LOSS_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customLosses];
+  const allRecover = [...RECOVER_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customRecover];
+  const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customSymptoms];
+  const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customCoping];
+  const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customTriggers];
 
   const canProceed =
     step === 0 ? true
@@ -82,7 +82,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   function itemsFrom(selected: string[], catalog: { id: string; label: L2 }[], customs: { id: string; label: string }[]) {
     return selected.map((id) => {
       const cat = catalog.find((o) => o.id === id);
-      if (cat) return { id, label: cat.label[lang] };
+      if (cat) return { id, label: pick(cat.label, lang) };
       const c = customs.find((x) => x.id === id);
       return { id, label: c ? c.label : id };
     });
@@ -151,7 +151,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
             <Text style={{ color: colors.textMuted, fontSize: 17 }}>{t('onb.welcomeEyebrow')}</Text>
             <Text style={{ color: colors.text, fontSize: 34, fontWeight: '800', lineHeight: 40 }}>
               {t('onb.welcomeTitle')}{'\n'}
-              <Text style={{ color: colors.primary }}>{PHOBIA.name[lang]}</Text>
+              <Text style={{ color: colors.primary }}>{pick(PHOBIA.name, lang)}</Text>
             </Text>
             <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 23 }}>{t('onb.welcomeSubtitle')}</Text>
           </View>
@@ -171,7 +171,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         )}
 
         {step === 2 && (
-          <StepList title={t('onb.q1Title', { phobia: PHOBIA.name[lang] })} subtitle={t('onb.q1Subtitle')}>
+          <StepList title={t('onb.q1Title', { phobia: pick(PHOBIA.name, lang) })} subtitle={t('onb.q1Subtitle')}>
             {allLosses.map((o) => (
               <OptionRow key={o.id} label={o.label} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} />
             ))}

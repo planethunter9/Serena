@@ -4,7 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { TKey, useLang } from '../i18n/i18n';
+import { pick, TKey, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import { loadResourcesOrder, saveResourcesOrder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -72,7 +72,7 @@ export default function ResourcesScreen({
 
       <CoachTarget name="resources-list" style={{ gap: spacing.sm }}>
         {items.map((r, i) => {
-          const title = r.title ? r.title[lang] : t(r.titleKey!);
+          const title = r.title ? pick(r.title, lang) : t(r.titleKey!);
           const body = (
             <>
               <View style={{ width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>

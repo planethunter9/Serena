@@ -7,7 +7,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CHAPTERS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadLessonsDone } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -43,7 +43,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                   {t('lessons.chapter', { n: ci + 1 })}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{ch.title[lang]}</Text>
+                  <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{pick(ch.title, lang)}</Text>
                   <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textMuted} />
                 </View>
               </Pressable>
@@ -79,7 +79,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                     >
                       {isDone && <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
                     </View>
-                    <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{les.title[lang]}</Text>
+                    <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{pick(les.title, lang)}</Text>
                     <Text style={{ color: colors.textMuted, fontSize: 20 }}>›</Text>
                   </Pressable>
                 );
