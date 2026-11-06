@@ -52,6 +52,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     for (const s of builtin) s.player.loop = true;
+    // eslint-disable-next-line react-hooks/immutability -- API do expo-audio
     userPlayer.loop = true;
     loadUserSounds().then(setUserSounds);
   }, []);
