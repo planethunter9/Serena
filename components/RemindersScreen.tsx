@@ -10,8 +10,6 @@ import { pick, useLang } from '../i18n/i18n';
 import { tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { cancelReminderFully, cancelUntrackedReminders, ensureNotificationPermission, knownNotificationIds, reminderNotifId, scheduleDailyReminder } from '../notifications/notifications';
-import { useAuth } from '../auth/AuthContext';
-import { pushProfile } from '../lib/sync';
 import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, saveAffirmationReminder, saveReminders } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -46,7 +44,6 @@ function RemindersBody() {
   const [editing, setEditing] = useState<Reminder | null>(null); // rascunho (novo ou existente)
   const [isNew, setIsNew] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -71,12 +68,10 @@ function RemindersBody() {
     })();
   }, []);
 
-  // Grava localmente e envia logo para a cloud: senão, ao reabrir a app, a cópia
-  // antiga da cloud podia repor lembretes que já tinham sido eliminados.
+  // Grava localmente (a sincronização com a cloud é automática).
   async function persist(list: Reminder[]) {
     setReminders(list);
     await saveReminders(list);
-    if (user) pushProfile(user.id);
   }
 
   async function scheduleOne(r: Reminder): Promise<Reminder> {

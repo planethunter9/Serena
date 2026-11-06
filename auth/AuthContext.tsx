@@ -6,8 +6,8 @@ import { AppState } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../lib/supabase';
-import { pullProfile, pushProfile } from '../lib/sync';
-import { setStorageUser, wipeLocalUserData } from '../storage/storage';
+import { pullProfile, pushProfile, schedulePush } from '../lib/sync';
+import { setOnLocalChange, setStorageUser, wipeLocalUserData } from '../storage/storage';
 
 // Permite que a janela do browser de OAuth se feche e devolva o controlo à app.
 WebBrowser.maybeCompleteAuthSession();
@@ -62,16 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: (session.user.user_metadata?.name as string) ?? '',
       };
       setStorageUser(u.id);
-      // Só puxa da cloud quando o utilizador muda (login / arranque). O Supabase
-      // volta a emitir a sessão em cada refresh do token (e no INITIAL_SESSION);
-      // puxar aí substituía as alterações locais recentes pela cópia antiga da
-      // cloud — era isso que fazia reaparecer lembretes já eliminados.
+      // Só sincroniza quando o utilizador muda (login / arranque), não em cada
+      // refresh do token. A sincronização junta local + cloud (fica o mais
+      // recente de cada dado), por isso já não repõe coisas eliminadas.
       if (userRef.current?.id !== u.id) {
-        await pullProfile(u.id); // traz os dados da cloud antes de mostrar a app
+        setOnLocalChange(null);   // não enviar enquanto se junta
+        await pullProfile(u.id);  // junta com a cloud antes de mostrar a app
       }
+      // Cada alteração local envia uma cópia para a cloud (com atraso).
+      setOnLocalChange(() => schedulePush(u.id));
       userRef.current = u;
       setUser(u);
     } else if (!session) {
+      setOnLocalChange(null);
       setStorageUser(null);
       userRef.current = null;
       setUser(null);
