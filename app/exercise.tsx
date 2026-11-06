@@ -36,7 +36,7 @@ export default function ExerciseRoute() {
       <TopBackBar
         title={title}
         onBack={() => router.back()}
-        right={type && type !== 'myth' ? <HistoryButton kind={type} /> : undefined}
+        right={type ? <HistoryButton kind={type} /> : undefined}
       />
       <View style={{ flex: 1, padding: spacing.xl }}>
         {type === 'exposure' && <ExposureView selected={expSelected} setSelected={setExpSelected} />}

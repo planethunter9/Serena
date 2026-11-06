@@ -582,15 +582,15 @@ export async function saveNextStep(s: string) {
 // --- Registo genérico de sessões de exercícios (para o contador/pilares) ---
 // Cada vez que o utilizador marca uma sessão de um exercício, fica aqui um
 // registo datado. Permite marcar MAIS do que uma sessão por dia.
-export type ExerciseLogEntry = { type: string; date: string; ts: string };
+export type ExerciseLogEntry = { type: string; date: string; ts: string; detail?: string }; // detail: ex. pontuação
 export async function loadExerciseLog(): Promise<ExerciseLogEntry[]> {
   const raw = await AsyncStorage.getItem(k('exerciseLog'));
   return raw ? JSON.parse(raw) : [];
 }
-export async function appendExerciseLog(type: string): Promise<ExerciseLogEntry[]> {
+export async function appendExerciseLog(type: string, detail?: string): Promise<ExerciseLogEntry[]> {
   const list = await loadExerciseLog();
   const now = new Date();
-  const next = [...list, { type, date: isoLocal(now), ts: now.toISOString() }];
+  const next: ExerciseLogEntry[] = [...list, { type, date: isoLocal(now), ts: now.toISOString(), ...(detail ? { detail } : {}) }];
   await setUserItem('exerciseLog', JSON.stringify(next));
   return next;
 }

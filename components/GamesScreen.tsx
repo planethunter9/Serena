@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { FEAR_WORDS, MYTHS } from '../data/games';
+import { appendExerciseLog } from '../storage/storage';
 import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -72,6 +73,8 @@ export function MythGame() {
   }
   function nextQ() {
     setAnswered(null);
+    // Ao terminar a ronda, regista a sessão (conta para os pilares e aparece no histórico).
+    if (i + 1 >= MYTHS.length) appendExerciseLog('myth', `${score}/${MYTHS.length}`).catch(() => {});
     setI(i + 1);
   }
 

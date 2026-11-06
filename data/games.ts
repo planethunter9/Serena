@@ -15,7 +15,7 @@ export const FEAR_WORDS: L[] = [
   { pt: 'golfar', en: 'throw up' },
   { pt: 'estômago embrulhado', en: 'churning stomach' },
   { pt: 'intoxicação alimentar', en: 'food poisoning' },
-  { pt: 'Sinto-me um bocado enjoado.', en: 'I feel a bit queasy.' },
+  { pt: 'Sinto um bocado de enjoo.', en: 'I feel a bit queasy.' },
   { pt: 'Acho que alguém ali vomitou.', en: 'I think someone was sick over there.' },
   { pt: 'Se calhar comi algo que me caiu mal.', en: 'Maybe I ate something that upset my stomach.' },
   { pt: 'A minha barriga está embrulhada, mas eu estou bem.', en: 'My stomach is churning, but I am okay.' },
