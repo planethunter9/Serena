@@ -8,6 +8,7 @@ import ChallengesScreen from '../components/ChallengesScreen';
 import { ExerciseLogBar, ExperimentsView, ExposureView, Step, ThoughtView } from '../components/ExercisesScreen';
 import { MythGame, WordGame } from '../components/GamesScreen';
 import MemoryView from '../components/MemoryReprocessing';
+import { HistoryButton } from '../components/HistoryButton';
 import { TopBackBar } from '../components/ui';
 import { useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
@@ -32,7 +33,11 @@ export default function ExerciseRoute() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={title} onBack={() => router.back()} />
+      <TopBackBar
+        title={title}
+        onBack={() => router.back()}
+        right={type && type !== 'myth' ? <HistoryButton kind={type} /> : undefined}
+      />
       <View style={{ flex: 1, padding: spacing.xl }}>
         {type === 'exposure' && <ExposureView selected={expSelected} setSelected={setExpSelected} />}
         {type === 'thought' && <ThoughtView />}

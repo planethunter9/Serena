@@ -15,7 +15,7 @@ import { Card } from './ui';
 type L = { pt: string; en: string };
 
 // Do mais fácil para o mais difícil.
-const CHALLENGES: { id: string; text: L }[] = [
+export const CHALLENGES: { id: string; text: L }[] = [
   { id: 'c1', text: { pt: 'Deixa uma pergunta por responder — não vás procurar a certeza.', en: 'Leave a question unanswered — don\'t go looking for certainty.' } },
   { id: 'c2', text: { pt: 'Come algo sem o cheirar primeiro.', en: 'Eat something without smelling it first.' } },
   { id: 'c3', text: { pt: 'Escolhe algo sem confirmar (um prato, um caminho) e segue com a escolha.', en: 'Choose something without checking (a dish, a route) and stick with it.' } },

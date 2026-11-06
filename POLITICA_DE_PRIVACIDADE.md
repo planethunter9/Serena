@@ -1,64 +1,74 @@
 # Política de Privacidade — Serena
 
-**Última atualização:** [22 de outubro de 2026]
+**Última atualização: 6 de novembro de 2026**
 
-> **Nota:** Este é um modelo para adaptares, não aconselhamento jurídico. Preenche os campos entre `[ ]`, revê com atenção (sobretudo as secções de **dados de saúde** e **menores**) e, se possível, valida com alguém com conhecimento de proteção de dados antes de publicar. As lojas (App Store / Google Play) exigem que esta política esteja acessível num link público.
+> **Nota:** modelo para adaptares, não aconselhamento jurídico. Preenche os campos entre `[ ]` (também em `data/legal.ts`). As lojas exigem esta política num link público. O texto é o mesmo que aparece na app.
 
-A Serena ("a app", "nós") é uma aplicação de apoio psicoeducativo para pessoas que vivem com emetofobia (o medo de vomitar). Levamos a sério a tua privacidade. Esta política explica que dados recolhemos, para quê, com quem os partilhamos e que direitos tens.
+A Serena é uma app de apoio psicoeducativo para quem vive com emetofobia (medo de vomitar). Sabemos que o que registas aqui é pessoal e sensível, por isso explicamos de forma simples que dados guardamos, porquê, onde ficam e como os controlas.
 
-O responsável pelo tratamento dos dados é **[o teu nome ou o nome da entidade]**, contactável em **[email de contacto]**.
+## Resumo rápido
 
-## 1. Que dados recolhemos
+- Só guardamos o necessário para a app funcionar e para não perderes o teu progresso.
+- Não há publicidade, rastreadores nem análise de comportamento.
+- Não vendemos nem partilhamos os teus dados.
+- Podes exportar ou apagar tudo a qualquer momento, na própria app.
 
-**Dados de conta.** Ao criares uma conta, recolhemos o teu **nome** e **email**. A palavra-passe é gerida de forma segura pelo nosso fornecedor de autenticação (ver secção 4) e nunca a vemos em texto simples.
+## 1. Quem é o responsável
 
-**Conteúdo que crias na app.** Para a app funcionar e sincronizar entre dispositivos, guardamos aquilo que registas, por exemplo: as tuas escolhas no início (subtipos de medo, gatilhos, sintomas, objetivos), os registos de check-in e de episódios, as sessões de exposição e as tuas avaliações (SUDS), registos de pensamento e de memórias, experiências, o diário, metas e conquistas, lembretes, comportamentos de segurança (incluindo os que marcas como "a largar") e as tuas preferências (tema, cor, tipo de letra, idioma).
+O responsável pelo tratamento dos dados é [nome do responsável / entidade]. Para qualquer questão sobre privacidade, escreve para [email de contacto].
 
-**Mensagens de sugestão.** Se usares a caixa de sugestões, guardamos a tua mensagem, o tipo (sugestão/problema/melhoria), o idioma e a plataforma. Podes enviar anonimamente; se tiveres sessão iniciada, a mensagem pode ficar associada à tua conta.
+## 2. Que dados guardamos
 
-**O que NÃO recolhemos.** Não recolhemos dados de localização, não usamos publicidade nem rastreadores de terceiros, e não vendemos os teus dados.
+- Conta: nome e email. Se entrares com Google ou Apple, recebemos apenas o nome e o email que esse serviço nos indica. A palavra-passe é gerida pelo nosso fornecedor de autenticação e nunca a vemos.
+- O que registas na app: respostas do questionário inicial (subtipos, gatilhos, sintomas), check-ins e episódios, sessões de exercícios (exposição, exposição não planeada, pensamentos, experiências, memória, desafios, compromissos) e as tuas avaliações de desconforto, diário, objetivos, plano, comportamentos de segurança, lembretes e conquistas.
+- Preferências: idioma, tema, cores e tipo de letra.
+- Sugestões: se usares a caixa de sugestões, guardamos a mensagem, o tipo, o idioma e o sistema do telemóvel. Se tiveres sessão iniciada, fica associada à tua conta.
+- Fotografia de perfil e sons que adicionas: ficam apenas no teu telemóvel e não são enviados para a cloud.
 
-## 2. Dados sensíveis / de saúde
+## 3. O que NÃO recolhemos
 
-O conteúdo que registas está relacionado com a tua saúde mental e, por isso, pode constituir uma categoria especial de dados. Tratamo-lo apenas para te prestar o serviço da app e **com o teu consentimento**, que podes retirar a qualquer momento eliminando a conta (ver secção 7). Recomendamos que não escrevas, nos campos livres, informação que não queiras guardar.
+Não recolhemos localização, contactos nem identificadores de publicidade. Não usamos ferramentas de análise, publicidade ou rastreio de terceiros.
 
-## 3. Para que usamos os dados e com que base legal
+## 4. Dados de saúde
 
-Usamos os teus dados para: criar e manter a tua conta; guardar e sincronizar o teu progresso entre dispositivos; e melhorar a app (com base nas sugestões que nos envias). As bases legais (RGPD) são a **execução do contrato** (fornecer-te a app) e o teu **consentimento** (sobretudo para os dados de saúde). Não tomamos decisões automatizadas com efeitos jurídicos sobre ti.
+Aquilo que registas está relacionado com a tua saúde mental e é considerado uma categoria especial de dados (art. 9.º do RGPD). Só o tratamos com o teu consentimento explícito, dado ao criares a conta, e apenas para te prestar o serviço. Podes retirar o consentimento a qualquer momento eliminando a conta. Escreve nos campos livres só o que te sentires à vontade para guardar.
 
-## 4. Onde os dados ficam e quem os processa
+## 5. Para que usamos os dados
 
-A autenticação e o armazenamento dos dados são feitos através do **Supabase**, que atua como subcontratante e aloja os dados nos seus servidores em **[região dos teus servidores Supabase, ex.: União Europeia]**. Não partilhamos os teus dados com mais ninguém, exceto quando a lei o exigir.
+Para criar e manter a tua conta, mostrar o teu progresso e histórico, enviar os lembretes que ativares, guardar uma cópia de segurança para não perderes nada ao mudar de telemóvel, e melhorar a app com base nas sugestões que nos envias. As bases legais são a execução do contrato (prestar-te a app) e o teu consentimento. Não fazemos perfis nem decisões automatizadas sobre ti.
 
-## 5. Durante quanto tempo guardamos
+## 6. Onde ficam os dados
 
-Guardamos os teus dados enquanto tiveres conta. Quando eliminas a conta, apagamos os teus dados associados (ver secção 7).
+Os teus dados ficam guardados no teu telemóvel. Enquanto tiveres sessão iniciada, é também guardada uma cópia de segurança associada à tua conta no Supabase, o nosso fornecedor de autenticação e base de dados, que atua como subcontratante e aloja os dados em [região dos servidores Supabase]. Esta cópia é atualizada quando sais da app e reposta quando inicias sessão. Não partilhamos os teus dados com mais ninguém, salvo obrigação legal.
 
-## 6. Segurança
+## 7. Notificações
 
-A ligação à cloud é cifrada (HTTPS) e o acesso aos dados está protegido por regras de autenticação. Nenhum sistema é 100% seguro, mas usamos medidas razoáveis para proteger a tua informação.
+Os lembretes e a afirmação do dia são notificações locais, agendadas no próprio telemóvel. Não usamos um servidor de notificações. Podes desligá-las na app ou nas definições do telemóvel.
 
-## 7. Os teus direitos
+## 8. Durante quanto tempo
 
-Tens o direito de aceder, corrigir, exportar e **apagar** os teus dados, e de retirar o consentimento. Em concreto:
+Guardamos os teus dados enquanto tiveres conta. Se eliminares a conta, apagamos os dados da cloud e do telemóvel. As sugestões enviadas de forma anónima não podem ser associadas a ti e podem ser mantidas para melhorar a app.
 
-- **Apagar:** podes eliminar a conta e todos os dados diretamente na app, em **Definições › Eliminar conta**. A ação é definitiva.
-- **Exportar / aceder / corrigir:** podes fazê-lo na app ou pedindo-nos através do contacto abaixo.
+## 9. Segurança
 
-Se estiveres na União Europeia, tens também o direito de apresentar uma reclamação à autoridade de controlo. Em Portugal, é a **CNPD — Comissão Nacional de Proteção de Dados** (www.cnpd.pt).
+A ligação à cloud é cifrada (HTTPS) e cada pessoa só tem acesso aos seus próprios dados. Nenhum sistema é 100% seguro, mas aplicamos medidas razoáveis para proteger a tua informação. Protege o teu telemóvel com código ou biometria, porque os dados também ficam guardados nele.
 
-## 8. Menores
+## 10. Os teus direitos
 
-A Serena **[não se destina a menores de 16 anos / destina-se a maiores de X anos]**. **[Adapta esta secção: se permitires menores, descreve o consentimento dos pais/tutores. Decide a idade mínima e mantém-na coerente com as definições etárias das lojas.]**
+Ao abrigo do RGPD, podes aceder, corrigir, exportar e apagar os teus dados, limitar ou opor-te ao tratamento e retirar o consentimento.
+- Exportar: Definições › Cópia de segurança › Exportar (ficheiro JSON).
+- Apagar: Definições › Eliminar conta. É definitivo.
+- Outros pedidos: escreve para [email de contacto].
+Podes também apresentar reclamação à autoridade de proteção de dados do teu país. Em Portugal é a CNPD (www.cnpd.pt).
 
-## 9. A app não substitui cuidados de saúde
+## 11. Menores
 
-A Serena é um apoio psicoeducativo e **não é um tratamento médico nem substitui o acompanhamento de um profissional de saúde**. Em caso de crise, usa as linhas de apoio indicadas na app ou contacta os serviços de saúde.
+A Serena destina-se a pessoas com 16 anos ou mais. Se tiveres menos de 16 anos, só a deves usar com o conhecimento e a autorização de um pai, mãe ou tutor.
 
-## 10. Alterações a esta política
+## 12. A Serena não substitui cuidados de saúde
 
-Podemos atualizar esta política. Publicaremos a versão atualizada aqui, com a nova data. Alterações significativas serão comunicadas na app.
+A Serena é um apoio psicoeducativo. Não é um dispositivo médico e não substitui a avaliação, o diagnóstico ou o tratamento por um profissional de saúde. Em caso de crise, usa as linhas de apoio indicadas na app ou contacta o 112.
 
-## 11. Contacto
+## 13. Alterações
 
-Para qualquer questão sobre privacidade ou para exerceres os teus direitos: **[email de contacto]**.
+Se mudarmos esta política, atualizamos a data no topo e avisamos na app quando a alteração for importante.

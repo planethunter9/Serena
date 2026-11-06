@@ -1,64 +1,74 @@
 # Privacy Policy — Serena
 
-**Last updated:** [date]
+**Last updated: 6 November 2026**
 
-> ⚠️ **Note:** This is a template to adapt, not legal advice. Fill in the `[ ]` fields, review carefully (especially the **health data** and **children** sections), and ideally have it checked by someone familiar with data protection before publishing. The app stores (App Store / Google Play) require this policy to be available at a public link.
+> **Note:** a template to adapt, not legal advice. Fill in the fields in `[ ]` (also in `data/legal.ts`). App stores require this policy at a public link. The text is the same one shown in the app.
 
-Serena ("the app", "we") is a psychoeducational support app for people living with emetophobia (the fear of vomiting). We take your privacy seriously. This policy explains what data we collect, why, who we share it with, and the rights you have.
+Serena is a psychoeducational support app for people living with emetophobia (the fear of vomiting). We know what you log here is personal and sensitive, so we explain in plain words what data we keep, why, where it is stored and how you control it.
 
-The data controller is **[your name or company]**, reachable at **[contact email]**.
+## In short
 
-## 1. What data we collect
+- We only keep what the app needs to work and to make sure you never lose your progress.
+- No ads, no trackers, no behavioural analytics.
+- We do not sell or share your data.
+- You can export or delete everything at any time, right in the app.
 
-**Account data.** When you create an account, we collect your **name** and **email**. Your password is handled securely by our authentication provider (see section 4) and we never see it in plain text. If you sign in with Google or Apple, we receive your name and email from that provider.
+## 1. Who is responsible
 
-**Content you create in the app.** So the app can work and sync across devices, we store what you record — for example: your initial choices (fear subtypes, triggers, symptoms, goals), check-ins and logged episodes, exposure sessions and your ratings (SUDS), thought records and memory sessions, experiments, journal, goals and achievements, reminders, safety behaviours (including those you mark as "dropping"), and your preferences (theme, colour, font, language).
+The data controller is [controller name / entity]. For any privacy question, write to [contact email].
 
-**Feedback messages.** If you use the feedback box, we store your message, the type (suggestion/problem/improvement), the language and the platform. You can send anonymously; if you are signed in, the message may be linked to your account.
+## 2. What data we keep
 
-**What we do NOT collect.** We do not collect location data, we do not use advertising or third-party trackers, and we do not sell your data.
+- Account: name and email. If you sign in with Google or Apple, we only receive the name and email that service shares with us. Your password is handled by our authentication provider and we never see it.
+- What you log in the app: your answers to the initial questionnaire (subtypes, triggers, symptoms), check-ins and episodes, exercise sessions (exposure, unplanned exposure, thoughts, experiments, memory, challenges, commitments) and your discomfort ratings, journal, goals, plan, safety behaviours, reminders and achievements.
+- Preferences: language, theme, colours and font.
+- Feedback: if you use the feedback box, we store the message, its type, the language and the phone's operating system. If you are signed in, it is linked to your account.
+- Profile photo and sounds you add: these stay only on your phone and are not sent to the cloud.
 
-## 2. Sensitive / health data
+## 3. What we do NOT collect
 
-The content you record relates to your mental health and may therefore be a special category of data. We process it only to provide the app's service and **with your consent**, which you can withdraw at any time by deleting your account (see section 7). We recommend not writing, in free-text fields, information you would not want stored.
+We do not collect location, contacts or advertising identifiers. We do not use third-party analytics, advertising or tracking tools.
 
-## 3. Why we use your data and on what legal basis
+## 4. Health data
 
-We use your data to: create and maintain your account; store and sync your progress across devices; and improve the app (based on the feedback you send). The legal bases (GDPR) are **performance of a contract** (providing the app) and your **consent** (especially for health data). We do not make automated decisions with legal effects about you.
+What you log relates to your mental health and is a special category of data (Art. 9 GDPR). We only process it with your explicit consent, given when you create your account, and only to provide the service. You can withdraw consent at any time by deleting your account. Only write in free-text fields what you are comfortable keeping.
 
-## 4. Where data is stored and who processes it
+## 5. How we use the data
 
-Authentication and data storage are handled through **Supabase**, which acts as a processor and hosts the data on its servers in **[your Supabase region, e.g. the European Union]**. We do not share your data with anyone else, except where required by law.
+To create and maintain your account, show your progress and history, send the reminders you turn on, keep a backup so you lose nothing when you change phones, and improve the app based on the feedback you send. The legal bases are performance of a contract (providing the app) and your consent. We do not profile you or make automated decisions about you.
 
-## 5. How long we keep it
+## 6. Where the data is stored
 
-We keep your data while you have an account. When you delete your account, we delete your associated data (see section 7).
+Your data is stored on your phone. While you are signed in, a backup copy linked to your account is also kept on Supabase, our authentication and database provider, which acts as a processor and hosts the data in [Supabase server region]. This copy is updated when you leave the app and restored when you sign in. We do not share your data with anyone else unless the law requires it.
 
-## 6. Security
+## 7. Notifications
 
-The connection to the cloud is encrypted (HTTPS) and access to the data is protected by authentication rules. No system is 100% secure, but we use reasonable measures to protect your information.
+Reminders and the affirmation of the day are local notifications scheduled on your phone. We do not use a notification server. You can turn them off in the app or in your phone settings.
 
-## 7. Your rights
+## 8. How long we keep it
 
-You have the right to access, correct, export and **delete** your data, and to withdraw consent. Specifically:
+We keep your data for as long as you have an account. If you delete your account, we erase your data from the cloud and from the phone. Feedback sent anonymously cannot be linked to you and may be kept to improve the app.
 
-- **Delete:** you can delete your account and all data directly in the app, under **Settings › Delete account**. This action is permanent.
-- **Export / access / correct:** you can do this in the app or by asking us via the contact below.
+## 9. Security
 
-If you are in the European Union, you also have the right to lodge a complaint with your supervisory authority. In Portugal, this is the **CNPD — Comissão Nacional de Proteção de Dados** (www.cnpd.pt).
+The connection to the cloud is encrypted (HTTPS) and each person can only access their own data. No system is 100% secure, but we take reasonable measures to protect your information. Protect your phone with a passcode or biometrics, as your data is also stored on it.
 
-## 8. Children
+## 10. Your rights
 
-Serena is **[not intended for children under 16 / intended for users aged X and over]**. **[Adapt this section: if you allow minors, describe parental/guardian consent. Decide the minimum age and keep it consistent with the age settings in the stores.]**
+Under the GDPR you can access, correct, export and delete your data, restrict or object to processing, and withdraw consent.
+- Export: Settings › Backup › Export (JSON file).
+- Delete: Settings › Delete account. This is permanent.
+- Other requests: write to [contact email].
+You can also lodge a complaint with the data protection authority in your country (in Portugal, the CNPD: www.cnpd.pt).
 
-## 9. The app is not a substitute for healthcare
+## 11. Minors
 
-Serena is psychoeducational support and is **not medical treatment, nor a substitute for care from a health professional**. In a crisis, use the support lines provided in the app or contact your health services.
+Serena is intended for people aged 16 or over. If you are under 16, only use it with the knowledge and permission of a parent or guardian.
 
-## 10. Changes to this policy
+## 12. Serena does not replace health care
 
-We may update this policy. We will post the updated version here with the new date. Significant changes will be communicated in the app.
+Serena is psychoeducational support. It is not a medical device and does not replace assessment, diagnosis or treatment by a health professional. If you are in crisis, use the support lines in the app or call your local emergency number (112 in the EU).
 
-## 11. Contact
+## 13. Changes
 
-For any privacy question or to exercise your rights: **[contact email]**.
+If we change this policy, we will update the date at the top and let you know in the app when the change is significant.

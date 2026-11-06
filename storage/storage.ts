@@ -344,7 +344,17 @@ export async function saveMemorySessions(list: MemorySession[]) {
 // --- Comportamentos de segurança & exposição não planeada -----------------
 
 export type SafetyItem = { id: string; label: string; doing: boolean; dropping: boolean };
-export type UnplannedLog = { id: string; date: string; ts: string; before: number; after: number; stayed: boolean; note: string };
+export type UnplannedLog = {
+  id: string; date: string; ts: string; before: number; after: number; stayed: boolean; note: string;
+  // Campos acrescentados depois (opcionais, para registos antigos continuarem válidos).
+  triggers?: string[];          // o que aconteceu (ids de UNPLANNED_TRIGGERS ou texto livre)
+  where?: string;               // onde estava
+  peak?: number;                // pico do desconforto (0–10)
+  fear?: string;                // o que temia que acontecesse
+  happened?: 'yes' | 'partly' | 'no';
+  safety?: string[];            // comportamentos de segurança usados (ids de SAFETY_BEHAVIORS)
+  learned?: string;             // o que aprendi
+};
 
 export async function loadSafety(): Promise<SafetyItem[]> {
   const raw = await AsyncStorage.getItem(k('safetyBehaviors'));

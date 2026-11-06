@@ -141,9 +141,6 @@ function RemindersBody() {
   if (editing) {
     return (
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
-        <Pressable onPress={() => setEditing(null)} hitSlop={8}>
-          <Text style={{ color: colors.textMuted, fontSize: 16 }}>‹ {t('common.back')}</Text>
-        </Pressable>
         <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>{isNew ? t('reminders.newTitle') : t('reminders.editTitle')}</Text>
 
         <Card style={{ gap: spacing.md, alignItems: 'center' }}>
