@@ -214,7 +214,7 @@ export default function ChallengesScreen() {
           {mine.map((m, i) => {
             const checked = isDoneToday(m.id);
             return (
-              <Pressable key={m.id} onPress={() => toggle(m.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+              <Pressable key={m.id} onPress={() => toggle(m.id)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={labelOf(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                   {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
                 </View>

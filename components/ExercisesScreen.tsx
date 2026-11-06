@@ -140,6 +140,8 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
           <Pressable
             key={v}
             onPress={() => onChange(v)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}
           >
             <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>

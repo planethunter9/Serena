@@ -97,7 +97,7 @@ export default function ResourcesScreen({
           }
 
           return (
-            <Pressable key={r.id} onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} style={rowStyle}>
+            <Pressable key={r.id} onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} accessibilityRole="button" accessibilityLabel={title} style={rowStyle}>
               {body}
               <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             </Pressable>

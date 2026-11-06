@@ -4,6 +4,7 @@
 //    tarefas próprias e definir o comportamento da semana a largar.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
@@ -156,7 +157,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
       {dayTasks.map((task) => {
         const checked = plan.done.includes(`${today}:${task.key}`);
         return (
-          <Pressable key={task.key} onPress={() => toggleDone(task.key)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
+          <Pressable key={task.key} onPress={() => toggleDone(task.key)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={task.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
             <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
               {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
             </View>
@@ -192,6 +193,7 @@ function Section({ title, icon, badge, defaultOpen, children }: { title: string;
 // ============ EDITOR (formulário, no sheet) ============
 export function PlanEditor() {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const { lang } = useLang();
   const Lx = (pt: string, en: string) => tr2(lang, pt, en);
 
@@ -260,7 +262,7 @@ export function PlanEditor() {
               <View key={tk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
                 <Ionicons name="ellipse" size={8} color={colors.primary} />
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{labelOf(tk, lang)}</Text>
-                <Pressable onPress={() => removeTask(tk.id)} hitSlop={6}>
+                <Pressable onPress={() => removeTask(tk.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${a11y.delete}: ${labelOf(tk, lang)}`}>
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </Pressable>
               </View>
@@ -269,7 +271,7 @@ export function PlanEditor() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
                 <Ionicons name="hand-left-outline" size={14} color={colors.primary} />
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx(`Resistir a: ${focusDisplay}`, `Resist: ${focusDisplay}`)}</Text>
-                <Pressable onPress={clearFocus} hitSlop={6}>
+                <Pressable onPress={clearFocus} hitSlop={6} accessibilityRole="button" accessibilityLabel={a11y.delete}>
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </Pressable>
               </View>

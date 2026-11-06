@@ -1,6 +1,7 @@
 // Editor de uma lista de itens: adicionar da lista, escrever a própria, editar e remover.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
@@ -22,6 +23,7 @@ export default function ListEditor({
   catalog?: { id: string; label: string }[];
 }) {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const { t } = useLang();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -77,17 +79,17 @@ export default function ListEditor({
             {editing ? (
               <>
                 <TextInput value={editText} onChangeText={setEditText} onSubmitEditing={saveEdit} autoFocus style={inputBase} />
-                <Pressable onPress={saveEdit} hitSlop={8} style={{ padding: 6 }}>
+                <Pressable onPress={saveEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.save} style={{ padding: 6 }}>
                   <Ionicons name="checkmark" size={22} color={colors.success} />
                 </Pressable>
               </>
             ) : (
               <>
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{item.label}</Text>
-                <Pressable onPress={() => startEdit(item)} hitSlop={8} style={{ padding: 6 }}>
+                <Pressable onPress={() => startEdit(item)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${a11y.edit}: ${item.label}`} style={{ padding: 6 }}>
                   <Ionicons name="pencil" size={18} color={colors.textMuted} />
                 </Pressable>
-                <Pressable onPress={() => remove(item.id)} hitSlop={8} style={{ padding: 6 }}>
+                <Pressable onPress={() => remove(item.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${a11y.delete}: ${item.label}`} style={{ padding: 6 }}>
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </Pressable>
               </>

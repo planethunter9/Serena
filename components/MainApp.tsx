@@ -2,6 +2,7 @@
 // Abrir um ecrã = router.push('/rota') -> animação nativa + gesto de voltar.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -24,6 +25,7 @@ type TabKey = 'home' | 'support' | 'calendar' | 'resources';
 
 export default function MainApp() {
   const { colors, isDark } = useTheme();
+  const a11y = useA11y();
   const iosMajor = Platform.OS === 'ios' ? parseInt(String(Platform.Version), 10) : 0;
   const glassSupported = iosMajor >= 26;
   const { t, lang } = useLang();
@@ -91,7 +93,7 @@ export default function MainApp() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <Pressable onPress={() => router.push('/profile')} hitSlop={8}>
+            <Pressable onPress={() => router.push('/profile')} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.profile}>
               {photoUri ? (
                 <Image source={{ uri: photoUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
               ) : (
@@ -100,7 +102,7 @@ export default function MainApp() {
                 </View>
               )}
             </Pressable>
-            <Pressable onPress={() => router.push('/settings')} hitSlop={12} style={{ padding: 6 }}>
+            <Pressable onPress={() => router.push('/settings')} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ padding: 6 }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
           </View>
@@ -146,6 +148,9 @@ export default function MainApp() {
               <Pressable
                 key={tb.key}
                 onPress={() => setTab(tb.key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={t(tb.labelKey)}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}
               >
                 <Ionicons name={active ? tb.iconActive : tb.icon} size={24} color={active ? colors.primary : colors.textMuted} />
