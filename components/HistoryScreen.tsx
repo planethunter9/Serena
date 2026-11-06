@@ -1,9 +1,10 @@
 // Histórico de sessões — SÓ CONSULTA (não se edita aqui).
-// Junta os registos de todos os exercícios num só sítio, do mais recente para o
-// mais antigo, com filtro por exercício. Cada registo abre para ver o detalhe.
+// Abre a partir de cada exercício e mostra APENAS os registos desse exercício
+// (ex.: na exposição só aparecem sessões de exposição), do mais recente para o
+// mais antigo. Cada registo abre para ver o detalhe.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { tr2, useLang } from '../i18n/i18n';
@@ -28,7 +29,7 @@ import { TopBackBar } from './ui';
 import { UNPLANNED_TRIGGERS } from './UnplannedScreen';
 
 type Kind = 'exposure' | 'thought' | 'experiments' | 'memory' | 'unplanned' | 'challenges' | 'acceptance' | 'practice';
-type Item = { id: string; kind: Kind; ts: string; date: string; title: string; summary?: string; details: [string, string][] };
+type Item = { id: string; kind: Kind; sub?: string; ts: string; date: string; title: string; summary?: string; details: [string, string][] };
 
 const KIND_ORDER: Kind[] = ['exposure', 'unplanned', 'thought', 'experiments', 'memory', 'challenges', 'acceptance', 'practice'];
 const KIND_ICON: Record<Kind, keyof typeof Ionicons.glyphMap> = {
@@ -57,7 +58,10 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
   const lx = (o: { pt: string; en: string }) => tr2(lang, o.pt, o.en);
 
   const [items, setItems] = useState<Item[] | null>(null);
-  const [filter, setFilter] = useState<Kind | 'all'>(toKind(initialKind));
+  // Exercício a que este histórico pertence (fixo). Para os "outros exercícios"
+  // (ex.: palavra a palavra), filtra também pelo tipo exato.
+  const kind = toKind(initialKind);
+  const subType = kind === 'practice' ? initialKind : undefined;
   const [open, setOpen] = useState<string | null>(null);
 
   const kindLabel = (k: Kind) => ({
@@ -157,7 +161,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
       }
       const practiceName = (type: string) =>
         type === 'words' ? t('games.words') : type === 'myth' ? t('games.myth') : type;
-      arr(log).forEach((e, i) => push({ id: `log:${i}`, kind: 'practice', ts: e.ts || noon(e.date), date: e.date, title: practiceName(e.type), details: [] }));
+      arr(log).forEach((e, i) => push({ id: `log:${i}`, kind: 'practice', sub: e.type, ts: e.ts || noon(e.date), date: e.date, title: practiceName(e.type), details: [] }));
 
       out.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
       setItems(out);
@@ -165,13 +169,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
-  const counts = useMemo(() => {
-    const c: Partial<Record<Kind, number>> = {};
-    for (const it of items ?? []) c[it.kind] = (c[it.kind] ?? 0) + 1;
-    return c;
-  }, [items]);
-
-  const shown = (items ?? []).filter((it) => filter === 'all' || it.kind === filter);
+  const shown = (items ?? []).filter((it) => (kind === 'all' || it.kind === kind) && (!subType || it.sub === subType));
 
   // Agrupa por dia.
   const groups: { date: string; list: Item[] }[] = [];
@@ -183,24 +181,21 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
   const fmtDate = (d: string) => d.split('-').reverse().join('/');
   const fmtTime = (ts: string) => (ts.endsWith('T12:00:00') ? '' : new Date(ts).toTimeString().slice(0, 5));
 
-  const chip = (key: Kind | 'all', label: string, n?: number) => {
-    const active = filter === key;
-    return (
-      <Pressable key={key} onPress={() => { setFilter(key); setOpen(null); }} style={{ paddingHorizontal: 12, height: 34, borderRadius: 999, justifyContent: 'center', borderWidth: 2, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySoft : colors.cardAlt }}>
-        <Text style={{ color: active ? colors.primary : colors.text, fontSize: 13, fontWeight: active ? '700' : '500' }}>{label}{n != null ? ` · ${n}` : ''}</Text>
-      </Pressable>
-    );
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={L('Histórico de sessões', 'Session history')} onBack={onBack} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: 8, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
-        {chip('all', L('Todos', 'All'), items?.length)}
-        {KIND_ORDER.filter((k) => counts[k] || filter === k).map((k) => chip(k, kindLabel(k), counts[k] ?? 0))}
-      </ScrollView>
-
       <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.sm, gap: spacing.md, paddingBottom: 120 }}>
+        {kind !== 'all' && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={KIND_ICON[kind]} size={18} color={colors.primary} />
+            </View>
+            <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', flex: 1 }}>
+              {subType ? (shown[0]?.title ?? kindLabel(kind)) : kindLabel(kind)}
+            </Text>
+            {items && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{shown.length}</Text>}
+          </View>
+        )}
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Só para consulta. Toca num registo para ver o detalhe.', 'View only. Tap an entry to see the details.')}</Text>
 
         {items && shown.length === 0 && (
@@ -225,7 +220,9 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
                       <Ionicons name={KIND_ICON[it.kind]} size={18} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ color: colors.textMuted, fontSize: 12 }}>{kindLabel(it.kind)}{time ? ` · ${time}` : ''}</Text>
+                      {(kind === 'all' || time) ? (
+                        <Text style={{ color: colors.textMuted, fontSize: 12 }}>{[kind === 'all' ? kindLabel(it.kind) : '', time].filter(Boolean).join(' · ')}</Text>
+                      ) : null}
                       <Text numberOfLines={isOpen ? undefined : 2} style={{ color: colors.text, fontSize: 15 }}>{it.title}</Text>
                     </View>
                     {it.summary ? <Text style={{ color: colors.text, fontWeight: '600', fontSize: 13 }}>{it.summary}</Text> : null}
