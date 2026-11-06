@@ -46,6 +46,9 @@ export function PrimaryButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={{
         backgroundColor: disabled ? colors.track : colors.primary,
         padding: 18,

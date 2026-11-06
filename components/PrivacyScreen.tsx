@@ -1,8 +1,10 @@
 // Mostra a Política de Privacidade na língua escolhida na app (texto em data/legal.ts).
 
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { getPrivacyPolicy } from '../data/legal';
-import { useLang } from '../i18n/i18n';
+import { tr2, useLang } from '../i18n/i18n';
+import { loadHealthConsent } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
@@ -12,6 +14,8 @@ export default function PrivacyScreen({ onBack }: { onBack: () => void }) {
   const { t, lang } = useLang();
   const doc = getPrivacyPolicy(lang);
   const [summary, ...sections] = doc.sections;
+  const [consentAt, setConsentAt] = useState<string | null>(null);
+  useEffect(() => { loadHealthConsent().then((c) => setConsentAt(c?.acceptedAt ?? null)); }, []);
 
   // Parágrafos; as linhas que começam por "•" são mostradas como lista.
   const body = (text: string) =>
@@ -49,6 +53,12 @@ export default function PrivacyScreen({ onBack }: { onBack: () => void }) {
             {body(s.body)}
           </View>
         ))}
+
+        {consentAt && (
+          <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: spacing.sm }}>
+            {tr2(lang, 'Consentimento para dados de saúde dado em', 'Health data consent given on')} {new Date(consentAt).toLocaleDateString()}
+          </Text>
+        )}
       </ScrollView>
     </View>
   );

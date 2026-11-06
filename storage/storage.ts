@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -620,4 +620,21 @@ export async function loadPlanTasks(): Promise<PlanTask[]> {
 }
 export async function savePlanTasks(list: PlanTask[]) {
   await setUserItem('planTasks', JSON.stringify(list));
+}
+
+// --- Consentimento explícito para dados de saúde (RGPD, art. 9.º) ----------
+// Guardado com a versão do texto aceite; se o texto mudar de forma relevante,
+// sobe-se CONSENT_VERSION e o ecrã volta a aparecer.
+export const CONSENT_VERSION = 1;
+export type HealthConsent = { version: number; acceptedAt: string };
+export async function loadHealthConsent(): Promise<HealthConsent | null> {
+  try {
+    const raw = await AsyncStorage.getItem(k('healthConsent'));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+export async function saveHealthConsent(c: HealthConsent) {
+  await setUserItem('healthConsent', JSON.stringify(c));
 }
