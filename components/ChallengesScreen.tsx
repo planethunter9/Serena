@@ -49,8 +49,10 @@ export default function ChallengesScreen() {
   const [newText, setNewText] = useState('');
   const [offset, setOffset] = useState(0); // "outra sugestão"
 
-  const today = ymd(new Date());
-  const dayIndex = Math.floor(Date.now() / 86400000);
+  // Fixados ao abrir o ecrã (estáveis entre renderizações).
+  const [nowMs] = useState(() => Date.now());
+  const today = ymd(new Date(nowMs));
+  const dayIndex = Math.floor(nowMs / 86400000);
 
   useEffect(() => {
     loadChallengesDone().then(setDone);

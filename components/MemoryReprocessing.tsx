@@ -38,6 +38,25 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
   );
 }
 
+function SafetyNote() {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const tt = (o: L) => pick(o, lang);
+  return (
+  <View style={{ backgroundColor: colors.cardAlt, borderRadius: radius.md, borderLeftWidth: 3, borderLeftColor: colors.danger, padding: spacing.md, gap: 6 }}>
+    <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 13 }}>
+      {tt({ pt: 'Antes de começar', en: 'Before you start' })}
+    </Text>
+    <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19 }}>
+      {tt({
+        pt: 'Esta é uma ferramenta de apoio, inspirada em técnicas que os terapeutas usam (estimulação bilateral). Não é terapia EMDR nem substitui um profissional. Escolhe uma memória que consigas tolerar — não comeces pela pior. Podes parar a qualquer momento. Se te sentires muito em baixo, com a sensação de estares "fora" da realidade, ou o mal-estar disparar e não descer, para e procura apoio profissional. Em crise, contacta os serviços de saúde ou uma linha de apoio da tua região.',
+        en: 'This is a support tool, inspired by techniques therapists use (bilateral stimulation). It is not EMDR therapy and does not replace a professional. Choose a memory you can tolerate — do not start with the worst one. You can stop at any time. If you feel very low, "detached" from reality, or the distress spikes and will not come down, stop and seek professional support. In a crisis, contact your health services or a support line in your area.',
+      })}
+    </Text>
+  </View>
+  );
+}
+
 export default function MemoryView() {
   const { colors } = useTheme();
   const { lang } = useLang();
@@ -54,7 +73,7 @@ export default function MemoryView() {
   const [trackW, setTrackW] = useState(0);
   const [history, setHistory] = useState<MemorySession[]>([]);
 
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -117,21 +136,6 @@ export default function MemoryView() {
   }
 
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [0, Math.max(0, trackW - DOT)] });
-
-  // --- Blocos reutilizáveis ---
-  const SafetyNote = () => (
-    <View style={{ backgroundColor: colors.cardAlt, borderRadius: radius.md, borderLeftWidth: 3, borderLeftColor: colors.danger, padding: spacing.md, gap: 6 }}>
-      <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 13 }}>
-        {tt({ pt: 'Antes de começar', en: 'Before you start' })}
-      </Text>
-      <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19 }}>
-        {tt({
-          pt: 'Esta é uma ferramenta de apoio, inspirada em técnicas que os terapeutas usam (estimulação bilateral). Não é terapia EMDR nem substitui um profissional. Escolhe uma memória que consigas tolerar — não comeces pela pior. Podes parar a qualquer momento. Se te sentires muito em baixo, "desligada" da realidade, ou o mal-estar disparar e não descer, para e procura apoio profissional. Em crise, contacta os serviços de saúde ou uma linha de apoio da tua região.',
-          en: 'This is a support tool, inspired by techniques therapists use (bilateral stimulation). It is not EMDR therapy and does not replace a professional. Choose a memory you can tolerate — do not start with the worst one. You can stop at any time. If you feel very low, "detached" from reality, or the distress spikes and will not come down, stop and seek professional support. In a crisis, contact your health services or a support line in your area.',
-        })}
-      </Text>
-    </View>
-  );
 
   return (
     <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: 40 }}>

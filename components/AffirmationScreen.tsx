@@ -3,10 +3,9 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { Pressable, Switch, Text, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
-import { pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { AffirmationReminder, loadAffirmationReminder, saveAffirmationReminder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -14,6 +13,17 @@ import { Card, PrimaryButton, TopBackBar } from './ui';
 import { radius, spacing } from '../theme/theme';
 
 const two = (n: number) => (n < 10 ? '0' + n : '' + n);
+
+function Stepper({ value, onUp, onDown }: { value: string; onUp: () => void; onDown: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ alignItems: 'center', gap: 6 }}>
+      <Pressable onPress={onUp} hitSlop={8} accessibilityRole="button" accessibilityLabel="+"><Ionicons name="chevron-up" size={28} color={colors.primary} /></Pressable>
+      <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800', width: 70, textAlign: 'center' }}>{value}</Text>
+      <Pressable onPress={onDown} hitSlop={8} accessibilityRole="button" accessibilityLabel="−"><Ionicons name="chevron-down" size={28} color={colors.primary} /></Pressable>
+    </View>
+  );
+}
 
 export default function AffirmationScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
@@ -46,16 +56,6 @@ export default function AffirmationScreen({ onBack }: { onBack: () => void }) {
     const fresh = await loadAffirmationReminder();
     setState(fresh);
     setBusy(false);
-  }
-
-  function Stepper({ value, onUp, onDown }: { value: string; onUp: () => void; onDown: () => void }) {
-    return (
-      <View style={{ alignItems: 'center', gap: 6 }}>
-        <Ionicons name="chevron-up" size={28} color={colors.primary} onPress={onUp} />
-        <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800', width: 70, textAlign: 'center' }}>{value}</Text>
-        <Ionicons name="chevron-down" size={28} color={colors.primary} onPress={onDown} />
-      </View>
-    );
   }
 
   return (

@@ -33,6 +33,11 @@ function PaletteSwatch({ primary, selected, color }: { primary: string | null; s
   );
 }
 
+function Lock() {
+  const { colors } = useTheme();
+  return <Ionicons name="lock-closed" size={13} color={colors.textMuted} accessibilityLabel="locked" />;
+}
+
 export default function PersonalizationScreen({ onBack }: { onBack: () => void }) {
   const theme = useTheme();
   const { colors, unlocked } = theme;
@@ -83,7 +88,6 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
     theme.setPalette('custom');
   }
 
-  const Lock = () => <Ionicons name="lock-closed" size={13} color={colors.textMuted} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

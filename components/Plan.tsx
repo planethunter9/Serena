@@ -7,8 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { Lang, pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { Lang, pick, useLang , tr2 } from '../i18n/i18n';
 import {
   loadPlanTasks,
   loadSafety,

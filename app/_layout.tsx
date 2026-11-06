@@ -118,6 +118,7 @@ function ThemedApp() {
   useEffect(() => {
     patchFontOnce();
     currentFontFamily = fontFamily;       // undefined = fonte do sistema
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intencional: remontar a árvore quando a fonte muda
     setRemountKey((k) => k + 1);          // remonta a árvore com a nova fonte
   }, [fontFamily]);
 

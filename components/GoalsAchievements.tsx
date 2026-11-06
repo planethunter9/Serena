@@ -1,12 +1,12 @@
 // Página única com "Conquistas" e "Objetivos", alternadas por um segmented control.
 
 import { Ionicons } from '@expo/vector-icons';
+import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
 import { CHAPTERS } from '../data/content';
-import { pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
   Goal,
   loadExposureDays,
@@ -158,7 +158,7 @@ function GoalsBody() {
   }
   function addSuggestion(label: string) {
     if (goals.some((g) => g.text === label)) return;
-    persist([...goals, { id: 'g' + Date.now() + Math.random().toString(36).slice(2, 6), text: label, done: false }]);
+    persist([...goals, { id: newId('g'), text: label, done: false }]);
   }
   function toggle(id: string) {
     persist(goals.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));

@@ -50,7 +50,7 @@ export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
   const [left, setLeft] = useState(RIDE_SECONDS);
   const [promptIdx, setPromptIdx] = useState(0);
 
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = useState(() => new Animated.Value(1));
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const promptTimer = useRef<ReturnType<typeof setInterval> | null>(null);

@@ -47,6 +47,8 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
   ];
   const builtin = [...calm, ...sleepSounds];
 
+  // Os leitores do expo-audio configuram-se por atribuição (API da biblioteca).
+  // eslint-disable-next-line react-hooks/immutability
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     for (const s of builtin) s.player.loop = true;
@@ -78,6 +80,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
     } else {
       // Aponta o leitor partilhado para o ficheiro do utilizador.
       userPlayer.replace({ uri: snd.uri });
+      // eslint-disable-next-line react-hooks/immutability -- API do expo-audio
       userPlayer.loop = true;
       userPlayer.play();
       setActive(snd.id);

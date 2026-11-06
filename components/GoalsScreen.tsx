@@ -1,10 +1,10 @@
 // Os meus objetivos: adicionar da lista, escrever os meus, marcar como cumprido e remover.
 
 import { Ionicons } from '@expo/vector-icons';
+import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { Goal, loadGoals, saveGoals } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -48,7 +48,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
   }
   function addSuggestion(label: string) {
     if (goals.some((g) => g.text === label)) return; // evita duplicados
-    persist([...goals, { id: 'g' + Date.now() + Math.random().toString(36).slice(2, 6), text: label, done: false }]);
+    persist([...goals, { id: newId('g'), text: label, done: false }]);
   }
   function toggle(id: string) {
     persist(goals.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));

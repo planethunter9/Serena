@@ -44,6 +44,21 @@ const MOMENT: L[] = [
   { pt: 'Não corras a "resolver" — deixa a onda subir e descer.', en: 'Do not rush to "fix" it — let the wave rise and fall.' },
 ];
 
+function Bullets({ items, color }: { items: L[]; color: string }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  return (
+    <View style={{ gap: 8 }}>
+      {items.map((it, i) => (
+        <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+          <Text style={{ color }} importantForAccessibility="no" accessibilityElementsHidden>•</Text>
+          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{pick(it, lang)}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function CompanionScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
@@ -85,17 +100,6 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
   function share() {
     Share.share({ message: buildText() }).catch(() => {});
   }
-
-  const Bullets = ({ items, color }: { items: L[]; color: string }) => (
-    <View style={{ gap: 8 }}>
-      {items.map((it, i) => (
-        <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
-          <Text style={{ color }}>•</Text>
-          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{tt(it)}</Text>
-        </View>
-      ))}
-    </View>
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

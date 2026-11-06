@@ -1,8 +1,8 @@
 // Peças de interface reutilizadas em vários ecrãs.
 
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode, useRef } from 'react';
-import { PanResponder, Pressable, Text, View, ViewStyle } from 'react-native';
+import { ReactNode } from 'react';
+import { Pressable, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -117,28 +117,6 @@ export function TopBackBar({ title, onBack, right }: { title: string; onBack: ()
         <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
         {right ? <View style={{ paddingRight: 8 }}>{right}</View> : null}
       </View>
-    </View>
-  );
-}
-
-
-// Deteta um deslize a partir da margem esquerda e chama onBack.
-// Versão leve (sem transição interativa) — não precisa de bibliotecas.
-export function SwipeBack({ onBack, children }: { onBack: () => void; children: ReactNode }) {
-  const responder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_evt, g) => {
-        const startX = g.moveX - g.dx; // x onde o dedo começou
-        return startX < 32 && g.dx > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5;
-      },
-      onPanResponderRelease: (_evt, g) => {
-        if (g.dx > 80) onBack();
-      },
-    })
-  ).current;
-  return (
-    <View style={{ flex: 1 }} {...responder.panHandlers}>
-      {children}
     </View>
   );
 }

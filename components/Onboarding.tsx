@@ -12,6 +12,29 @@ import { OptionRow, PrimaryButton } from './ui';
 
 const TOTAL_STEPS = 7;
 
+// Campo "acrescentar o meu" — fora do componente principal para o teclado não
+// fechar a cada letra (um componente definido dentro de outro é recriado).
+function CustomInput({ value, onChange, onAdd }: { value: string; onChange: (v: string) => void; onAdd: () => void }) {
+  const { colors } = useTheme();
+  const { t } = useLang();
+  return (
+    <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        onSubmitEditing={onAdd}
+        placeholder={t('onb.customPlaceholder')}
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel={t('onb.customPlaceholder')}
+        style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 16 }}
+      />
+      <Pressable onPress={onAdd} accessibilityRole="button" style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 16 }}>{t('common.add')}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function Onboarding({ onComplete }: { onComplete: (data: OnboardingData) => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
@@ -111,24 +134,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   }
 
   const buttonLabel = step === 0 ? t('common.start') : step === TOTAL_STEPS - 1 ? t('common.finish') : t('common.continue');
-
-  function CustomInput({ value, onChange, onAdd }: { value: string; onChange: (v: string) => void; onAdd: () => void }) {
-    return (
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          onSubmitEditing={onAdd}
-          placeholder={t('onb.customPlaceholder')}
-          placeholderTextColor={colors.textMuted}
-          style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 16 }}
-        />
-        <Pressable onPress={onAdd} style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 16 }}>{t('common.add')}</Text>
-        </Pressable>
-      </View>
-    );
-  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>

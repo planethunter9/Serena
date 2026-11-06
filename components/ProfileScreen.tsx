@@ -5,8 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { useLang , tr2 } from '../i18n/i18n';
 import { loadProfile, OnboardingData, ProfileData, ProfileItem, saveProfile } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -15,6 +14,18 @@ import { Card, PrimaryButton, TopBackBar } from './ui';
 function asItems(arr: any[]): ProfileItem[] {
   if (!Array.isArray(arr)) return [];
   return arr.map((it, i) => (typeof it === 'string' ? { id: 'x' + i, label: it } : { id: it.id ?? 'x' + i, label: it.label ?? '' }));
+}
+
+function Avatar({ uri, size, onPress, label }: { uri?: string | null; size: number; onPress?: () => void; label?: string }) {
+  const { colors } = useTheme();
+  const inner = uri ? (
+    <Image source={{ uri }} accessibilityIgnoresInvertColors style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderColor: colors.card }} />
+  ) : (
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.card }}>
+      <Ionicons name="person" size={size * 0.42} color={colors.primary} />
+    </View>
+  );
+  return onPress ? <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>{inner}</Pressable> : inner;
 }
 
 export default function ProfileScreen({ onBack, data }: { onBack: () => void; data: OnboardingData }) {
@@ -56,17 +67,6 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
     { title: t('settings.coping'), icon: 'heart-outline', items: asItems(data.coping), show: p.showCoping },
   ];
 
-  const Avatar = ({ size, onPress }: { size: number; onPress?: () => void }) => {
-    const inner = p.photoUri ? (
-      <Image source={{ uri: p.photoUri }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderColor: colors.card }} />
-    ) : (
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.card }}>
-        <Ionicons name="person" size={size * 0.42} color={colors.primary} />
-      </View>
-    );
-    return onPress ? <Pressable onPress={onPress}>{inner}</Pressable> : inner;
-  };
-
   // ---------- MODO VISUALIZAÇÃO ----------
   if (!editing) {
     return (
@@ -82,7 +82,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
                 {!!p.username && <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}>@{p.username}</Text>}
                 {!!user?.email && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{user.email}</Text>}
               </View>
-              <Avatar size={82} />
+              <Avatar uri={p.photoUri} size={82} />
             </View>
             {!!p.bio && <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21 }}>{p.bio}</Text>}
             <Pressable onPress={() => setEditing(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.card, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 }}>
@@ -145,7 +145,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
       <TopBackBar title={t('profile.editTitle')} onBack={() => setEditing(false)} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
         <View style={{ alignItems: 'center', gap: 8 }}>
-          <Avatar size={100} onPress={pickPhoto} />
+          <Avatar uri={p.photoUri} size={100} onPress={pickPhoto} label={L('Mudar fotografia', 'Change photo')} />
           <Pressable onPress={pickPhoto}>
             <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{t('profile.photo')}</Text>
           </Pressable>

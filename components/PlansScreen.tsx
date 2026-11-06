@@ -3,8 +3,7 @@
 
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import { HardDayBody } from './HardDayPlanScreen';

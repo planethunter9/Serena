@@ -4,8 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Lang, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { Lang, useLang , tr2 } from '../i18n/i18n';
 import { AttackEntry, loadAttacks, loadExposureDays, saveAttacks } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';

@@ -13,8 +13,7 @@
 
 import { createContext, ReactNode, RefObject, useContext, useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 

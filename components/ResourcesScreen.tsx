@@ -4,8 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { pick, TKey, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, TKey, useLang , tr2 } from '../i18n/i18n';
 import { loadResourcesOrder, saveResourcesOrder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';

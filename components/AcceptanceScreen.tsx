@@ -14,8 +14,7 @@ import {
   saveActCommitments,
   saveActValues,
 } from '../storage/storage';
-import { pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, PrimaryButton } from './ui';

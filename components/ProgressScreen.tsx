@@ -5,8 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { useLang , tr2 } from '../i18n/i18n';
 import {
   ActCommitment,
   AttackEntry,
@@ -81,6 +80,7 @@ export default function ProgressScreen() {
   const [chartW, setChartW] = useState(0);
   const fearScrollRef = useRef<any>(null); // ScrollView; tipado como any p/ aceder a scrollToEnd (tipos do SDK 58)
 
+  const [nowMs] = useState(() => Date.now());
   useEffect(() => {
     loadSeverity().then(setSeverity);
     loadExposureSessions().then(setExposures);
@@ -227,7 +227,7 @@ export default function ProgressScreen() {
   };
 
   const days: string[] = [];
-  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(Date.now() - i * 86400000)));
+  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(nowMs - i * 86400000)));
   const activityByDay = days.map((d) => {
     const ex = exposures.filter((e) => e.date === d).length;
     const jn = journal.filter((j) => j.date === d).length;

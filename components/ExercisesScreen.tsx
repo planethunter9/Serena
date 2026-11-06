@@ -2,6 +2,7 @@
 // Baseado em técnicas usadas por profissionais (CBT/ERP).
 
 import { Ionicons } from '@expo/vector-icons';
+import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -9,8 +10,7 @@ import { useRouter } from 'expo-router';
 import { SUBTYPE_OPTIONS } from '../data/content';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import { LADDER_TEMPLATES } from '../data/ladderTemplates';
-import { pick, useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
   appendExerciseLog,
   ExerciseLogEntry,
@@ -188,8 +188,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
     const existing = new Set(base.map((s) => s.label.trim().toLowerCase()));
     const toAdd = stepsL.map((s) => pick(s, lang)).filter((label) => !existing.has(label.trim().toLowerCase()));
     if (toAdd.length) {
-      const now = Date.now();
-      const added = toAdd.map((label, i) => ({ id: 'custom:' + (now + i), label }));
+      const added = toAdd.map((label) => ({ id: newId('custom:'), label }));
       const nextCustom = [...custom, ...added];
       setCustom(nextCustom);
       saveExposureSteps(nextCustom);
@@ -231,7 +230,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   function addStep() {
     const v = newStep.trim();
     if (!v) return;
-    const id = 'custom:' + Date.now();
+    const id = newId('custom:');
     const nextCustom = [...custom, { id, label: v }];
     setCustom(nextCustom);
     saveExposureSteps(nextCustom);
