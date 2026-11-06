@@ -1,5 +1,7 @@
-// Desafios diários de incerteza: pequenos passos para treinar a tolerância à
-// incerteza e ao desconforto. Um desafio por dia + a lista toda para marcar.
+// Desafios de incerteza: pequenos passos para treinar a tolerância à incerteza
+// e ao desconforto. Em cima, uma sugestão de desafio (muda todos os dias); em
+// baixo, "Os meus desafios" — escolhidos da lista de sugestões ou criados pelo
+// utilizador — que se marcam como feitos em cada dia.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -42,48 +44,58 @@ export default function ChallengesScreen() {
   const tt = (o: L) => o[lang];
 
   const [done, setDone] = useState<string[]>([]);
-  const [showAll, setShowAll] = useState(false);
-  const [custom, setCustom] = useState<CustomChallenge[]>([]);
-  const [adding, setAdding] = useState(false);
+  const [mine, setMine] = useState<CustomChallenge[]>([]);
+  const [mode, setMode] = useState<'none' | 'pick' | 'create'>('none');
   const [newText, setNewText] = useState('');
+  const [offset, setOffset] = useState(0); // "outra sugestão"
 
   const today = ymd(new Date());
   const dayIndex = Math.floor(Date.now() / 86400000);
-  const todayChallenge = CHALLENGES[dayIndex % CHALLENGES.length];
 
   useEffect(() => {
     loadChallengesDone().then(setDone);
-    loadCustomChallenges().then(setCustom);
+    loadCustomChallenges().then(setMine);
   }, []);
 
-  // Lista completa: os desafios sugeridos + os do utilizador (no fim).
-  const all: { id: string; label: string; custom: boolean }[] = [
-    ...CHALLENGES.map((c) => ({ id: c.id, label: tt(c.text), custom: false })),
-    ...custom.map((c) => ({ id: c.id, label: c.text, custom: true })),
-  ];
+  const mineIds = new Set(mine.map((m) => m.id));
+  const available = CHALLENGES.filter((c) => !mineIds.has(c.id));
+  // Sugestão do dia: roda pelas sugestões que ainda não estão nos meus desafios.
+  const suggestion = available.length ? available[(dayIndex + offset) % available.length] : null;
 
+  const labelOf = (m: CustomChallenge) => {
+    const c = CHALLENGES.find((x) => x.id === m.id);
+    return c ? tt(c.text) : (m.text ?? '');
+  };
+
+  function persistMine(next: CustomChallenge[]) {
+    setMine(next);
+    saveCustomChallenges(next);
+  }
+  function addSuggestion(id: string) {
+    if (mineIds.has(id)) return;
+    persistMine([...mine, { id }]);
+  }
   function addCustom() {
     const v = newText.trim();
     if (!v) return;
     // id sem ':' (as marcações são guardadas como "data:id").
-    const next = [...custom, { id: 'u' + Date.now(), text: v }];
-    setCustom(next);
-    saveCustomChallenges(next);
+    persistMine([...mine, { id: 'u' + Date.now(), text: v }]);
     setNewText('');
-    setAdding(false);
-    setShowAll(true);
+    setMode('none');
   }
-  function removeCustom(c: { id: string; label: string }) {
-    Alert.alert(tt({ pt: 'Eliminar desafio?', en: 'Delete challenge?' }), c.label, [
+  function remove(m: CustomChallenge) {
+    Alert.alert(tt({ pt: 'Remover desafio?', en: 'Remove challenge?' }), labelOf(m), [
       { text: tt({ pt: 'Cancelar', en: 'Cancel' }), style: 'cancel' },
       {
-        text: tt({ pt: 'Eliminar', en: 'Delete' }), style: 'destructive', onPress: () => {
-          const next = custom.filter((x) => x.id !== c.id);
-          setCustom(next);
-          saveCustomChallenges(next);
-          const nd = done.filter((k) => k.split(':')[1] !== c.id);
-          setDone(nd);
-          saveChallengesDone(nd);
+        text: tt({ pt: 'Remover', en: 'Remove' }), style: 'destructive', onPress: () => {
+          persistMine(mine.filter((x) => x.id !== m.id));
+          // Os desafios criados por mim desaparecem de vez; os da lista podem voltar
+          // a ser escolhidos, por isso mantemos o histórico deles.
+          if (!CHALLENGES.some((c) => c.id === m.id)) {
+            const nd = done.filter((k) => k.split(':')[1] !== m.id);
+            setDone(nd);
+            saveChallengesDone(nd);
+          }
         },
       },
     ]);
@@ -96,11 +108,15 @@ export default function ChallengesScreen() {
     saveChallengesDone(next);
   }
   const isDoneToday = (id: string) => done.includes(`${today}:${id}`);
-  const validIds = new Set(all.map((c) => c.id));
-  const everDone = new Set(done.map((k) => k.split(':')[1]).filter((id) => validIds.has(id)));
+  const doneTodayCount = mine.filter((m) => isDoneToday(m.id)).length;
+
+  const pill = (active: boolean) => ({
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5, paddingHorizontal: 12, height: 36, borderRadius: 999,
+    backgroundColor: active ? colors.primary : colors.primarySoft,
+  });
 
   return (
-    <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: 40 }}>
+    <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
       <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
         {tt({
           pt: 'Pequenos passos para treinar a tolerância à incerteza e ao desconforto. A ideia não é gostar — é deixar entrar e perceber que a incerteza não magoa.',
@@ -108,40 +124,49 @@ export default function ChallengesScreen() {
         })}
       </Text>
 
-      {/* Desafio de hoje */}
-      <Card style={{ gap: spacing.sm, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
-        <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{tt({ pt: 'Desafio de hoje', en: "Today's challenge" })}</Text>
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '600', lineHeight: 24 }}>{tt(todayChallenge.text)}</Text>
-        <Pressable
-          onPress={() => toggle(todayChallenge.id)}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: radius.md, borderWidth: 2, borderColor: isDoneToday(todayChallenge.id) ? colors.success : colors.primary, backgroundColor: isDoneToday(todayChallenge.id) ? colors.successSoft : colors.card, marginTop: 4 }}
-        >
-          <Ionicons name={isDoneToday(todayChallenge.id) ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={isDoneToday(todayChallenge.id) ? colors.success : colors.primary} />
-          <Text style={{ color: isDoneToday(todayChallenge.id) ? colors.success : colors.primary, fontWeight: '700' }}>
-            {isDoneToday(todayChallenge.id) ? tt({ pt: 'Feito hoje', en: 'Done today' }) : tt({ pt: 'Marcar como feito', en: 'Mark as done' })}
-          </Text>
-        </Pressable>
-      </Card>
+      {/* Sugestão de desafio */}
+      {suggestion && (
+        <Card style={{ gap: spacing.sm, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700', flex: 1 }}>{tt({ pt: 'Sugestão de desafio', en: 'Suggested challenge' })}</Text>
+            {available.length > 1 && (
+              <Pressable onPress={() => setOffset((o) => o + 1)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="shuffle" size={16} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{tt({ pt: 'Outra', en: 'Another' })}</Text>
+              </Pressable>
+            )}
+          </View>
+          <Text style={{ color: colors.text, fontSize: 17, fontWeight: '600', lineHeight: 24 }}>{tt(suggestion.text)}</Text>
+          <Pressable
+            onPress={() => addSuggestion(suggestion.id)}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: radius.md, borderWidth: 2, borderColor: colors.primary, backgroundColor: colors.card, marginTop: 4 }}
+          >
+            <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700' }}>{tt({ pt: 'Adicionar aos meus desafios', en: 'Add to my challenges' })}</Text>
+          </Pressable>
+        </Card>
+      )}
 
-      {/* Ver todos + adicionar o meu */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Pressable onPress={() => setShowAll((o) => !o)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-          <Ionicons name={showAll ? 'chevron-up' : 'list-outline'} size={16} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>
-            {tt({ pt: 'Ver todos os desafios', en: 'See all challenges' })} ({everDone.size}/{all.length})
-          </Text>
+      {/* Os meus desafios */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700', flex: 1 }}>{tt({ pt: 'Os meus desafios', en: 'My challenges' })}</Text>
+        {mine.length > 0 && (
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{tt({ pt: 'Hoje', en: 'Today' })}: {doneTodayCount}/{mine.length}</Text>
+        )}
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Pressable onPress={() => setMode((m) => (m === 'pick' ? 'none' : 'pick'))} style={pill(mode === 'pick')}>
+          <Ionicons name={mode === 'pick' ? 'close' : 'list-outline'} size={16} color={mode === 'pick' ? '#fff' : colors.primary} />
+          <Text style={{ color: mode === 'pick' ? '#fff' : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Escolher da lista', en: 'Pick from list' })}</Text>
         </Pressable>
-        <Pressable
-          onPress={() => setAdding((a) => !a)}
-          hitSlop={6}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.primarySoft, paddingHorizontal: 12, height: 36, borderRadius: 999 }}
-        >
-          <Ionicons name={adding ? 'close' : 'add'} size={18} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Adicionar', en: 'Add' })}</Text>
+        <Pressable onPress={() => setMode((m) => (m === 'create' ? 'none' : 'create'))} style={pill(mode === 'create')}>
+          <Ionicons name={mode === 'create' ? 'close' : 'add'} size={16} color={mode === 'create' ? '#fff' : colors.primary} />
+          <Text style={{ color: mode === 'create' ? '#fff' : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Criar o meu', en: 'Create my own' })}</Text>
         </Pressable>
       </View>
 
-      {adding && (
+      {mode === 'create' && (
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput
             value={newText}
@@ -158,22 +183,43 @@ export default function ChallengesScreen() {
         </View>
       )}
 
-      {showAll && (
+      {mode === 'pick' && (
+        <View style={{ gap: 8 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tt({ pt: 'Do mais fácil para o mais difícil. Toca para adicionar.', en: 'From easiest to hardest. Tap to add.' })}</Text>
+          {available.length === 0 ? (
+            <Text style={{ color: colors.textMuted, fontSize: 14 }}>{tt({ pt: 'Já adicionaste todas as sugestões.', en: "You've added all the suggestions." })}</Text>
+          ) : (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {available.map((c) => (
+                <Pressable key={c.id} onPress={() => addSuggestion(c.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, maxWidth: '100%' }}>
+                  <Ionicons name="add" size={15} color={colors.primary} />
+                  <Text style={{ color: colors.text, fontSize: 13, flexShrink: 1 }}>{tt(c.text)}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {mine.length === 0 ? (
+        <Card>
+          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
+            {tt({ pt: 'Ainda não tens desafios. Adiciona a sugestão acima, escolhe da lista ou cria o teu.', en: 'No challenges yet. Add the suggestion above, pick from the list or create your own.' })}
+          </Text>
+        </Card>
+      ) : (
         <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
-          {all.map((c, i) => {
-            const checked = isDoneToday(c.id);
-            const ever = everDone.has(c.id);
+          {mine.map((m, i) => {
+            const checked = isDoneToday(m.id);
             return (
-              <Pressable key={c.id} onPress={() => toggle(c.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : ever ? colors.primary : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable key={m.id} onPress={() => toggle(m.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+                <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                   {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
                 </View>
-                <Text style={{ color: colors.text, fontSize: 14, flex: 1, lineHeight: 20 }}>{c.label}</Text>
-                {c.custom && (
-                  <Pressable onPress={() => removeCustom(c)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tt({ pt: 'Eliminar desafio', en: 'Delete challenge' })} style={{ padding: 2 }}>
-                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
-                  </Pressable>
-                )}
+                <Text style={{ color: colors.text, fontSize: 14, flex: 1, lineHeight: 20 }}>{labelOf(m)}</Text>
+                <Pressable onPress={() => remove(m)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tt({ pt: 'Remover desafio', en: 'Remove challenge' })} style={{ padding: 2 }}>
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                </Pressable>
               </Pressable>
             );
           })}

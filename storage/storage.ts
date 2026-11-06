@@ -304,8 +304,9 @@ export async function saveChallengesDone(list: string[]) {
   await AsyncStorage.setItem(k('challengesDone'), JSON.stringify(list));
 }
 
-// Desafios de incerteza criados pelo utilizador.
-export type CustomChallenge = { id: string; text: string };
+// "Os meus desafios" de incerteza: escolhidos das sugestões (só o id, ex. "c3")
+// ou criados pelo utilizador (id "u…" + texto).
+export type CustomChallenge = { id: string; text?: string };
 export async function loadCustomChallenges(): Promise<CustomChallenge[]> {
   const raw = await AsyncStorage.getItem(k('customChallenges'));
   return raw ? JSON.parse(raw) : [];
