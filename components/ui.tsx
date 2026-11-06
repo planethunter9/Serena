@@ -105,7 +105,7 @@ export function OptionRow({
 
 // Cabeçalho com botão "Voltar", usado nos ecrãs que abrem por cima
 // (Definições e detalhe de cada Recurso).
-export function TopBackBar({ title, onBack }: { title: string; onBack: () => void }) {
+export function TopBackBar({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -114,7 +114,8 @@ export function TopBackBar({ title, onBack }: { title: string; onBack: () => voi
         <Pressable onPress={onBack} hitSlop={12} style={{ padding: 8 }}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
-        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{title}</Text>
+        <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
+        {right ? <View style={{ paddingRight: 8 }}>{right}</View> : null}
       </View>
     </View>
   );

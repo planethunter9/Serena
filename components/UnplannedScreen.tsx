@@ -15,12 +15,13 @@ import { tr2, useLang } from '../i18n/i18n';
 import { isoLocal, loadUnplanned, saveUnplanned, UnplannedLog } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { HistoryButton } from './HistoryButton';
 import { Card, PrimaryButton, TopBackBar } from './ui';
 
 type L = { pt: string; en: string };
 
 // O que pode ter desencadeado o momento.
-const UNPLANNED_TRIGGERS: { id: string; label: L }[] = [
+export const UNPLANNED_TRIGGERS: { id: string; label: L }[] = [
   { id: 'someone', label: { pt: 'Alguém enjoado ou a vomitar', en: 'Someone nauseous or vomiting' } },
   { id: 'heard', label: { pt: 'Ouvi alguém a vomitar', en: 'Heard someone vomiting' } },
   { id: 'news', label: { pt: 'Notícia de vírus / alguém doente', en: 'News of a bug / someone ill' } },
@@ -179,7 +180,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('unplanned.title')} onBack={onBack} />
+      <TopBackBar title={t('unplanned.title')} onBack={onBack} right={<HistoryButton kind="unplanned" />} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
         <Card style={{ backgroundColor: colors.primarySoft, borderColor: colors.primarySoft, gap: 6 }}>
           <Text style={{ color: colors.text, fontWeight: '700' }}>{t('unplanned.guideTitle')}</Text>

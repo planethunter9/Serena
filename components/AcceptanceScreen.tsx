@@ -48,7 +48,7 @@ const URGENCY_STEPS: L[] = [
   { pt: 'Deixa a onda subir e descer. Não tens de agir.', en: "Let the wave rise and fall. You don't have to act." },
 ];
 
-const COMMITMENTS: { key: string; label: L }[] = [
+export const COMMITMENTS: { key: string; label: L }[] = [
   { key: 'eatNauseous', label: { pt: 'Comer mesmo enjoada (ansiedade ou doença)', en: 'Eat even when nauseous (anxiety or illness)' } },
   { key: 'keepPlans', label: { pt: 'Fazer o que planeei, mesmo sem me sentir bem', en: 'Do what I planned, even when I feel off' } },
   { key: 'approach', label: { pt: 'Ir atrás do que costumo evitar', en: 'Go toward what I usually avoid' } },

@@ -38,6 +38,7 @@ import {
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { HistoryButton } from './HistoryButton';
 import { Card, PrimaryButton, TopBackBar } from './ui';
 
 type L = { pt: string; en: string };
@@ -531,7 +532,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
 // ---- Reestruturação cognitiva (desconstruir pensamentos) ----
 // Lista de "armadilhas" (distorções) frequentes na emetofobia. O id é o texto PT
 // (estável); mostra-se no idioma atual.
-const THOUGHT_TRAPS: L[] = [
+export const THOUGHT_TRAPS: L[] = [
   { pt: 'Catastrofizar (saltar para o pior)', en: 'Catastrophising (jumping to the worst)' },
   { pt: 'Sobrestimar a probabilidade', en: 'Overestimating the odds' },
   { pt: 'Confundir sentir com acontecer', en: 'Confusing feeling with happening' },
@@ -836,7 +837,7 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('resources.exercises')} onBack={onBack} />
+      <TopBackBar title={t('resources.exercises')} onBack={onBack} right={<HistoryButton />} />
       <View style={{ flex: 1, padding: spacing.xl }}>
         <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.xxl }}>
           <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('exercises.intro')}</Text>
