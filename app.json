@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "AppFobias54",
+    "name": "Serena",
     "slug": "AppFobias54",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "appfobias54",
+    "scheme": "serena",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.planethunter.AppFobias54",
+      "bundleIdentifier": "com.planethunter.serena",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -28,7 +28,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "package": "com.planethunter.AppFobias54",
+      "package": "com.planethunter.serena",
       "versionCode": 3
     },
     "web": {
