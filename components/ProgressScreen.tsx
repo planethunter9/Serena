@@ -14,7 +14,6 @@ import {
   ExperimentEntry,
   ExposureSession,
   isoLocal,
-  JournalEntry,
   loadActCommitments,
   loadAttacks,
   loadChallengesDone,
@@ -23,7 +22,6 @@ import {
   loadExperiments,
   loadExposureDays,
   loadExposureSessions,
-  loadJournal,
   loadMemorySessions,
   loadSeverity,
   loadThoughtRecords,
@@ -65,7 +63,6 @@ export default function ProgressScreen() {
 
   const [severity, setSeverity] = useState<SeverityEntry[]>([]);
   const [exposures, setExposures] = useState<ExposureSession[]>([]);
-  const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [attacks, setAttacks] = useState<AttackEntry[]>([]);
   const [expDays, setExpDays] = useState<string[]>([]);
   const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
@@ -80,11 +77,9 @@ export default function ProgressScreen() {
   const [chartW, setChartW] = useState(0);
   const fearScrollRef = useRef<any>(null); // ScrollView; tipado como any p/ aceder a scrollToEnd (tipos do SDK 58)
 
-  const [nowMs] = useState(() => Date.now());
   useEffect(() => {
     loadSeverity().then(setSeverity);
     loadExposureSessions().then(setExposures);
-    loadJournal().then(setJournal);
     loadAttacks().then(setAttacks);
     loadExposureDays().then(setExpDays);
     loadDropped().then(setDropped);
@@ -109,7 +104,6 @@ export default function ProgressScreen() {
 
   const expStreak = expStreakOf(expDays);
   const totalExpDays = expDays.length;
-  const distinctSteps = new Set(exposures.map((e) => e.stepId)).size;
 
   const journeyMsg =
     totalExpDays >= 7 ? L('Estás a ganhar ritmo a sério.', 'You are building real momentum.')
@@ -226,15 +220,6 @@ export default function ProgressScreen() {
     return `${smoothLine(ps)} L ${ps[ps.length - 1].x},${baseY} L ${ps[0].x},${baseY} Z`;
   };
 
-  const days: string[] = [];
-  for (let i = 13; i >= 0; i--) days.push(isoLocal(new Date(nowMs - i * 86400000)));
-  const activityByDay = days.map((d) => {
-    const ex = exposures.filter((e) => e.date === d).length;
-    const jn = journal.filter((j) => j.date === d).length;
-    const sv = severity.filter((e) => e.date === d).length;
-    return ex + jn + sv;
-  });
-  const maxActivity = Math.max(1, ...activityByDay);
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>

@@ -4,7 +4,7 @@
 // o botão "Desbloquear" ativa o estado localmente para teste.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';

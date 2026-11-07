@@ -77,9 +77,10 @@ function patchFontOnce() {
       });
     } catch {}
   };
-  // @ts-ignore - require existe no runtime do Metro
+  // require em runtime (intencional): o módulo pode não existir em todas as builds.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   try { patchRuntime(require('react/jsx-runtime'), ['jsx', 'jsxs']); } catch {}
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   try { patchRuntime(require('react/jsx-dev-runtime'), ['jsxDEV']); } catch {}
 
   // 2) React.createElement (transform clássico / chamadas diretas).

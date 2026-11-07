@@ -1,4 +1,4 @@
-// Recebe o redirect do OAuth (Google/Apple): appfobias54://auth-callback
+// Recebe o redirect do OAuth (Google/Apple): serena://auth-callback
 // Troca o código por sessão e volta ao início. Resolve o "Unmatched route".
 
 import { useEffect } from 'react';
@@ -47,7 +47,7 @@ export default function AuthCallback() {
     // link recebido com a app já aberta
     const sub = Linking.addEventListener('url', ({ url }) => handle(url));
     return () => sub.remove();
-  }, []);
+  }, [router]);
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>

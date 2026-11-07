@@ -170,7 +170,6 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   const [showTemplates, setShowTemplates] = useState(false);
   const [subtypeIds, setSubtypeIds] = useState<string[]>([]);
   const [openTpl, setOpenTpl] = useState<string | null>(null);
-  const [chartW2, setChartW2] = useState(0);
   const [before, setBefore] = useState<number | null>(null);
   const [peak, setPeak] = useState<number | null>(null);
   const [after, setAfter] = useState<number | null>(null);

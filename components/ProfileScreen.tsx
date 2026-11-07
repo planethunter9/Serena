@@ -38,7 +38,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
 
   useEffect(() => {
     loadProfile().then((loaded) => setP({ ...loaded, name: loaded.name || user?.name || '' }));
-  }, []);
+  }, [user?.name]);
 
   if (!p) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 

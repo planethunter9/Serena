@@ -295,7 +295,7 @@ function AffirmationBody() {
 
 export default function RemindersScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const [tab, setTab] = useState<'reminders' | 'affirmation'>('reminders');
   const tabLabel = (v: 'reminders' | 'affirmation') =>
     v === 'reminders'

@@ -43,7 +43,7 @@ export default function Index() {
         if (router.canDismiss?.()) router.dismissAll();
       } catch {}
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   if (authLoading || (user && (dataLoading || !consentReady))) {
     return (

@@ -57,6 +57,8 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
     // eslint-disable-next-line react-hooks/immutability -- API do expo-audio
     userPlayer.loop = true;
     loadUserSounds().then(setUserSounds);
+    // Configurar uma vez ao abrir (os leitores são os mesmos durante o ecrã).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function stopAll() {
@@ -104,7 +106,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
       const next = [...userSounds, { id: 'us' + Date.now(), name, uri: dest, category }];
       setUserSounds(next);
       await saveUserSounds(next);
-    } catch (e) {
+    } catch {
       Alert.alert(t('sounds.addError'));
     }
   }

@@ -11,7 +11,7 @@
 //   const { start } = useCoach();
 //   start([{ name, text, show? }, …], onDone)
 
-import { createContext, ReactNode, RefObject, useContext, useEffect, useRef, useState } from 'react';
+import { ReactNode, RefObject, createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, Text, View } from 'react-native';
 import { useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
@@ -34,7 +34,7 @@ export const useCoach = () => useContext(Ctx);
 export function CoachTarget({ name, children, style }: { name: string; children: ReactNode; style?: any }) {
   const { register, unregister } = useCoach();
   const ref = useRef<any>(null);
-  useEffect(() => { register(name, ref); return () => unregister(name); }, [name]);
+  useEffect(() => { register(name, ref); return () => unregister(name); }, [name, register, unregister]);
   return (
     <View ref={ref} collapsable={false} style={style}>
       {children}
@@ -53,8 +53,8 @@ export function CoachProvider({ children }: { children: ReactNode }) {
   const [idx, setIdx] = useState(-1);
   const [rect, setRect] = useState<Rect | null>(null);
 
-  const register = (name: string, ref: RefObject<any>) => { refs.current[name] = ref; };
-  const unregister = (name: string) => { if (refs.current[name]) delete refs.current[name]; };
+  const register = useCallback((name: string, ref: RefObject<any>) => { refs.current[name] = ref; }, []);
+  const unregister = useCallback((name: string) => { if (refs.current[name]) delete refs.current[name]; }, []);
   const start = (s: Step[], onDone?: () => void) => { onDoneRef.current = onDone; setSteps(s); setRect(null); setIdx(0); };
   const finish = () => { setIdx(-1); setRect(null); const cb = onDoneRef.current; onDoneRef.current = undefined; if (cb) cb(); };
 

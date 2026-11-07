@@ -9,7 +9,7 @@ import { pick, useLang } from '../i18n/i18n';
 import { loadExposureDays, loadGoals, loadJournal, loadLessonsDone, loadManualAchievements, loadSeverity, loadStreakStart, saveManualAchievements } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import { ScreenTitle, TopBackBar } from './ui';
+import { TopBackBar } from './ui';
 
 export default function AchievementsScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
