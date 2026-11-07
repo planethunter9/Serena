@@ -3,8 +3,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { SOURCES } from './CitationsScreen';
@@ -54,7 +53,7 @@ export default function AboutScreen({ onBack }: { onBack: () => void }) {
               <Ionicons name="open-outline" size={18} color={colors.primary} style={{ marginTop: 2 }} />
             </View>
             <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{s.publisher}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{s.desc[lang]}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{pick(s.desc, lang)}</Text>
           </Pressable>
         ))}
       </ScrollView>

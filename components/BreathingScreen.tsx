@@ -1,7 +1,7 @@
 // Técnica de respiração: um círculo que cresce (inspira) e encolhe (expira),
 // 4 segundos em cada. Usa a Animated API do React Native (sem bibliotecas).
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
@@ -10,7 +10,7 @@ import { TopBackBar } from './ui';
 export default function BreathingScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t } = useLang();
-  const scale = useRef(new Animated.Value(0)).current;
+  const [scale] = useState(() => new Animated.Value(0));
   const [phase, setPhase] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
@@ -23,8 +23,7 @@ export default function BreathingScreen({ onBack }: { onBack: () => void }) {
     );
     loop.start();
 
-    // Texto "Inspira/Expira" alterna a cada 4 segundos.
-    setPhase('in');
+    // Texto "Inspira/Expira" alterna a cada 4 segundos (começa em "in").
     const interval = setInterval(() => setPhase((p) => (p === 'in' ? 'out' : 'in')), 4000);
 
     return () => {

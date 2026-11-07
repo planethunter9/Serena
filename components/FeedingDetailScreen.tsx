@@ -6,7 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadFeeding, saveFeeding } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -39,15 +39,15 @@ export default function FeedingDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={item.label[lang]} onBack={() => router.back()} />
+      <TopBackBar title={pick(item.label, lang)} onBack={() => router.back()} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }}>
         <Card style={{ gap: 8 }}>
           <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 14 }}>{t('feeding.why')}</Text>
-          <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{item.why[lang]}</Text>
+          <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{pick(item.why, lang)}</Text>
         </Card>
         <Card style={{ gap: 8, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
           <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>{t('feeding.alternative')}</Text>
-          <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{item.alternative[lang]}</Text>
+          <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{pick(item.alternative, lang)}</Text>
         </Card>
         <Pressable
           onPress={toggle}

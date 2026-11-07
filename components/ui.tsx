@@ -1,8 +1,9 @@
 // Peças de interface reutilizadas em vários ecrãs.
 
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode, useRef } from 'react';
-import { PanResponder, Pressable, Text, View, ViewStyle } from 'react-native';
+import { useA11y } from '../lib/a11y';
+import { ReactNode } from 'react';
+import { Pressable, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -46,6 +47,9 @@ export function PrimaryButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={{
         backgroundColor: disabled ? colors.track : colors.primary,
         padding: 18,
@@ -73,6 +77,9 @@ export function OptionRow({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={label}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -107,38 +114,17 @@ export function OptionRow({
 // (Definições e detalhe de cada Recurso).
 export function TopBackBar({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode }) {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const insets = useSafeAreaInsets();
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: colors.background }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.sm, paddingVertical: spacing.sm }}>
-        <Pressable onPress={onBack} hitSlop={12} style={{ padding: 8 }}>
+        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.back} style={{ padding: 8 }}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
-        <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
+        <Text numberOfLines={1} accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
         {right ? <View style={{ paddingRight: 8 }}>{right}</View> : null}
       </View>
-    </View>
-  );
-}
-
-
-// Deteta um deslize a partir da margem esquerda e chama onBack.
-// Versão leve (sem transição interativa) — não precisa de bibliotecas.
-export function SwipeBack({ onBack, children }: { onBack: () => void; children: ReactNode }) {
-  const responder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_evt, g) => {
-        const startX = g.moveX - g.dx; // x onde o dedo começou
-        return startX < 32 && g.dx > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5;
-      },
-      onPanResponderRelease: (_evt, g) => {
-        if (g.dx > 80) onBack();
-      },
-    })
-  ).current;
-  return (
-    <View style={{ flex: 1 }} {...responder.panHandlers}>
-      {children}
     </View>
   );
 }

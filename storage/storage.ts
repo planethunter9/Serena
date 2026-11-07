@@ -12,6 +12,48 @@ function k(name: string) {
   return `u:${userPrefix}:${name}`;
 }
 
+// --- Sincronização: quando foi alterado cada tipo de dado -------------------
+// Guardamos, por utilizador, a hora (ms) da última alteração local de cada
+// chave. Ao sincronizar com a cloud, juntamos as duas cópias chave a chave e
+// fica a mais recente — em vez de a cloud substituir tudo (o que apagava
+// alterações feitas no telemóvel ou repunha coisas já eliminadas).
+const META = 'syncMeta';
+type SyncMeta = Record<string, number>;
+let metaQueue: Promise<unknown> = Promise.resolve();
+let onLocalChange: (() => void) | null = null;
+
+// O AuthContext regista aqui o envio (com atraso) para a cloud.
+export function setOnLocalChange(cb: (() => void) | null) {
+  onLocalChange = cb;
+}
+
+async function readMeta(): Promise<SyncMeta> {
+  try {
+    const raw = await AsyncStorage.getItem(k(META));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+// Marca chaves como alteradas agora (serializado para não perder marcações).
+function touch(names: string[]) {
+  const run = metaQueue.then(async () => {
+    const meta = await readMeta();
+    const now = Date.now();
+    for (const n of names) meta[n] = now;
+    await AsyncStorage.setItem(k(META), JSON.stringify(meta));
+  });
+  metaQueue = run.catch(() => {});
+  return run.then(() => { onLocalChange?.(); }, () => {});
+}
+
+// Todas as escritas de dados do utilizador passam por aqui.
+async function setUserItem(name: string, value: string) {
+  await AsyncStorage.setItem(k(name), value);
+  await touch([name]);
+}
+
 export type ProfileItem = { id: string; label: string };
 
 export type OnboardingData = {
@@ -39,19 +81,21 @@ export type AttackEntry = {
 // --- Onboarding -----------------------------------------------------------
 
 export async function saveOnboarding(data: OnboardingData) {
-  await AsyncStorage.setItem(k('onboarding'), JSON.stringify(data));
+  await setUserItem('onboarding', JSON.stringify(data));
 }
 export async function loadOnboarding(): Promise<OnboardingData | null> {
   const raw = await AsyncStorage.getItem(k('onboarding'));
   return raw ? JSON.parse(raw) : null;
 }
 export async function clearAll() {
-  await AsyncStorage.multiRemove([k('onboarding'), k('severity'), k('lessonsDone'), k('attacks')]);
+  const names = ['onboarding', 'severity', 'lessonsDone', 'attacks'];
+  await AsyncStorage.multiRemove(names.map(k));
+  await touch(names); // a remoção também conta como alteração (para não voltar da cloud)
 }
 
 // Apaga TODOS os dados locais do utilizador atual (usado ao eliminar a conta).
 export async function wipeLocalUserData() {
-  await AsyncStorage.multiRemove(USER_KEY_NAMES.map((n) => k(n)));
+  await AsyncStorage.multiRemove([...USER_KEY_NAMES.map((n) => k(n)), k(META)]);
 }
 
 // --- Intensidade do medo --------------------------------------------------
@@ -70,7 +114,7 @@ export async function addSeverity(value: number): Promise<SeverityEntry[]> {
   const today = isoLocal();
   const filtered = list.filter((e) => e.date !== today);
   const next = [...filtered, { date: today, value }].sort((a, b) => (a.date < b.date ? -1 : 1));
-  await AsyncStorage.setItem(k('severity'), JSON.stringify(next));
+  await setUserItem('severity', JSON.stringify(next));
   return next;
 }
 
@@ -84,11 +128,11 @@ export async function addAttack(type: 'anxiety' | 'panic' | 'behavior'): Promise
   const list = await loadAttacks();
   const now = new Date();
   const next = [...list, { ts: now.toISOString(), date: isoLocal(now), type }];
-  await AsyncStorage.setItem(k('attacks'), JSON.stringify(next));
+  await setUserItem('attacks', JSON.stringify(next));
   return next;
 }
 export async function saveAttacks(list: AttackEntry[]) {
-  await AsyncStorage.setItem(k('attacks'), JSON.stringify(list));
+  await setUserItem('attacks', JSON.stringify(list));
 }
 
 // --- Plano da semana ------------------------------------------------------
@@ -100,7 +144,7 @@ export async function loadWeekPlan(): Promise<WeekPlan> {
   return raw ? JSON.parse(raw) : { weekStart: '', focusId: null, focusLabel: null, done: [] };
 }
 export async function saveWeekPlan(plan: WeekPlan): Promise<void> {
-  await AsyncStorage.setItem(k('weekPlan'), JSON.stringify(plan));
+  await setUserItem('weekPlan', JSON.stringify(plan));
 }
 
 // --- Lições concluídas ----------------------------------------------------
@@ -112,7 +156,7 @@ export async function loadLessonsDone(): Promise<string[]> {
 export async function toggleLessonDone(id: string): Promise<string[]> {
   const done = await loadLessonsDone();
   const next = done.includes(id) ? done.filter((x) => x !== id) : [...done, id];
-  await AsyncStorage.setItem(k('lessonsDone'), JSON.stringify(next));
+  await setUserItem('lessonsDone', JSON.stringify(next));
   return next;
 }
 
@@ -125,7 +169,7 @@ export async function loadGoals(): Promise<Goal[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveGoals(goals: Goal[]) {
-  await AsyncStorage.setItem(k('goals'), JSON.stringify(goals));
+  await setUserItem('goals', JSON.stringify(goals));
 }
 
 // --- Diário ---------------------------------------------------------------
@@ -137,7 +181,7 @@ export async function loadJournal(): Promise<JournalEntry[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveJournal(entries: JournalEntry[]) {
-  await AsyncStorage.setItem(k('journal'), JSON.stringify(entries));
+  await setUserItem('journal', JSON.stringify(entries));
 }
 
 // --- Lembretes ------------------------------------------------------------
@@ -151,7 +195,7 @@ export async function loadReminders(): Promise<Reminder[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveReminders(list: Reminder[]) {
-  await AsyncStorage.setItem(k('reminders'), JSON.stringify(list));
+  await setUserItem('reminders', JSON.stringify(list));
 }
 
 // (Compatibilidade) — lembrete único antigo. Mantido para não quebrar nada.
@@ -162,7 +206,7 @@ export async function loadReminder(): Promise<ReminderConfig> {
   return raw ? JSON.parse(raw) : { enabled: false, hour: 9, minute: 0, notificationId: null };
 }
 export async function saveReminder(cfg: ReminderConfig) {
-  await AsyncStorage.setItem(k('reminder'), JSON.stringify(cfg));
+  await setUserItem('reminder', JSON.stringify(cfg));
 }
 
 // --- Contador de progresso (streak) --------------------------------------
@@ -172,22 +216,27 @@ export async function loadStreakStart(): Promise<string | null> {
   return AsyncStorage.getItem(k('streakStart'));
 }
 export async function saveStreakStart(iso: string) {
-  await AsyncStorage.setItem(k('streakStart'), iso);
+  await setUserItem('streakStart', iso);
 }
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent'];
 
+// Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
+// das alterações em "_meta", para a sincronização saber qual é a mais recente.
 export async function exportUserData(): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   for (const name of USER_KEY_NAMES) {
     const v = await AsyncStorage.getItem(k(name));
     if (v != null) out[name] = v;
   }
+  out._meta = JSON.stringify(await readMeta());
   return out;
 }
 
+// Restaura uma cópia de segurança escolhida pelo utilizador: substitui o local
+// e marca tudo como alterado agora (para seguir também para a cloud).
 export async function importUserData(data: Record<string, string>) {
   if (!data) return;
   const pairs: [string, string][] = [];
@@ -195,6 +244,42 @@ export async function importUserData(data: Record<string, string>) {
     if (data[name] != null) pairs.push([k(name), data[name]]);
   }
   if (pairs.length) await AsyncStorage.multiSet(pairs);
+  await touch(USER_KEY_NAMES.filter((n) => data[n] != null));
+}
+
+// Junta a cópia da cloud com a local, chave a chave: fica a alterada mais
+// recentemente. Dados antigos sem horas contam como "hora 0"; em empate fica o
+// local, se existir. Devolve true se o local tiver algo mais recente que a
+// cloud (e portanto convém enviar de volta).
+export async function mergeUserData(cloud: Record<string, string>): Promise<boolean> {
+  if (!cloud) return false;
+  await metaQueue;
+  let cloudMeta: SyncMeta = {};
+  try { cloudMeta = cloud._meta ? JSON.parse(cloud._meta) : {}; } catch {}
+  const localMeta = await readMeta();
+  const nextMeta: SyncMeta = { ...localMeta };
+  const toSet: [string, string][] = [];
+  const toRemove: string[] = [];
+  let localNewer = false;
+
+  for (const name of USER_KEY_NAMES) {
+    const localVal = await AsyncStorage.getItem(k(name));
+    const cloudVal = cloud[name] ?? null;
+    const lt = localMeta[name] ?? 0;
+    const ct = cloudMeta[name] ?? 0;
+    const takeCloud = ct > lt || (ct === lt && localVal == null);
+    if (takeCloud) {
+      if (cloudVal != null && cloudVal !== localVal) toSet.push([k(name), cloudVal]);
+      else if (cloudVal == null && localVal != null && ct > lt) toRemove.push(k(name));
+      if (ct) nextMeta[name] = ct;
+    } else if (lt > ct || (localVal != null && cloudVal !== localVal)) {
+      localNewer = true;
+    }
+  }
+  if (toSet.length) await AsyncStorage.multiSet(toSet);
+  if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+  await AsyncStorage.setItem(k(META), JSON.stringify(nextMeta));
+  return localNewer;
 }
 
 // --- Exercícios: exposição e reestruturação cognitiva --------------------
@@ -207,21 +292,21 @@ export async function loadExposureSteps(): Promise<ProfileItem[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExposureSteps(steps: ProfileItem[]) {
-  await AsyncStorage.setItem(k('exposureSteps'), JSON.stringify(steps));
+  await setUserItem('exposureSteps', JSON.stringify(steps));
 }
 export async function loadExposureSessions(): Promise<ExposureSession[]> {
   const raw = await AsyncStorage.getItem(k('exposureSessions'));
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExposureSessions(list: ExposureSession[]) {
-  await AsyncStorage.setItem(k('exposureSessions'), JSON.stringify(list));
+  await setUserItem('exposureSessions', JSON.stringify(list));
 }
 export async function loadThoughtRecords(): Promise<ThoughtRecord[]> {
   const raw = await AsyncStorage.getItem(k('thoughtRecords'));
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveThoughtRecords(list: ThoughtRecord[]) {
-  await AsyncStorage.setItem(k('thoughtRecords'), JSON.stringify(list));
+  await setUserItem('thoughtRecords', JSON.stringify(list));
 }
 
 // --- Experiências comportamentais (prever vs resultado) -------------------
@@ -235,7 +320,7 @@ export async function loadExperiments(): Promise<ExperimentEntry[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExperiments(list: ExperimentEntry[]) {
-  await AsyncStorage.setItem(k('experiments'), JSON.stringify(list));
+  await setUserItem('experiments', JSON.stringify(list));
 }
 
 // --- Comportamentos largados (progresso ERP) ------------------------------
@@ -245,7 +330,7 @@ export async function loadDropped(): Promise<DroppedBehavior[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveDropped(list: DroppedBehavior[]) {
-  await AsyncStorage.setItem(k('droppedBehaviors'), JSON.stringify(list));
+  await setUserItem('droppedBehaviors', JSON.stringify(list));
 }
 
 // --- Lembrete de afirmação diária -----------------------------------------
@@ -255,7 +340,7 @@ export async function loadAffirmationReminder(): Promise<AffirmationReminder> {
   return raw ? JSON.parse(raw) : { enabled: false, hour: 9, minute: 0, notificationId: null };
 }
 export async function saveAffirmationReminder(s: AffirmationReminder) {
-  await AsyncStorage.setItem(k('affirmationReminder'), JSON.stringify(s));
+  await setUserItem('affirmationReminder', JSON.stringify(s));
 }
 
 // --- Ordem das secções do painel inicial (personalização paga) ------------
@@ -264,7 +349,7 @@ export async function loadDashboardOrder(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveDashboardOrder(order: string[]) {
-  await AsyncStorage.setItem(k('dashboardOrder'), JSON.stringify(order));
+  await setUserItem('dashboardOrder', JSON.stringify(order));
 }
 
 // --- Ordem dos itens do ecrã Recursos -------------------------------------
@@ -273,7 +358,7 @@ export async function loadResourcesOrder(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveResourcesOrder(order: string[]) {
-  await AsyncStorage.setItem(k('resourcesOrder'), JSON.stringify(order));
+  await setUserItem('resourcesOrder', JSON.stringify(order));
 }
 
 // --- Resumo semanal (dispensado por semana) -------------------------------
@@ -282,7 +367,7 @@ export async function loadRecapDismissed(): Promise<string> {
   return raw ?? '';
 }
 export async function saveRecapDismissed(weekStart: string) {
-  await AsyncStorage.setItem(k('recapDismissed'), weekStart);
+  await setUserItem('recapDismissed', weekStart);
 }
 
 // --- Plano para dias difíceis (prevenção de recaída) ----------------------
@@ -292,7 +377,7 @@ export async function loadHardDayPlan(): Promise<HardDayPlan> {
   return raw ? JSON.parse(raw) : { signs: '', helps: '', reminders: '', contacts: '' };
 }
 export async function saveHardDayPlan(p: HardDayPlan) {
-  await AsyncStorage.setItem(k('hardDayPlan'), JSON.stringify(p));
+  await setUserItem('hardDayPlan', JSON.stringify(p));
 }
 
 // --- Desafios de incerteza concluídos (chaves `${data}:${id}`) ------------
@@ -301,7 +386,7 @@ export async function loadChallengesDone(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveChallengesDone(list: string[]) {
-  await AsyncStorage.setItem(k('challengesDone'), JSON.stringify(list));
+  await setUserItem('challengesDone', JSON.stringify(list));
 }
 
 // "Os meus desafios" de incerteza: escolhidos das sugestões (só o id, ex. "c3")
@@ -312,7 +397,7 @@ export async function loadCustomChallenges(): Promise<CustomChallenge[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveCustomChallenges(list: CustomChallenge[]) {
-  await AsyncStorage.setItem(k('customChallenges'), JSON.stringify(list));
+  await setUserItem('customChallenges', JSON.stringify(list));
 }
 
 export async function loadExposureOrder(): Promise<string[]> {
@@ -320,7 +405,7 @@ export async function loadExposureOrder(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExposureOrder(order: string[]) {
-  await AsyncStorage.setItem(k('exposureOrder'), JSON.stringify(order));
+  await setUserItem('exposureOrder', JSON.stringify(order));
 }
 
 export async function loadExposureHidden(): Promise<string[]> {
@@ -328,7 +413,7 @@ export async function loadExposureHidden(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExposureHidden(ids: string[]) {
-  await AsyncStorage.setItem(k('exposureHidden'), JSON.stringify(ids));
+  await setUserItem('exposureHidden', JSON.stringify(ids));
 }
 
 export type MemorySession = { id: string; date: string; ts: string; before: number; after: number; note: string };
@@ -338,7 +423,7 @@ export async function loadMemorySessions(): Promise<MemorySession[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveMemorySessions(list: MemorySession[]) {
-  await AsyncStorage.setItem(k('memorySessions'), JSON.stringify(list));
+  await setUserItem('memorySessions', JSON.stringify(list));
 }
 
 // --- Comportamentos de segurança & exposição não planeada -----------------
@@ -361,14 +446,14 @@ export async function loadSafety(): Promise<SafetyItem[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveSafety(list: SafetyItem[]) {
-  await AsyncStorage.setItem(k('safetyBehaviors'), JSON.stringify(list));
+  await setUserItem('safetyBehaviors', JSON.stringify(list));
 }
 export async function loadUnplanned(): Promise<UnplannedLog[]> {
   const raw = await AsyncStorage.getItem(k('unplannedLogs'));
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveUnplanned(list: UnplannedLog[]) {
-  await AsyncStorage.setItem(k('unplannedLogs'), JSON.stringify(list));
+  await setUserItem('unplannedLogs', JSON.stringify(list));
 }
 
 // --- Perfil ---------------------------------------------------------------
@@ -392,7 +477,7 @@ export async function loadProfile(): Promise<ProfileData> {
   return raw ? { ...def, ...JSON.parse(raw) } : def;
 }
 export async function saveProfile(p: ProfileData) {
-  await AsyncStorage.setItem(k('profile'), JSON.stringify(p));
+  await setUserItem('profile', JSON.stringify(p));
 }
 
 // --- Sons personalizados do utilizador ------------------------------------
@@ -404,7 +489,7 @@ export async function loadUserSounds(): Promise<UserSound[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveUserSounds(list: UserSound[]) {
-  await AsyncStorage.setItem(k('userSounds'), JSON.stringify(list));
+  await setUserItem('userSounds', JSON.stringify(list));
 }
 
 // --- "Alimentar o medo" (comportamentos a trabalhar) ----------------------
@@ -413,7 +498,7 @@ export async function loadFeeding(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveFeeding(ids: string[]) {
-  await AsyncStorage.setItem(k('feeding'), JSON.stringify(ids));
+  await setUserItem('feeding', JSON.stringify(ids));
 }
 
 // --- Dias de terapia exposta (streak manual) ------------------------------
@@ -422,7 +507,7 @@ export async function loadExposureDays(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveExposureDays(dates: string[]) {
-  await AsyncStorage.setItem(k('exposureDays'), JSON.stringify(dates));
+  await setUserItem('exposureDays', JSON.stringify(dates));
 }
 
 // --- Conquistas marcadas manualmente --------------------------------------
@@ -431,7 +516,7 @@ export async function loadManualAchievements(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveManualAchievements(ids: string[]) {
-  await AsyncStorage.setItem(k('manualAchievements'), JSON.stringify(ids));
+  await setUserItem('manualAchievements', JSON.stringify(ids));
 }
 
 // --- Aceitação e valores (ACT) -------------------------------------------
@@ -441,7 +526,7 @@ export async function loadActValues(): Promise<ActValues> {
   return raw ? JSON.parse(raw) : { values: '', reflection: '' };
 }
 export async function saveActValues(v: ActValues) {
-  await AsyncStorage.setItem(k('actValues'), JSON.stringify(v));
+  await setUserItem('actValues', JSON.stringify(v));
 }
 
 // key = compromisso predefinido (rótulo vem do catálogo, bilingue);
@@ -452,7 +537,7 @@ export async function loadActCommitments(): Promise<ActCommitment[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function saveActCommitments(list: ActCommitment[]) {
-  await AsyncStorage.setItem(k('actCommitments'), JSON.stringify(list));
+  await setUserItem('actCommitments', JSON.stringify(list));
 }
 
 // --- Preferência do círculo de pilares (diário / semanal / mensal) --------
@@ -464,7 +549,7 @@ export async function loadRingMode(): Promise<RingMode> {
   return 'daily'; // por omissão
 }
 export async function saveRingMode(m: RingMode) {
-  await AsyncStorage.setItem(k('ringMode'), m);
+  await setUserItem('ringMode', m);
 }
 
 // --- Plano de prevenção de recaída ----------------------------------------
@@ -474,7 +559,7 @@ export async function loadRelapsePlan(): Promise<RelapsePlan> {
   return raw ? JSON.parse(raw) : { learned: '', warningSigns: '', ifItReturns: '' };
 }
 export async function saveRelapsePlan(p: RelapsePlan) {
-  await AsyncStorage.setItem(k('relapsePlan'), JSON.stringify(p));
+  await setUserItem('relapsePlan', JSON.stringify(p));
 }
 
 // --- Walkthrough de abertura (mostra-se uma vez após o onboarding) ---------
@@ -482,7 +567,7 @@ export async function loadWalkthroughSeen(): Promise<boolean> {
   return (await AsyncStorage.getItem(k('walkthroughSeen'))) === '1';
 }
 export async function saveWalkthroughSeen() {
-  await AsyncStorage.setItem(k('walkthroughSeen'), '1');
+  await setUserItem('walkthroughSeen', '1');
 }
 
 // --- Próximo passo (escolhido pelo utilizador) ----------------------------
@@ -491,29 +576,29 @@ export async function loadNextStep(): Promise<string> {
   return raw ?? '';
 }
 export async function saveNextStep(s: string) {
-  await AsyncStorage.setItem(k('nextStep'), s);
+  await setUserItem('nextStep', s);
 }
 
 // --- Registo genérico de sessões de exercícios (para o contador/pilares) ---
 // Cada vez que o utilizador marca uma sessão de um exercício, fica aqui um
 // registo datado. Permite marcar MAIS do que uma sessão por dia.
-export type ExerciseLogEntry = { type: string; date: string; ts: string };
+export type ExerciseLogEntry = { type: string; date: string; ts: string; detail?: string }; // detail: ex. pontuação
 export async function loadExerciseLog(): Promise<ExerciseLogEntry[]> {
   const raw = await AsyncStorage.getItem(k('exerciseLog'));
   return raw ? JSON.parse(raw) : [];
 }
-export async function appendExerciseLog(type: string): Promise<ExerciseLogEntry[]> {
+export async function appendExerciseLog(type: string, detail?: string): Promise<ExerciseLogEntry[]> {
   const list = await loadExerciseLog();
   const now = new Date();
-  const next = [...list, { type, date: isoLocal(now), ts: now.toISOString() }];
-  await AsyncStorage.setItem(k('exerciseLog'), JSON.stringify(next));
+  const next: ExerciseLogEntry[] = [...list, { type, date: isoLocal(now), ts: now.toISOString(), ...(detail ? { detail } : {}) }];
+  await setUserItem('exerciseLog', JSON.stringify(next));
   return next;
 }
 export async function removeLastExerciseLog(type: string): Promise<ExerciseLogEntry[]> {
   const list = await loadExerciseLog();
   const idx = [...list].reverse().findIndex((e) => e.type === type);
   if (idx >= 0) list.splice(list.length - 1 - idx, 1);
-  await AsyncStorage.setItem(k('exerciseLog'), JSON.stringify(list));
+  await setUserItem('exerciseLog', JSON.stringify(list));
   return list;
 }
 
@@ -523,7 +608,7 @@ export async function loadPlanEnabled(): Promise<boolean> {
   return raw === '1'; // por omissão: desligado
 }
 export async function savePlanEnabled(on: boolean) {
-  await AsyncStorage.setItem(k('planEnabled'), on ? '1' : '0');
+  await setUserItem('planEnabled', on ? '1' : '0');
 }
 
 // Tarefas do plano, escolhidas pelo utilizador. Uma tarefa predefinida guarda só
@@ -534,5 +619,22 @@ export async function loadPlanTasks(): Promise<PlanTask[]> {
   return raw ? JSON.parse(raw) : [];
 }
 export async function savePlanTasks(list: PlanTask[]) {
-  await AsyncStorage.setItem(k('planTasks'), JSON.stringify(list));
+  await setUserItem('planTasks', JSON.stringify(list));
+}
+
+// --- Consentimento explícito para dados de saúde (RGPD, art. 9.º) ----------
+// Guardado com a versão do texto aceite; se o texto mudar de forma relevante,
+// sobe-se CONSENT_VERSION e o ecrã volta a aparecer.
+export const CONSENT_VERSION = 1;
+export type HealthConsent = { version: number; acceptedAt: string };
+export async function loadHealthConsent(): Promise<HealthConsent | null> {
+  try {
+    const raw = await AsyncStorage.getItem(k('healthConsent'));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+export async function saveHealthConsent(c: HealthConsent) {
+  await setUserItem('healthConsent', JSON.stringify(c));
 }

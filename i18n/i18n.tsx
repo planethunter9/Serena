@@ -267,7 +267,7 @@ const TR = {
     'games.wordsDesc': 'Lê palavras e frases temidas, ao teu ritmo.',
     'games.myth': 'Verdade ou mito',
     'games.mythDesc': 'Põe à prova as crenças sobre vomitar e adoecer.',
-    'word.intro': 'Lê cada palavra com calma. Passa quando estiveres pronto.',
+    'word.intro': 'Lê cada palavra com calma. Passa à seguinte quando quiseres.',
     'word.next': 'Próxima',
     'word.done': 'Muito bem!',
     'word.restart': 'Recomeçar',

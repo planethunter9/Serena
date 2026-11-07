@@ -2,12 +2,13 @@
 // segurança", alternados por um segmented control no topo.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { DroppedBehavior, isoLocal, loadDropped, loadFeeding, loadSafety, SafetyItem, saveDropped, saveFeeding, saveSafety } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -16,6 +17,7 @@ import { Card, TopBackBar } from './ui';
 // ---------- Comportamentos de segurança ----------
 function SafetyBody() {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const { t, lang } = useLang();
   const [stored, setStored] = useState<SafetyItem[]>([]);
   const [droppedLog, setDroppedLog] = useState<DroppedBehavior[]>([]);
@@ -43,7 +45,7 @@ function SafetyBody() {
 
   const catalogRows = SAFETY_BEHAVIORS.map((b) => {
     const s = stored.find((x) => x.id === b.id);
-    return { id: b.id, label: b.label[lang], doing: s?.doing ?? false, dropping: s?.dropping ?? false, custom: false };
+    return { id: b.id, label: pick(b.label, lang), doing: s?.doing ?? false, dropping: s?.dropping ?? false, custom: false };
   });
   const customRows = stored
     .filter((s) => s.id.startsWith('custom:'))
@@ -119,14 +121,14 @@ function SafetyBody() {
       {rows.map((r) => (
         <Card key={r.id} style={{ gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Pressable onPress={() => toggleDoing(r.id, r.label, r.doing)} hitSlop={6}>
+            <Pressable onPress={() => toggleDoing(r.id, r.label, r.doing)} hitSlop={6} accessibilityRole="checkbox" accessibilityState={{ checked: r.doing }} accessibilityLabel={r.label}>
               <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: r.doing ? colors.primary : colors.border, backgroundColor: r.doing ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                 {r.doing && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
               </View>
             </Pressable>
             <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{r.label}</Text>
             {r.custom && (
-              <Pressable onPress={() => removeCustom(r.id)} hitSlop={6} style={{ padding: 2 }}>
+              <Pressable onPress={() => removeCustom(r.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${a11y.delete}: ${r.label}`} style={{ padding: 2 }}>
                 <Ionicons name="trash-outline" size={18} color={colors.danger} />
               </Pressable>
             )}
@@ -175,7 +177,7 @@ function FeedingBody() {
             <View style={{ width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="flame-outline" size={20} color={colors.primary} />
             </View>
-            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{b.label[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{pick(b.label, lang)}</Text>
             {isWorking && <Ionicons name="checkmark-circle" size={18} color={colors.success} />}
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </Pressable>

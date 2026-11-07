@@ -3,7 +3,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
@@ -21,7 +21,7 @@ const LINES: Line[] = [
 export default function CrisisLinesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -29,7 +29,7 @@ export default function CrisisLinesScreen({ onBack }: { onBack: () => void }) {
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 40 }}>
         <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
           {tt({
-            pt: 'Se estás em sofrimento intenso ou em crise, não tens de passar por isto sozinha. Fala com alguém agora — tocar num contacto liga diretamente.',
+            pt: 'Se estás em sofrimento intenso ou em crise, não tens de passar por isto sem ninguém. Fala com alguém agora — tocar num contacto liga diretamente.',
             en: 'If you are in intense distress or crisis, you do not have to go through this alone. Talk to someone now — tapping a contact calls directly.',
           })}
         </Text>

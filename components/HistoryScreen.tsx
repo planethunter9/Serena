@@ -75,6 +75,9 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
     practice: L('Outros exercícios', 'Other exercises'),
   }[k]);
 
+  const practiceName = (type: string) =>
+    type === 'words' ? t('games.words') : type === 'myth' ? t('games.myth') : type;
+
   useEffect(() => {
     (async () => {
       const [exp, th, xp, mem, unp, chDone, chMine, act, log] = await Promise.all([
@@ -159,9 +162,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
         const label = c.key ? (COMMITMENTS.find((x) => x.key === c.key)?.label ? lx(COMMITMENTS.find((x) => x.key === c.key)!.label) : c.label ?? '') : (c.label ?? '');
         (c.logs ?? []).forEach((d, i) => push({ id: `act:${c.id}:${i}`, kind: 'acceptance', ts: noon(d), date: d, title: label, details: [] }));
       }
-      const practiceName = (type: string) =>
-        type === 'words' ? t('games.words') : type === 'myth' ? t('games.myth') : type;
-      arr(log).forEach((e, i) => push({ id: `log:${i}`, kind: 'practice', sub: e.type, ts: e.ts || noon(e.date), date: e.date, title: practiceName(e.type), details: [] }));
+      arr(log).forEach((e, i) => push({ id: `log:${i}`, kind: 'practice', sub: e.type, ts: e.ts || noon(e.date), date: e.date, title: practiceName(e.type), summary: e.detail, details: [] }));
 
       out.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
       setItems(out);
@@ -191,7 +192,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
               <Ionicons name={KIND_ICON[kind]} size={18} color={colors.primary} />
             </View>
             <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', flex: 1 }}>
-              {subType ? (shown[0]?.title ?? kindLabel(kind)) : kindLabel(kind)}
+              {subType ? practiceName(subType) : kindLabel(kind)}
             </Text>
             {items && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{shown.length}</Text>}
           </View>

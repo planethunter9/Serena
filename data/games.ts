@@ -15,7 +15,7 @@ export const FEAR_WORDS: L[] = [
   { pt: 'golfar', en: 'throw up' },
   { pt: 'estômago embrulhado', en: 'churning stomach' },
   { pt: 'intoxicação alimentar', en: 'food poisoning' },
-  { pt: 'Sinto-me um bocado enjoado.', en: 'I feel a bit queasy.' },
+  { pt: 'Sinto um bocado de enjoo.', en: 'I feel a bit queasy.' },
   { pt: 'Acho que alguém ali vomitou.', en: 'I think someone was sick over there.' },
   { pt: 'Se calhar comi algo que me caiu mal.', en: 'Maybe I ate something that upset my stomach.' },
   { pt: 'A minha barriga está embrulhada, mas eu estou bem.', en: 'My stomach is churning, but I am okay.' },
@@ -82,7 +82,7 @@ export const MYTHS: { text: L; isMyth: boolean; explanation: L }[] = [
     explanation: { pt: 'Verdade: a sensibilidade ao nojo é um dos melhores indicadores da intensidade da fobia.', en: 'True: disgust sensitivity is one of the best predictors of how intense the phobia is.' },
   },
   {
-    text: { pt: 'Verificar validades e cheirar a comida mantém-me mesmo segura.', en: 'Checking expiry dates and smelling food really keeps me safe.' },
+    text: { pt: 'Verificar validades e cheirar a comida mantém-me mesmo em segurança.', en: 'Checking expiry dates and smelling food really keeps me safe.' },
     isMyth: true,
     explanation: { pt: 'Dá certeza por instantes, mas alimenta a necessidade de controlo total — um comportamento de segurança.', en: 'It gives certainty for a moment, but feeds the need for total control — a safety behavior.' },
   },

@@ -2,6 +2,7 @@
 // (ficheiros que o utilizador adiciona do telemóvel).
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -15,6 +16,7 @@ import { TopBackBar } from './ui';
 
 export default function SoundsScreen({ onBack, category }: { onBack: () => void; category: 'calm' | 'sleep' }) {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const { t } = useLang();
 
   // Sons de origem (empacotados com a app).
@@ -47,9 +49,12 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
   ];
   const builtin = [...calm, ...sleepSounds];
 
+  // Os leitores do expo-audio configuram-se por atribuição (API da biblioteca).
+  // eslint-disable-next-line react-hooks/immutability
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     for (const s of builtin) s.player.loop = true;
+    // eslint-disable-next-line react-hooks/immutability -- API do expo-audio
     userPlayer.loop = true;
     loadUserSounds().then(setUserSounds);
   }, []);
@@ -78,6 +83,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
     } else {
       // Aponta o leitor partilhado para o ficheiro do utilizador.
       userPlayer.replace({ uri: snd.uri });
+      // eslint-disable-next-line react-hooks/immutability -- API do expo-audio
       userPlayer.loop = true;
       userPlayer.play();
       setActive(snd.id);
@@ -132,7 +138,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
         </View>
         <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700', flex: 1 }}>{name}</Text>
         {onDelete && (
-          <Pressable onPress={onDelete} hitSlop={8} style={{ padding: 4 }}>
+          <Pressable onPress={onDelete} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.delete} style={{ padding: 4 }}>
             <Ionicons name="trash-outline" size={20} color={colors.danger} />
           </Pressable>
         )}

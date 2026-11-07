@@ -22,6 +22,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     if (!user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset ao terminar sessão
       setData(null);
       setLoading(false);
       return;

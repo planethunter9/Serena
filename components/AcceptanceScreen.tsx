@@ -14,8 +14,7 @@ import {
   saveActCommitments,
   saveActValues,
 } from '../storage/storage';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, PrimaryButton } from './ui';
@@ -49,7 +48,7 @@ const URGENCY_STEPS: L[] = [
 ];
 
 export const COMMITMENTS: { key: string; label: L }[] = [
-  { key: 'eatNauseous', label: { pt: 'Comer mesmo enjoada (ansiedade ou doença)', en: 'Eat even when nauseous (anxiety or illness)' } },
+  { key: 'eatNauseous', label: { pt: 'Comer mesmo com enjoo (ansiedade ou doença)', en: 'Eat even when nauseous (anxiety or illness)' } },
   { key: 'keepPlans', label: { pt: 'Fazer o que planeei, mesmo sem me sentir bem', en: 'Do what I planned, even when I feel off' } },
   { key: 'approach', label: { pt: 'Ir atrás do que costumo evitar', en: 'Go toward what I usually avoid' } },
   { key: 'scaryFood', label: { pt: 'Comer comidas "assustadoras"', en: 'Eat "scary" foods' } },
@@ -138,7 +137,7 @@ export default function AcceptanceView() {
   }
 
   const label = (it: ActCommitment) =>
-    it.key ? (COMMITMENTS.find((c) => c.key === it.key)?.label[lang] ?? it.label ?? '') : (it.label ?? '');
+    it.key ? (pick(COMMITMENTS.find((c) => c.key === it.key)?.label, lang) || it.label || '') : (it.label ?? '');
 
   const textInput = {
     minHeight: 70, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt,
@@ -166,8 +165,8 @@ export default function AcceptanceView() {
                 <View key={i} style={{ width: cardW }}>
                   <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 6, minHeight: 150 }}>
                     <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{L('PRINCÍPIO', 'PRINCIPLE')} {i + 1}/{PRINCIPLES.length}</Text>
-                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{p.title[lang]}</Text>
-                    <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{p.body[lang]}</Text>
+                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{pick(p.title, lang)}</Text>
+                    <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{pick(p.body, lang)}</Text>
                   </View>
                 </View>
               ))}
@@ -187,7 +186,7 @@ export default function AcceptanceView() {
             {URGENCY_STEPS.map((s, i) => (
               <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
                 <Text style={{ color: colors.primary }}>•</Text>
-                <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{s[lang]}</Text>
+                <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{pick(s, lang)}</Text>
               </View>
             ))}
           </View>
@@ -201,8 +200,8 @@ export default function AcceptanceView() {
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {VALUE_SUGGESTIONS.map((s) => (
-              <Pressable key={s.pt} onPress={() => addValueChip(s[lang])} style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.cardAlt }}>
-                <Text style={{ color: colors.text, fontSize: 13 }}>{s[lang]}</Text>
+              <Pressable key={s.pt} onPress={() => addValueChip(pick(s, lang))} style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.cardAlt }}>
+                <Text style={{ color: colors.text, fontSize: 13 }}>{pick(s, lang)}</Text>
               </Pressable>
             ))}
           </View>

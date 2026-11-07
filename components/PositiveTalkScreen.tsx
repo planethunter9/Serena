@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 import { PrimaryButton, TopBackBar } from './ui';
@@ -23,7 +23,7 @@ export default function PositiveTalkScreen({ onBack }: { onBack: () => void }) {
       <View style={{ flex: 1, padding: spacing.xl, justifyContent: 'space-between' }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: colors.text, fontSize: 26, fontWeight: '700', textAlign: 'center', lineHeight: 38 }}>
-            “{AFFIRMATIONS[i][lang]}”
+            “{pick(AFFIRMATIONS[i], lang)}”
           </Text>
         </View>
         <PrimaryButton label={t('tech.another')} onPress={another} />

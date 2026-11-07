@@ -2,7 +2,7 @@
 
 import { ScrollView, View } from 'react-native';
 import { COPING_OPTIONS, LOSS_OPTIONS, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
@@ -30,7 +30,7 @@ export default function ChoicesScreen({
 
   // Converte um catálogo bilingue para { id, label } no idioma atual.
   const cat = (options: { id: string; label: { pt: string; en: string } }[]) =>
-    options.map((o) => ({ id: o.id, label: o.label[lang] }));
+    options.map((o) => ({ id: o.id, label: pick(o.label, lang) }));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

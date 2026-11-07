@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { loadSafety, SafetyItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -44,10 +44,25 @@ const MOMENT: L[] = [
   { pt: 'Não corras a "resolver" — deixa a onda subir e descer.', en: 'Do not rush to "fix" it — let the wave rise and fall.' },
 ];
 
+function Bullets({ items, color }: { items: L[]; color: string }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  return (
+    <View style={{ gap: 8 }}>
+      {items.map((it, i) => (
+        <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+          <Text style={{ color }} importantForAccessibility="no" accessibilityElementsHidden>•</Text>
+          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{pick(it, lang)}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function CompanionScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [dropping, setDropping] = useState<string[]>([]);
 
@@ -55,7 +70,7 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
     loadSafety().then((stored: SafetyItem[]) => {
       const labels = stored
         .filter((s) => s.dropping)
-        .map((s) => SAFETY_BEHAVIORS.find((b) => b.id === s.id)?.label[lang] ?? s.label);
+        .map((s) => pick(SAFETY_BEHAVIORS.find((b) => b.id === s.id)?.label, lang) || s.label);
       setDropping(labels);
     });
   }, [lang]);
@@ -85,17 +100,6 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
   function share() {
     Share.share({ message: buildText() }).catch(() => {});
   }
-
-  const Bullets = ({ items, color }: { items: L[]; color: string }) => (
-    <View style={{ gap: 8 }}>
-      {items.map((it, i) => (
-        <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
-          <Text style={{ color }}>•</Text>
-          <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{tt(it)}</Text>
-        </View>
-      ))}
-    </View>
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

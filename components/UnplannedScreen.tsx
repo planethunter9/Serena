@@ -62,7 +62,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
       {Array.from({ length: 11 }, (_, v) => {
         const active = value === v;
         return (
-          <Pressable key={v} onPress={() => onChange(v)} style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
             <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
           </Pressable>
         );
@@ -74,7 +74,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const { colors } = useTheme();
   return (
-    <Pressable onPress={onPress} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 2, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySoft : colors.cardAlt, maxWidth: '100%' }}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 2, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySoft : colors.cardAlt, maxWidth: '100%' }}>
       <Text style={{ color: active ? colors.primary : colors.text, fontSize: 13, fontWeight: active ? '700' : '500' }}>{label}</Text>
     </Pressable>
   );
@@ -269,7 +269,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
         </Card>
 
         <Card style={{ gap: 10 }}>
-          <Pressable onPress={() => setStayed((v) => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Pressable onPress={() => setStayed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: stayed ? colors.primary : colors.border, backgroundColor: stayed ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
               {stayed && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
             </View>

@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, PrimaryButton, TopBackBar } from './ui';
@@ -30,7 +30,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
       {Array.from({ length: 11 }, (_, v) => {
         const active = value === v;
         return (
-          <Pressable key={v} onPress={() => onChange(v)} style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
             <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
           </Pressable>
         );
@@ -42,7 +42,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
 export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [step, setStep] = useState<Step>('intro');
   const [before, setBefore] = useState<number | null>(null);
@@ -50,7 +50,7 @@ export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
   const [left, setLeft] = useState(RIDE_SECONDS);
   const [promptIdx, setPromptIdx] = useState(0);
 
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = useState(() => new Animated.Value(1));
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const promptTimer = useRef<ReturnType<typeof setInterval> | null>(null);

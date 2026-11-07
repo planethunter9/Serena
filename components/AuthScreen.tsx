@@ -6,8 +6,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthContext';
 import { APP_NAME } from '../data/content';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import PrivacyScreen from './PrivacyScreen';
@@ -27,6 +26,27 @@ function pwScore(pw: string): number {
   if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
   if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s <= 1 ? 0 : s <= 3 ? 1 : 2;
+}
+
+function PasswordMeter({ pw }: { pw: string }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const L = (pt: string, en: string) => tr2(lang, pt, en);
+  const lvl = pwScore(pw);
+  if (lvl < 0) return null;
+  const labels = [L('Fraca', 'Weak'), L('Média', 'Medium'), L('Forte', 'Strong')];
+  const barColors = [colors.danger, '#f59e0b', colors.success];
+  const c = barColors[lvl];
+  return (
+    <View style={{ gap: 6, marginTop: 2 }} accessible accessibilityRole="text" accessibilityLabel={`${L('Força da palavra-passe', 'Password strength')}: ${labels[lvl]}`}>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: i <= lvl ? c : colors.border }} />
+        ))}
+      </View>
+      <Text style={{ color: c, fontSize: 12, fontWeight: '600' }}>{labels[lvl]}</Text>
+    </View>
+  );
 }
 
 export default function AuthScreen() {
@@ -119,24 +139,6 @@ export default function AuthScreen() {
   };
 
   // Medidor de força da palavra-passe (só aparece com texto escrito).
-  const PasswordMeter = ({ pw }: { pw: string }) => {
-    const lvl = pwScore(pw);
-    if (lvl < 0) return null;
-    const labels = [L('Fraca', 'Weak'), L('Média', 'Medium'), L('Forte', 'Strong')];
-    const barColors = [colors.danger, '#f59e0b', colors.success];
-    const c = barColors[lvl];
-    return (
-      <View style={{ gap: 6, marginTop: 2 }} accessibilityRole="text" accessibilityLabel={`${L('Força da palavra-passe', 'Password strength')}: ${labels[lvl]}`}>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: i <= lvl ? c : colors.border }} />
-          ))}
-        </View>
-        <Text style={{ color: c, fontSize: 12, fontWeight: '600' }}>{labels[lvl]}</Text>
-      </View>
-    );
-  };
-
   if (showPolicy) {
     return <PrivacyScreen onBack={() => setShowPolicy(false)} />;
   }
@@ -198,7 +200,7 @@ export default function AuthScreen() {
             )}
 
             {isSignup && (
-              <Pressable onPress={() => setConsent((c) => !c)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: spacing.sm }}>
+              <Pressable onPress={() => setConsent((c) => !c)} accessibilityRole="checkbox" accessibilityState={{ checked: consent }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: spacing.sm }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: consent ? colors.primary : colors.border, backgroundColor: consent ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                   {consent && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
                 </View>

@@ -4,13 +4,36 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COPING_OPTIONS, LOSS_OPTIONS, PHOBIA, RECOVER_OPTIONS, SUBTYPE_OPTIONS, SYMPTOM_OPTIONS, TRIGGERS_OPTIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { OptionRow, PrimaryButton } from './ui';
 
 const TOTAL_STEPS = 7;
+
+// Campo "acrescentar o meu" — fora do componente principal para o teclado não
+// fechar a cada letra (um componente definido dentro de outro é recriado).
+function CustomInput({ value, onChange, onAdd }: { value: string; onChange: (v: string) => void; onAdd: () => void }) {
+  const { colors } = useTheme();
+  const { t } = useLang();
+  return (
+    <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        onSubmitEditing={onAdd}
+        placeholder={t('onb.customPlaceholder')}
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel={t('onb.customPlaceholder')}
+        style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 16 }}
+      />
+      <Pressable onPress={onAdd} accessibilityRole="button" style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 16 }}>{t('common.add')}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function Onboarding({ onComplete }: { onComplete: (data: OnboardingData) => void }) {
   const { colors } = useTheme();
@@ -62,12 +85,12 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
     setText('');
   }
 
-  const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSubtypes];
-  const allLosses = [...LOSS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customLosses];
-  const allRecover = [...RECOVER_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customRecover];
-  const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customSymptoms];
-  const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customCoping];
-  const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: o.label[lang] })), ...customTriggers];
+  const allSubtypes = [...SUBTYPE_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customSubtypes];
+  const allLosses = [...LOSS_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customLosses];
+  const allRecover = [...RECOVER_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customRecover];
+  const allSymptoms = [...SYMPTOM_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customSymptoms];
+  const allCoping = [...COPING_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customCoping];
+  const allTriggers = [...TRIGGERS_OPTIONS.map((o) => ({ id: o.id, label: pick(o.label, lang) })), ...customTriggers];
 
   const canProceed =
     step === 0 ? true
@@ -82,7 +105,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   function itemsFrom(selected: string[], catalog: { id: string; label: L2 }[], customs: { id: string; label: string }[]) {
     return selected.map((id) => {
       const cat = catalog.find((o) => o.id === id);
-      if (cat) return { id, label: cat.label[lang] };
+      if (cat) return { id, label: pick(cat.label, lang) };
       const c = customs.find((x) => x.id === id);
       return { id, label: c ? c.label : id };
     });
@@ -112,24 +135,6 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
   const buttonLabel = step === 0 ? t('common.start') : step === TOTAL_STEPS - 1 ? t('common.finish') : t('common.continue');
 
-  function CustomInput({ value, onChange, onAdd }: { value: string; onChange: (v: string) => void; onAdd: () => void }) {
-    return (
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          onSubmitEditing={onAdd}
-          placeholder={t('onb.customPlaceholder')}
-          placeholderTextColor={colors.textMuted}
-          style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 16 }}
-        />
-        <Pressable onPress={onAdd} style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 16 }}>{t('common.add')}</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md, gap: spacing.md }}>
@@ -151,7 +156,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
             <Text style={{ color: colors.textMuted, fontSize: 17 }}>{t('onb.welcomeEyebrow')}</Text>
             <Text style={{ color: colors.text, fontSize: 34, fontWeight: '800', lineHeight: 40 }}>
               {t('onb.welcomeTitle')}{'\n'}
-              <Text style={{ color: colors.primary }}>{PHOBIA.name[lang]}</Text>
+              <Text style={{ color: colors.primary }}>{pick(PHOBIA.name, lang)}</Text>
             </Text>
             <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 23 }}>{t('onb.welcomeSubtitle')}</Text>
           </View>
@@ -171,7 +176,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         )}
 
         {step === 2 && (
-          <StepList title={t('onb.q1Title', { phobia: PHOBIA.name[lang] })} subtitle={t('onb.q1Subtitle')}>
+          <StepList title={t('onb.q1Title', { phobia: pick(PHOBIA.name, lang) })} subtitle={t('onb.q1Subtitle')}>
             {allLosses.map((o) => (
               <OptionRow key={o.id} label={o.label} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} />
             ))}

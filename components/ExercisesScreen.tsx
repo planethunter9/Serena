@@ -2,6 +2,7 @@
 // Baseado em técnicas usadas por profissionais (CBT/ERP).
 
 import { Ionicons } from '@expo/vector-icons';
+import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -9,8 +10,7 @@ import { useRouter } from 'expo-router';
 import { SUBTYPE_OPTIONS } from '../data/content';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import { LADDER_TEMPLATES } from '../data/ladderTemplates';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
   appendExerciseLog,
   ExerciseLogEntry,
@@ -140,6 +140,8 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
           <Pressable
             key={v}
             onPress={() => onChange(v)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}
           >
             <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
@@ -186,10 +188,9 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   // Importa os degraus de um modelo para a escada (sem duplicar os que já existem).
   function importSteps(stepsL: L[]) {
     const existing = new Set(base.map((s) => s.label.trim().toLowerCase()));
-    const toAdd = stepsL.map((s) => s[lang]).filter((label) => !existing.has(label.trim().toLowerCase()));
+    const toAdd = stepsL.map((s) => pick(s, lang)).filter((label) => !existing.has(label.trim().toLowerCase()));
     if (toAdd.length) {
-      const now = Date.now();
-      const added = toAdd.map((label, i) => ({ id: 'custom:' + (now + i), label }));
+      const added = toAdd.map((label) => ({ id: newId('custom:'), label }));
       const nextCustom = [...custom, ...added];
       setCustom(nextCustom);
       saveExposureSteps(nextCustom);
@@ -220,7 +221,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   // Todos os degraus (predefinidos + personalizados), sem os removidos, reordenados segundo `order`.
   const hiddenSet = new Set(hidden);
   const base: Step[] = [
-    ...EXPOSURE_LADDER.map((s) => ({ id: s.id, label: s.label[lang] })),
+    ...EXPOSURE_LADDER.map((s) => ({ id: s.id, label: pick(s.label, lang) })),
     ...custom.map((c) => ({ id: c.id, label: c.label })),
   ].filter((s) => !hiddenSet.has(s.id));
   const byId = new Map(base.map((s) => [s.id, s]));
@@ -231,7 +232,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   function addStep() {
     const v = newStep.trim();
     if (!v) return;
-    const id = 'custom:' + Date.now();
+    const id = newId('custom:');
     const nextCustom = [...custom, { id, label: v }];
     setCustom(nextCustom);
     saveExposureSteps(nextCustom);
@@ -354,7 +355,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
             : 'Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.'}
         </Text>
         {templates.map((tpl) => {
-          const label = SUBTYPE_OPTIONS.find((o) => o.id === tpl.subtypeId)?.label[lang] ?? tpl.subtypeId;
+          const label = pick(SUBTYPE_OPTIONS.find((o) => o.id === tpl.subtypeId)?.label, lang) || tpl.subtypeId;
           const mine = subtypeIds.includes(tpl.subtypeId);
           const open = openTpl === tpl.subtypeId;
           return (
@@ -371,7 +372,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
                   {tpl.steps.map((s: L, i: number) => (
                     <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
                       <Text style={{ color: colors.textMuted, fontSize: 13 }}>{i + 1}.</Text>
-                      <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{s[lang]}</Text>
+                      <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{pick(s, lang)}</Text>
                     </View>
                   ))}
                   <PrimaryButton label={tr2(lang, 'Adicionar estes degraus', 'Add these steps')} onPress={() => importSteps(tpl.steps)} />
@@ -418,7 +419,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
             <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>{i + 1}</Text>
             </View>
-            <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{ph[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{pick(ph, lang)}</Text>
           </View>
         ))}
       </Collapsible>
@@ -430,11 +431,11 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
             <View key={gi} style={{ gap: 6 }}>
               <Pressable onPress={() => setOpenPhrase(open ? null : gi)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 }}>
                 <Ionicons name={open ? 'remove' : 'add'} size={16} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '600', flex: 1 }}>{g.title[lang]}</Text>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '600', flex: 1 }}>{pick(g.title, lang)}</Text>
               </Pressable>
               {open && g.phrases.map((ph, pi) => (
                 <View key={pi} style={{ backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: 10, marginLeft: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>“{ph[lang]}”</Text>
+                  <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>“{pick(ph, lang)}”</Text>
                 </View>
               ))}
             </View>
@@ -446,7 +447,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
         {EXPOSURE_REMINDERS.map((r, i) => (
           <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
             <Text style={{ color: colors.danger }}>•</Text>
-            <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 }}>{r[lang]}</Text>
+            <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 }}>{pick(r, lang)}</Text>
           </View>
         ))}
       </Collapsible>
@@ -587,7 +588,7 @@ export function ThoughtView() {
     </View>
   );
 
-  const trapLabel = (id: string) => THOUGHT_TRAPS.find((x) => x.pt === id)?.[lang] ?? id;
+  const trapLabel = (id: string) => pick(THOUGHT_TRAPS.find((x) => x.pt === id), lang) || id;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -617,7 +618,7 @@ export function ThoughtView() {
                 return (
                   <Pressable key={tr.pt} onPress={() => toggleTrap(tr.pt)}
                     style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 2, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySoft : colors.cardAlt }}>
-                    <Text style={{ color: active ? colors.primary : colors.text, fontSize: 13, fontWeight: active ? '700' : '500' }}>{tr[lang]}</Text>
+                    <Text style={{ color: active ? colors.primary : colors.text, fontSize: 13, fontWeight: active ? '700' : '500' }}>{pick(tr, lang)}</Text>
                   </Pressable>
                 );
               })}
@@ -659,7 +660,7 @@ export function ThoughtView() {
 export function ExperimentsView() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [entries, setEntries] = useState<ExperimentEntry[]>([]);
   const [experiment, setExperiment] = useState('');

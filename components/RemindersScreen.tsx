@@ -6,12 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { AFFIRMATIONS } from '../data/content';
-import { useLang } from '../i18n/i18n';
-import { tr2 } from '../i18n/i18n';
+import { pick, useLang , tr2 } from '../i18n/i18n';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import { cancelReminderFully, cancelUntrackedReminders, ensureNotificationPermission, knownNotificationIds, reminderNotifId, scheduleDailyReminder } from '../notifications/notifications';
-import { useAuth } from '../auth/AuthContext';
-import { pushProfile } from '../lib/sync';
 import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, saveAffirmationReminder, saveReminders } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -46,7 +43,6 @@ function RemindersBody() {
   const [editing, setEditing] = useState<Reminder | null>(null); // rascunho (novo ou existente)
   const [isNew, setIsNew] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -71,12 +67,10 @@ function RemindersBody() {
     })();
   }, []);
 
-  // Grava localmente e envia logo para a cloud: senão, ao reabrir a app, a cópia
-  // antiga da cloud podia repor lembretes que já tinham sido eliminados.
+  // Grava localmente (a sincronização com a cloud é automática).
   async function persist(list: Reminder[]) {
     setReminders(list);
     await saveReminders(list);
-    if (user) pushProfile(user.id);
   }
 
   async function scheduleOne(r: Reminder): Promise<Reminder> {
@@ -291,7 +285,7 @@ function AffirmationBody() {
       {/* Pré-visualização */}
       <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg }}>
         <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}>{tt('Exemplo', 'Example')}</Text>
-        <Text style={{ color: colors.text, fontSize: 16, fontStyle: 'italic' }}>“{sample[lang]}”</Text>
+        <Text style={{ color: colors.text, fontSize: 16, fontStyle: 'italic' }}>“{pick(sample, lang)}”</Text>
       </View>
 
       <PrimaryButton label={tt('Guardar', 'Save')} onPress={save} disabled={busy} />

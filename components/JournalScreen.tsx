@@ -1,6 +1,7 @@
 // Diário: escrever entradas e ver em que dias escreveste.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useA11y } from '../lib/a11y';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
@@ -17,6 +18,7 @@ function shortDate(iso: string) {
 
 export default function JournalScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
+  const a11y = useA11y();
   const { t } = useLang();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [text, setText] = useState('');
@@ -86,7 +88,7 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
           <Card key={e.id} style={{ gap: 6 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{shortDate(e.date)}</Text>
-              <Pressable onPress={() => remove(e.id)} hitSlop={8} style={{ padding: 2 }}>
+              <Pressable onPress={() => remove(e.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.delete} style={{ padding: 2 }}>
                 <Ionicons name="trash-outline" size={18} color={colors.danger} />
               </Pressable>
             </View>

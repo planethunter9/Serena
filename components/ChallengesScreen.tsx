@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useLang } from '../i18n/i18n';
+import { pick, useLang } from '../i18n/i18n';
 import { CustomChallenge, loadChallengesDone, loadCustomChallenges, saveChallengesDone, saveCustomChallenges } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -23,13 +23,13 @@ export const CHALLENGES: { id: string; text: L }[] = [
   { id: 'c5', text: { pt: 'Hoje não perguntes a ninguém "achas que estou bem?".', en: "Today, don't ask anyone \"do you think I'm okay?\"." } },
   { id: 'c6', text: { pt: 'Come um alimento um pouco fora da tua "lista segura".', en: 'Eat a food slightly outside your "safe list".' } },
   { id: 'c7', text: { pt: 'Come algo sem verificares a validade antes.', en: "Eat something without checking the expiry date first." } },
-  { id: 'c8', text: { pt: 'Fica num sítio mesmo sentindo-te um pouco enjoada, sem sair.', en: 'Stay somewhere even while feeling a bit queasy, without leaving.' } },
+  { id: 'c8', text: { pt: 'Fica num sítio mesmo com um pouco de enjoo, sem sair.', en: 'Stay somewhere even while feeling a bit queasy, without leaving.' } },
   { id: 'c9', text: { pt: 'Vê uma cena ou imagem que costumas evitar, sem saltar.', en: 'Watch a scene or image you usually avoid, without skipping.' } },
   { id: 'c10', text: { pt: 'Diz "sim" a um plano que recusarias por medo.', en: 'Say "yes" to a plan you would decline out of fear.' } },
   { id: 'c11', text: { pt: 'Sai de casa sem um "item de segurança" (saco, antináuseas).', en: 'Leave the house without a "safety item" (bag, anti-nausea).' } },
   { id: 'c12', text: { pt: 'Resiste a pesquisar sintomas online durante todo o dia.', en: 'Resist searching symptoms online all day.' } },
   { id: 'c13', text: { pt: 'Come fora ou num sítio novo.', en: 'Eat out or somewhere new.' } },
-  { id: 'c14', text: { pt: 'Fica sozinha num momento em que pedirias companhia por segurança.', en: 'Be alone at a moment when you would ask for company for safety.' } },
+  { id: 'c14', text: { pt: 'Fica sem companhia num momento em que a pedirias por segurança.', en: 'Be alone at a moment when you would ask for company for safety.' } },
   { id: 'c15', text: { pt: 'Deixa uma dúvida em aberto e diz a ti: "posso viver sem ter a certeza".', en: 'Leave a doubt open and tell yourself: "I can live without being certain".' } },
   { id: 'c16', text: { pt: 'Faz algo espontâneo, que não planeaste nem controlaste.', en: 'Do something spontaneous, unplanned and uncontrolled.' } },
 ];
@@ -41,7 +41,7 @@ function ymd(d: Date) {
 export default function ChallengesScreen() {
   const { colors } = useTheme();
   const { lang } = useLang();
-  const tt = (o: L) => o[lang];
+  const tt = (o: L) => pick(o, lang);
 
   const [done, setDone] = useState<string[]>([]);
   const [mine, setMine] = useState<CustomChallenge[]>([]);
@@ -49,8 +49,10 @@ export default function ChallengesScreen() {
   const [newText, setNewText] = useState('');
   const [offset, setOffset] = useState(0); // "outra sugestão"
 
-  const today = ymd(new Date());
-  const dayIndex = Math.floor(Date.now() / 86400000);
+  // Fixados ao abrir o ecrã (estáveis entre renderizações).
+  const [nowMs] = useState(() => Date.now());
+  const today = ymd(new Date(nowMs));
+  const dayIndex = Math.floor(nowMs / 86400000);
 
   useEffect(() => {
     loadChallengesDone().then(setDone);
@@ -212,7 +214,7 @@ export default function ChallengesScreen() {
           {mine.map((m, i) => {
             const checked = isDoneToday(m.id);
             return (
-              <Pressable key={m.id} onPress={() => toggle(m.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+              <Pressable key={m.id} onPress={() => toggle(m.id)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={labelOf(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                   {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
                 </View>
