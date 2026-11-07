@@ -24,3 +24,7 @@ test('a política de privacidade existe em todas as línguas, sem marcadores por
     expect(all).not.toMatch(/\{(CONTROLLER|EMAIL|REGION)\}/);
   }
 });
+
+test('o conteúdo em pt-BR vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'pt-BR')).toBe('O vômito existe — e um dia vai acontecer');
+});

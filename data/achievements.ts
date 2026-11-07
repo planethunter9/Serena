@@ -172,7 +172,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'aloneAttack',
     icon: 'moon',
     manual: true,
-    title: { pt: 'Sozinha na tempestade', en: 'Alone through the storm' },
+    title: { pt: 'Firme na tempestade', en: 'Alone through the storm' },
     desc: { pt: 'Lidar com um ataque de ansiedade por conta própria, sem chamar ninguém.', en: 'Handling an anxiety attack on your own, without calling anyone.' },
     check: () => ({ unlocked: false }),
   },

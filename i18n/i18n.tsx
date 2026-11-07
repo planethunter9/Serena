@@ -12,6 +12,7 @@ import { dict as ptBRDict, inline as ptBRInline } from './translations/pt-BR';
 import { dict as nlDict, inline as nlInline } from './translations/nl';
 import { dict as plDict, inline as plInline } from './translations/pl';
 import { dict as ruDict, inline as ruInline } from './translations/ru';
+import { content as ptBRContent } from './content/pt-BR';
 
 // Línguas suportadas. pt e en estão traduzidas a 100%; as restantes vão sendo
 // preenchidas (ver EXTRA, mais abaixo) e, enquanto não estiverem, caem em inglês.
@@ -798,9 +799,14 @@ export function tr2(lang: Lang, pt: string, en: string): string {
 // Ajudante para conteúdo guardado como objeto por língua ({ pt, en, es, ... }),
 // como em content.ts. Devolve a língua pedida ou cai em pt (pt-BR) / inglês.
 export type LText = { pt: string; en: string } & Partial<Record<Lang, string>>;
+// Traduções do conteúdo por língua, indexadas pelo texto em inglês (i18n/content/).
+export const CONTENT: Partial<Record<Lang, Record<string, string>>> = {
+  'pt-BR': ptBRContent,
+};
+
 export function pick(obj: LText | undefined, lang: Lang): string {
   if (!obj) return '';
-  return obj[lang] ?? obj[fallbackOf(lang)] ?? obj.en ?? obj.pt ?? '';
+  return obj[lang] ?? CONTENT[lang]?.[obj.en] ?? obj[fallbackOf(lang)] ?? obj.en ?? obj.pt ?? '';
 }
 
 type LangContextValue = {

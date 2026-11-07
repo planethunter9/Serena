@@ -99,7 +99,7 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
         id: 'l3',
         title: { pt: 'Não estás só nisto', en: 'You are not alone in this' },
         body: {
-          pt: 'Se a fobia te faz sentir estranha ou "exagerada", é importante saberes: a emetofobia é reconhecida pela psicologia clínica, está descrita na literatura científica e tem tratamentos com evidência. Não é falta de força nem um defeito de carácter.\n\nTambém é comum vir acompanhada de outras dificuldades — ansiedade generalizada, ataques de pânico, humor em baixo — em parte porque viver em alerta constante é exaustivo. Isso não complica a recuperação de forma irreparável; apenas explica porque é tão cansativo.\n\nSaber que há um nome, uma explicação e um caminho já alivia muita gente. Esta app segue esse caminho: perceber o medo, parar de o alimentar e aproximar-te do que evitas, ao teu ritmo.',
+          pt: 'Se a fobia te faz sentir "estranho" ou "exagerado", é importante saberes: a emetofobia é reconhecida pela psicologia clínica, está descrita na literatura científica e tem tratamentos com evidência. Não é falta de força nem um defeito de carácter.\n\nTambém é comum vir acompanhada de outras dificuldades — ansiedade generalizada, ataques de pânico, humor em baixo — em parte porque viver em alerta constante é exaustivo. Isso não complica a recuperação de forma irreparável; apenas explica porque é tão cansativo.\n\nSaber que há um nome, uma explicação e um caminho já alivia muita gente. Esta app segue esse caminho: perceber o medo, parar de o alimentar e aproximar-te do que evitas, ao teu ritmo.',
           en: 'If the phobia makes you feel strange or "over the top", it helps to know: emetophobia is recognised in clinical psychology, described in the scientific literature, and has treatments with real evidence. It is not weakness or a flaw in your character.\n\nIt also often comes alongside other difficulties — generalised anxiety, panic attacks, low mood — partly because living in constant alert is exhausting. That does not make recovery impossible; it just explains why it is so tiring.\n\nKnowing there is a name, an explanation and a path forward already relieves many people. This app follows that path: understand the fear, stop feeding it, and move closer to what you avoid, at your own pace.',
         },
       },
@@ -387,7 +387,7 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
         id: 'l24',
         title: { pt: 'De onde vem a emetofobia', en: 'Where emetophobia comes from' },
         body: {
-          pt: 'Não há uma causa única, mas há um padrão muito claro: a maioria das pessoas aponta um episódio marcante com vómito como o início da fobia — quase sempre na infância. Pode ter sido uma virose longa e assustadora, vomitar em público, ou ter assistido a alguém a vomitar muito (por doença, gravidez ou álcool).\n\nPara uma criança, vomitar pode ser aterrador: é súbito, descontrolado e sente-se como se o corpo a "traísse". O cérebro, a tentar proteger-te, marca aquilo como um grande perigo a evitar a todo o custo. Essa marca pode ficar durante anos, mesmo quando já és adulta e sabes, racionalmente, que não é perigoso.\n\nAlguns especialistas associam a emetofobia a uma necessidade de controlo — e faz sentido, porque o vómito é das coisas mais incontroláveis que existem. Perceber a origem não é para te prenderes ao passado; é para veres que a tua reação tem uma explicação lógica. Não és estranha nem exagerada: o teu alarme aprendeu bem demais uma lição antiga.',
+          pt: 'Não há uma causa única, mas há um padrão muito claro: a maioria das pessoas aponta um episódio marcante com vómito como o início da fobia — quase sempre na infância. Pode ter sido uma virose longa e assustadora, vomitar em público, ou ter assistido a alguém a vomitar muito (por doença, gravidez ou álcool).\n\nPara uma criança, vomitar pode ser aterrador: é súbito, descontrolado e sente-se como se o corpo a "traísse". O cérebro, a tentar proteger-te, marca aquilo como um grande perigo a evitar a todo o custo. Essa marca pode ficar durante anos, mesmo já em idade adulta e sabendo, racionalmente, que não é perigoso.\n\nAlguns especialistas associam a emetofobia a uma necessidade de controlo — e faz sentido, porque o vómito é das coisas mais incontroláveis que existem. Perceber a origem não é para te prenderes ao passado; é para veres que a tua reação tem uma explicação lógica. Não há nada de estranho nem de exagerado em ti: o teu alarme aprendeu bem demais uma lição antiga.',
           en: 'There is no single cause, but there is a very clear pattern: most people point to a striking vomiting episode as the start of the phobia — almost always in childhood. It may have been a long, frightening stomach bug, vomiting in public, or witnessing someone vomit a lot (through illness, pregnancy or alcohol).\n\nFor a child, vomiting can be terrifying: it is sudden, uncontrollable, and feels as if the body is "betraying" you. The brain, trying to protect you, marks it as a great danger to be avoided at all costs. That mark can last for years, even once you are an adult and know, rationally, that it is not dangerous.\n\nSome experts link emetophobia to a need for control — which makes sense, because vomiting is one of the most uncontrollable things there is. Understanding the origin is not about clinging to the past; it is about seeing that your reaction has a logical explanation. You are not strange or over the top: your alarm simply learned an old lesson far too well.',
         },
       },
@@ -419,7 +419,7 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
         id: 'l28',
         title: { pt: 'Ser gentil contigo', en: 'Being kind to yourself' },
         body: {
-          pt: 'A recuperação não acontece mais depressa quando te tratas com dureza. Pelo contrário: a autocrítica ("devia conseguir isto", "sou patética por ter medo disto") acrescenta sofrimento e torna cada degrau mais difícil de enfrentar.\n\nTenta falar contigo como falarias com uma amiga a passar pelo mesmo: com compreensão, paciência e reconhecimento do esforço. Enfrentar aquilo que te aterroriza — mesmo que seja só dizer a palavra "vomitar" em voz alta — exige coragem, por mais pequeno que pareça o passo.\n\nCelebra os pequenos avanços, descansa quando precisas, e lembra-te de que ter um dia mau não apaga o caminho feito. A gentileza não é o oposto da coragem: é o que te permite continuar a tê-la, dia após dia.',
+          pt: 'A recuperação não acontece mais depressa quando te tratas com dureza. Pelo contrário: a autocrítica ("devia conseguir isto", "é ridículo ter medo disto") acrescenta sofrimento e torna cada degrau mais difícil de enfrentar.\n\nTenta falar contigo como falarias com alguém de quem gostas a passar pelo mesmo: com compreensão, paciência e reconhecimento do esforço. Enfrentar aquilo que te aterroriza — mesmo que seja só dizer a palavra "vomitar" em voz alta — exige coragem, por mais pequeno que pareça o passo.\n\nCelebra os pequenos avanços, descansa quando precisas, e lembra-te de que ter um dia mau não apaga o caminho feito. A gentileza não é o oposto da coragem: é o que te permite continuar a tê-la, dia após dia.',
           en: 'Recovery does not happen faster when you treat yourself harshly. Quite the opposite: self-criticism ("I should be able to do this", "I\'m pathetic for fearing this") adds suffering and makes each step harder to face.\n\nTry to talk to yourself the way you would to a friend going through the same thing: with understanding, patience and recognition of the effort. Facing what terrifies you — even if it is just saying the word "vomit" out loud — takes courage, however small the step looks.\n\nCelebrate the small wins, rest when you need to, and remember that having a bad day does not erase the ground you have covered. Kindness is not the opposite of courage: it is what lets you keep having it, day after day.',
         },
       },
@@ -495,7 +495,7 @@ export const AFFIRMATIONS: L[] = [
 // Vertentes/tipos de emetofobia (baseado em relatos reais e fontes clínicas).
 // O utilizador pode escolher várias e acrescentar a sua.
 export const SUBTYPE_OPTIONS: { id: string; label: L }[] = [
-  { id: 'self', label: { pt: 'Medo de eu próprio vomitar', en: 'Fear of vomiting myself' } },
+  { id: 'self', label: { pt: 'Medo de ser eu a vomitar', en: 'Fear of vomiting myself' } },
   { id: 'others', label: { pt: 'Medo de ver ou ouvir outros vomitar', en: 'Fear of seeing or hearing others vomit' } },
   { id: 'nausea', label: { pt: 'Medo de sentir náuseas ou enjoo', en: 'Fear of feeling nauseous' } },
   { id: 'public', label: { pt: 'Medo de vomitar em público ou longe de casa', en: 'Fear of vomiting in public or away from home' } },
@@ -543,7 +543,7 @@ export const TRIGGER_PHRASES: Record<string, L[]> = {
   'viajar': [
     { pt: 'O enjoo de viagem é temporário e controlável.', en: 'Travel sickness is temporary and manageable.' },
     { pt: 'Posso respirar devagar e focar-me no horizonte.', en: 'I can breathe slowly and focus on the horizon.' },
-    { pt: 'Estou seguro. Isto passa.', en: 'I am safe. This will pass.' },
+    { pt: 'Estou em segurança. Isto passa.', en: 'I am safe. This will pass.' },
   ],
   'comida contaminada': [
     { pt: 'A grande maioria das refeições é perfeitamente segura.', en: 'The vast majority of meals are perfectly safe.' },
@@ -559,7 +559,7 @@ export const TRIGGER_PHRASES: Record<string, L[]> = {
 
 // Frases gerais (para gatilhos personalizados ou sem frases próprias).
 export const GENERAL_TRIGGER_PHRASES: L[] = [
-  { pt: 'Estou seguro. Consigo lidar com este momento.', en: 'I am safe. I can handle this moment.' },
+  { pt: 'Estou em segurança. Consigo lidar com este momento.', en: 'I am safe. I can handle this moment.' },
   { pt: 'Isto é desconfortável, mas não é perigoso.', en: 'This is uncomfortable, but it is not dangerous.' },
   { pt: 'Já passei por isto antes e ficou bem.', en: 'I have been through this before and it was okay.' },
   { pt: 'O medo vem em ondas — e as ondas descem sempre.', en: 'Fear comes in waves — and waves always come down.' },
@@ -612,7 +612,7 @@ export const SENSATION_GROUPS: { area: L; items: { label: L; body: L }[] }[] = [
     area: { pt: 'Pele e temperatura', en: 'Skin and temperature' },
     items: [
       { label: { pt: 'Onda de calor ou rubor (sem febre)', en: 'Wave of heat or flushing (no fever)' },
-        body: { pt: 'É a descarga de adrenalia a dilatar os vasos. Sem febre, é só o corpo a regular-se na resposta de alerta — não uma doença a começar.', en: 'It is the adrenaline surge widening your blood vessels. Without a fever, it is just the body regulating itself in the alert response — not an illness starting.' } },
+        body: { pt: 'É a descarga de adrenalina a dilatar os vasos. Sem febre, é só o corpo a regular-se na resposta de alerta — não uma doença a começar.', en: 'It is the adrenaline surge widening your blood vessels. Without a fever, it is just the body regulating itself in the alert response — not an illness starting.' } },
       { label: { pt: 'Arrepios ou mãos suadas', en: 'Shivers or sweaty hands' },
         body: { pt: 'A mesma resposta de alerta. Aparece depressa e regula-se sozinha quando a ansiedade desce.', en: 'The same alert response. It comes on quickly and settles on its own as the anxiety comes down.' } },
       { label: { pt: 'Tontura leve / cabeça "leve"', en: 'Mild dizziness / light-headedness' },
