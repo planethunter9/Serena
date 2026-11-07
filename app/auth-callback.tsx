@@ -47,7 +47,7 @@ export default function AuthCallback() {
     // link recebido com a app já aberta
     const sub = Linking.addEventListener('url', ({ url }) => handle(url));
     return () => sub.remove();
-  }, []);
+  }, [router]);
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>

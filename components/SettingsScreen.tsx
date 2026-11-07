@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang , tr2 } from '../i18n/i18n';
-import { exportUserData, importUserData, isoLocal, OnboardingData, ProfileItem } from '../storage/storage';
+import { exportUserData, importUserData, isoLocal, OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -67,7 +67,7 @@ export default function SettingsScreen({
       } else {
         Alert.alert(L('Cópia criada', 'Backup created'), fileUri);
       }
-    } catch (e) {
+    } catch {
       Alert.alert(L('Erro', 'Error'), L('Não foi possível criar a cópia de segurança.', 'Could not create the backup.'));
     } finally {
       setBackupBusy(false);
@@ -105,7 +105,7 @@ export default function SettingsScreen({
           },
         ],
       );
-    } catch (e) {
+    } catch {
       Alert.alert(L('Ficheiro inválido', 'Invalid file'), L('Escolhe um ficheiro de cópia da Serena (.json).', 'Choose a Serena backup file (.json).'));
     }
   }
@@ -159,7 +159,7 @@ export default function SettingsScreen({
         // Fallback temporário: termina a sessão (a eliminação real liga-se no AuthContext).
         await signOut();
       }
-    } catch (e) {
+    } catch {
       Alert.alert(L('Não foi possível eliminar', 'Could not delete'), L('Tenta novamente mais tarde.', 'Please try again later.'));
     }
   }

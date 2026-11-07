@@ -5,7 +5,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { useLang } from '../i18n/i18n';
 import { loadAttacks, loadSafety, loadSeverity, loadStreakStart, OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
-import { radius, spacing } from '../theme/theme';
+import { spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
 
 function asItems(arr: any[]): ProfileItem[] {

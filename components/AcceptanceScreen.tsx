@@ -17,7 +17,7 @@ import {
 import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import { Card, PrimaryButton } from './ui';
+import { PrimaryButton } from './ui';
 
 type L = { pt: string; en: string };
 

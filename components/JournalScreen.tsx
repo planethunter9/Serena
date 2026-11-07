@@ -12,7 +12,7 @@ import { Card, TopBackBar } from './ui';
 
 // Formata "AAAA-MM-DD" para "DD/MM".
 function shortDate(iso: string) {
-  const [y, m, d] = iso.split('-');
+  const [, m, d] = iso.split('-');
   return `${d}/${m}`;
 }
 

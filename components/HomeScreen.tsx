@@ -20,7 +20,6 @@ import {
   ExperimentEntry,
   ExposureSession,
   isoLocal,
-  JournalEntry,
   loadActCommitments,
   addSeverity,
   loadChallengesDone,
@@ -33,10 +32,8 @@ import {
   loadExposureOrder,
   loadExposureSessions,
   loadExposureSteps,
-  loadJournal,
   loadMemorySessions,
   loadNextStep,
-  loadRecapDismissed,
   loadRingMode,
   loadSeverity,
   saveRingMode,
@@ -49,7 +46,6 @@ import {
   saveExposureOrder,
   saveExposureSteps,
   saveNextStep,
-  saveRecapDismissed,
   ThoughtRecord,
   UnplannedLog,
 } from '../storage/storage';
@@ -82,7 +78,7 @@ function expStreakOf(days: string[]): number {
 
 export default function HomeScreen({ startDate }: { startDate: string }) {
   const { colors, unlocked, ringColors, defaultRingColors } = useTheme();
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [tab, setTab] = useState<'overview' | 'stats'>('overview');
@@ -91,7 +87,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
 
   // Dados (terapia / formas de enfrentar).
   const [exposures, setExposures] = useState<ExposureSession[]>([]);
-  const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [expDays, setExpDays] = useState<string[]>([]);
   const [dropped, setDropped] = useState<DroppedBehavior[]>([]);
   const [commitments, setCommitments] = useState<ActCommitment[]>([]);
@@ -117,7 +112,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
 
   const [dashOrder, setDashOrder] = useState<string[]>(['hero', 'plan']);
   const [reordering, setReordering] = useState(false);
-  const [recapDismissed, setRecapDismissed] = useState('');
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
   const [planViewKey, setPlanViewKey] = useState(0);
   function closePlanSheet() { setPlanSheetOpen(false); setPlanViewKey((k) => k + 1); }
@@ -127,7 +121,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
   const sheetTY = useSharedValue(0);
   const sheetScroll = useSharedValue(0);
   const sheetScrollRef = useAnimatedRef<any>();
-  useEffect(() => { if (planSheetOpen) sheetTY.set(0); }, [planSheetOpen]);
+  useEffect(() => { if (planSheetOpen) sheetTY.set(0); }, [planSheetOpen, sheetTY]);
   const sheetOnScroll = useAnimatedScrollHandler((e) => { sheetScroll.set(e.contentOffset.y); });
   const sheetGesture = Gesture.Pan()
     .onUpdate((e) => { if (e.translationY > 0 && sheetScroll.get() <= 0) sheetTY.set(e.translationY); })
@@ -146,7 +140,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
   const nsTY = useSharedValue(0);
   const nsScroll = useSharedValue(0);
   const nsScrollRef = useAnimatedRef<any>();
-  useEffect(() => { if (nsSheetOpen) nsTY.set(0); }, [nsSheetOpen]);
+  useEffect(() => { if (nsSheetOpen) nsTY.set(0); }, [nsSheetOpen, nsTY]);
   const nsOnScroll = useAnimatedScrollHandler((e) => { nsScroll.set(e.contentOffset.y); });
   const nsGesture = Gesture.Pan()
     .onUpdate((e) => { if (e.translationY > 0 && nsScroll.get() <= 0) nsTY.set(e.translationY); })
@@ -163,7 +157,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
 
   useEffect(() => {
     loadExposureSessions().then(setExposures);
-    loadJournal().then(setJournal);
     loadExposureDays().then(setExpDays);
     loadDropped().then(setDropped);
     loadActCommitments().then(setCommitments);
@@ -179,7 +172,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     loadExposureHidden().then(setStepHidden);
     loadNextStep().then((s) => { setSavedNextStep(s); setNsText(s); });
     loadSeverity().then((list) => { const today = list.find((e) => e.date === isoLocal()); setSeverityToday(today ? today.value : null); });
-    loadRecapDismissed().then(setRecapDismissed);
     loadDashboardOrder().then((o) => {
       const valid = o.filter((k): k is 'hero' | 'plan' => k === 'hero' || k === 'plan');
       const full = [...valid, ...(['hero', 'plan'] as const).filter((k) => !valid.includes(k))];
@@ -187,7 +179,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     });
   }, []);
 
-  const todayIso = isoLocal();
   const expStreak = expStreakOf(expDays);
   const totalExpDays = expDays.length;
 
@@ -289,24 +280,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     setNsNewStep('');
     setNsAdding(false);
   }
-
-  // --- Resumo semanal (fim de semana) ---
-  const dow = (now.getDay() + 6) % 7;
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
-  const thisWeek: string[] = [];
-  for (let d = 0; d < 7; d++) thisWeek.push(isoLocal(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + d)));
-  const weekStartISO = thisWeek[0];
-  const weekSet = new Set(thisWeek);
-  const recapStats = [
-    { n: exposures.filter((e) => weekSet.has(e.date)).length, label: L('exposições', 'exposures') },
-    { n: expDays.filter((d) => weekSet.has(d)).length, label: L('dias de prática', 'practice days') },
-    { n: dropped.filter((d) => weekSet.has(d.date)).length, label: L('a largar', 'dropping') },
-    { n: new Set(journal.filter((j) => weekSet.has(j.date)).map((j) => j.date)).size, label: L('no diário', 'journal') },
-  ];
-  const showRecap = dow >= 5 && recapDismissed !== weekStartISO;
-  const recapMsg = recapStats[1].n > 0
-    ? L('Boa — cada passo conta. Continua assim.', 'Great — every step counts. Keep it up.')
-    : L('Uma semana mais calma também faz parte. Que tal um pequeno passo?', 'A quieter week is okay too. How about one small step?');
 
   // --- Anel ---
   const RING = 144, RC = RING / 2, SW = 10;

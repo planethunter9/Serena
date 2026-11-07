@@ -1,14 +1,15 @@
 // Notificações: para onde vai a app ao tocar, e que notificações são "fantasma".
 import { describe, expect, jest, test } from '@jest/globals';
+import { knownNotificationIds, reminderNotifId } from '../notifications/notifications';
+import { AFFIRMATION_NOTIF_ID, routeForNotification, ROUTE_AFFIRMATION, ROUTE_REMINDER } from '../notifications/routes';
 
-// O módulo nativo não existe nos testes — simulamos só o que é usado ao importar.
+// O módulo nativo não existe nos testes — simulamos só o que é usado ao importar
+// (o jest.mock é executado antes dos imports).
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
   SchedulableTriggerInputTypes: { DAILY: 'daily' },
 }));
 
-import { knownNotificationIds, reminderNotifId } from '../notifications/notifications';
-import { AFFIRMATION_NOTIF_ID, routeForNotification, ROUTE_AFFIRMATION, ROUTE_REMINDER } from '../notifications/routes';
 
 describe('routeForNotification', () => {
   test('usa o url guardado na notificação', () => {

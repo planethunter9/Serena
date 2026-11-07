@@ -56,6 +56,8 @@ export default function MainApp() {
         );
       }, 700);
     })();
+    // Só no primeiro arranque deste ecrã (o tutorial não deve recomeçar).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Recarrega a foto de perfil sempre que este ecrã volta a ficar em foco.

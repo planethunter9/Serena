@@ -47,6 +47,7 @@ export async function applyAppIcon(id: string): Promise<{ ok: boolean }> {
   let ok = false;
   try {
     // require dinâmico para não rebentar onde o módulo nativo não existe.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('expo-dynamic-app-icon');
     const setFn: ((name: string | null) => void) | undefined = mod.setAppIcon ?? mod.default?.setAppIcon;
     if (typeof setFn === 'function') {

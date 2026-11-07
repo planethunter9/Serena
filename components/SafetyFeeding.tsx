@@ -9,7 +9,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { pick, useLang } from '../i18n/i18n';
-import { DroppedBehavior, isoLocal, loadDropped, loadFeeding, loadSafety, SafetyItem, saveDropped, saveFeeding, saveSafety } from '../storage/storage';
+import { DroppedBehavior, isoLocal, loadDropped, loadFeeding, loadSafety, SafetyItem, saveDropped, saveSafety } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
