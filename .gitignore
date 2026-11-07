@@ -44,4 +44,4 @@ app-example
 
 
 # Chaves locais (não enviar)
-src/lib/supabaseConfig.ts
+# (lib/supabaseConfig.ts está no repositório de propósito: só tem a URL e a chave pública "anon")

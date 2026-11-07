@@ -1,0 +1,48 @@
+# Mantém o projeto Supabase (plano gratuito) ativo.
+# Os projetos gratuitos são pausados ao fim de ~7 dias sem atividade; enquanto
+# estão pausados ninguém consegue criar conta nem entrar na app.
+# Esta tarefa faz uma consulta simples à base de dados de 2 em 2 dias.
+#
+# Configuração (uma vez): GitHub › Settings › Secrets and variables › Actions ›
+# New repository secret:
+#   SUPABASE_URL       → ex.: https://xxxx.supabase.co   (Project Settings › API)
+#   SUPABASE_ANON_KEY  → a chave "anon public"            (Project Settings › API)
+#
+# Pode ser corrida à mão em Actions › Supabase keep-alive › Run workflow.
+# Nota: o GitHub desliga tarefas agendadas em repositórios sem commits há 60 dias
+# (avisa por email; basta reativar em Actions).
+
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '17 6 */2 * *' # 06:17 UTC, de 2 em 2 dias
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consulta à base de dados
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Faltam os secrets SUPABASE_URL e/ou SUPABASE_ANON_KEY (ver o topo deste ficheiro)."
+            exit 1
+          fi
+          # Leitura mínima na tabela profiles. Com as regras de segurança (RLS) a
+          # resposta vem vazia, mas conta como atividade na base de dados.
+          status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+            "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "Resposta do Supabase: HTTP $status"
+          if [ "$status" -ge 400 ]; then
+            echo "::error::O Supabase respondeu $status. Se o projeto estiver pausado, reativa-o no painel (Restore)."
+            exit 1
+          fi
