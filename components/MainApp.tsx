@@ -10,7 +10,9 @@ import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang , tr2 } from '../i18n/i18n';
+import * as Notifications from 'expo-notifications';
 import { cancelUntrackedReminders, knownNotificationIds } from '../notifications/notifications';
+import { routeForNotification } from '../notifications/routes';
 import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { useCoach } from './CoachMarks';
 import { useData } from '../store/DataContext';
@@ -62,6 +64,18 @@ export default function MainApp() {
       loadProfile().then((p) => setPhotoUri(p.photoUri));
     }, [])
   );
+
+  // Tocar numa notificação abre o ecrã correspondente (lembrete → Exercícios,
+  // afirmação do dia → frases positivas). Funciona também com a app fechada.
+  const lastResponse = Notifications.useLastNotificationResponse();
+  useEffect(() => {
+    if (!lastResponse || lastResponse.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+    const req = lastResponse.notification.request;
+    const route = routeForNotification(req.identifier, req.content.data as Record<string, unknown>);
+    // Limpa a resposta para não voltar a abrir o ecrã ao voltar ao início.
+    try { Notifications.clearLastNotificationResponse(); } catch {}
+    if (route) router.push(route as any);
+  }, [lastResponse, router]);
 
   // No arranque: cancela notificações "fantasma" agendadas fora da lista (ex.: a
   // das 22h de uma versão anterior), mesmo que o ecrã de Lembretes nunca seja aberto.

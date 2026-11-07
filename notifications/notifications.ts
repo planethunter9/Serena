@@ -2,6 +2,7 @@
 // Funciona no Expo Go — só as notificações PUSH (remotas) é que precisam de dev build.
 
 import * as Notifications from 'expo-notifications';
+import { AFFIRMATION_NOTIF_ID, REMINDER_PREFIX, ROUTE_AFFIRMATION, ROUTE_REMINDER } from './routes';
 
 // Como mostrar a notificação quando a app está aberta.
 Notifications.setNotificationHandler({
@@ -23,16 +24,23 @@ export async function ensureNotificationPermission(): Promise<boolean> {
 
 // Identificadores fixos: agendar com o mesmo identificador SUBSTITUI a notificação
 // anterior (não cria duplicados) e permite cancelar mesmo que o id guardado se perca.
-export const AFFIRMATION_NOTIF_ID = 'affirmation-daily';
+export { AFFIRMATION_NOTIF_ID } from './routes';
 export function reminderNotifId(reminderId: string) {
-  return 'reminder-' + reminderId;
+  return REMINDER_PREFIX + reminderId;
+}
+
+function urlFor(identifier?: string): Record<string, string> | undefined {
+  if (identifier === AFFIRMATION_NOTIF_ID) return { url: ROUTE_AFFIRMATION };
+  if (identifier?.startsWith(REMINDER_PREFIX)) return { url: ROUTE_REMINDER };
+  return undefined;
 }
 
 // Agenda uma notificação diária à hora indicada. Devolve o id (para poder cancelar).
 export async function scheduleDailyReminder(hour: number, minute: number, title: string, body: string, identifier?: string): Promise<string> {
   return Notifications.scheduleNotificationAsync({
     ...(identifier ? { identifier } : {}),
-    content: { title, body },
+    // "url": ecrã a abrir quando se toca na notificação (ver routes.ts).
+    content: { title, body, data: urlFor(identifier) },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
