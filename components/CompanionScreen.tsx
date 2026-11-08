@@ -19,16 +19,16 @@ const DOS: L[] = [
   { pt: 'Encorajar com calma a ficar com o desconforto ("tu aguentas, vai passar").', en: 'Gently encourage staying with the discomfort ("you can handle this, it will pass").' },
   { pt: 'Lembrar que não precisa de ter a certeza para estar bem.', en: 'Remind them they do not need certainty to be okay.' },
   { pt: 'Celebrar os pequenos passos, por mais pequenos que pareçam.', en: 'Celebrate small steps, however small they seem.' },
-  { pt: 'Seguir o ritmo dela e combinar as mudanças em conjunto.', en: 'Follow their pace and agree on changes together.' },
+  { pt: 'Seguir o ritmo da pessoa e combinar as mudanças em conjunto.', en: 'Follow their pace and agree on changes together.' },
   { pt: 'Manter a tua própria calma — a tua serenidade ajuda.', en: 'Keep your own calm — your steadiness helps.' },
 ];
 
 const DONTS: L[] = [
-  { pt: 'Responder "sim, estás bem" quando ela pergunta (é tranquilização).', en: 'Answer "yes, you\'re fine" when asked (that is reassurance).' },
-  { pt: 'Verificar validades, cheirar a comida ou confirmar sintomas por ela.', en: 'Check expiry dates, smell food, or confirm symptoms for them.' },
-  { pt: 'Deixá-la sair a correr de um sítio ou assumir as tarefas que a assustam.', en: 'Let them flee a place, or take over the tasks that scare them.' },
+  { pt: 'Responder "sim, estás bem" quando a pessoa pergunta (é tranquilização).', en: 'Answer "yes, you\'re fine" when asked (that is reassurance).' },
+  { pt: 'Verificar validades, cheirar a comida ou confirmar sintomas pela pessoa.', en: 'Check expiry dates, smell food, or confirm symptoms for them.' },
+  { pt: 'Deixar a pessoa sair a correr de um sítio ou assumir as tarefas que a assustam.', en: 'Let them flee a place, or take over the tasks that scare them.' },
   { pt: 'Forçar, envergonhar ou apressar — isso piora.', en: 'Force, shame or rush them — that makes it worse.' },
-  { pt: 'Evitar o tema ou esconder informação "para a proteger".', en: 'Avoid the topic or hide information "to protect them".' },
+  { pt: 'Evitar o tema ou esconder informação "para proteger".', en: 'Avoid the topic or hide information "to protect them".' },
 ];
 
 const SCRIPT: L[] = [
@@ -38,8 +38,8 @@ const SCRIPT: L[] = [
 ];
 
 const MOMENT: L[] = [
-  { pt: 'Fica calmo e presente; não entres em pânico com ela.', en: 'Stay calm and present; do not panic with them.' },
-  { pt: 'Respira devagar ao lado dela, como âncora.', en: 'Breathe slowly beside them, as an anchor.' },
+  { pt: 'Mantém a calma e a presença; não entres em pânico também.', en: 'Stay calm and present; do not panic with them.' },
+  { pt: 'Respira devagar ao lado da pessoa, como âncora.', en: 'Breathe slowly beside them, as an anchor.' },
   { pt: 'Lembra: "isto é ansiedade, é desconfortável mas não é perigoso, vai passar".', en: 'Remind: "this is anxiety, uncomfortable but not dangerous, it will pass".' },
   { pt: 'Não corras a "resolver" — deixa a onda subir e descer.', en: 'Do not rush to "fix" it — let the wave rise and fall.' },
 ];

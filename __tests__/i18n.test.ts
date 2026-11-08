@@ -1,7 +1,7 @@
 // Traduções: nada fica em branco e a política existe em todas as línguas.
 import { expect, test } from '@jest/globals';
 import { getPrivacyPolicy } from '../data/legal';
-import { LANGS, pick, tr2 } from '../i18n/i18n';
+import { CONTENT, LANGS, pick, tr2 } from '../i18n/i18n';
 
 test('pick cai em português (pt-BR) ou inglês quando falta a tradução', () => {
   const o = { pt: 'olá', en: 'hello' };
@@ -22,5 +22,48 @@ test('a política de privacidade existe em todas as línguas, sem marcadores por
     expect(d.sections.length).toBe(14);
     const all = d.intro + d.sections.map((s) => s.title + s.body).join('');
     expect(all).not.toMatch(/\{(CONTROLLER|EMAIL|REGION)\}/);
+  }
+});
+
+test('o conteúdo em pt-BR vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'pt-BR')).toBe('O vômito existe — e um dia vai acontecer');
+});
+
+test('o conteúdo em espanhol vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'es')).toBe('El vómito existe — y algún día ocurrirá');
+});
+
+test('o conteúdo em francês vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'fr')).toBe('Le vomissement existe — et un jour, il arrivera');
+});
+
+test('o conteúdo em alemão vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'de')).toBe('Erbrechen gibt es — und eines Tages wird es passieren');
+});
+
+test('o conteúdo em italiano vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'it')).toBe('Il vomito esiste — e un giorno succederà');
+});
+
+test('o conteúdo em neerlandês vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'nl')).toBe('Overgeven bestaat — en op een dag gebeurt het');
+});
+
+test('o conteúdo em polaco vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'pl')).toBe('Wymioty istnieją — i kiedyś się zdarzą');
+});
+
+test('o conteúdo em russo vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'ru')).toBe('Рвота существует — и однажды она случится');
+});
+
+test('as 8 línguas traduzidas têm exatamente o mesmo conteúdo (nenhuma tradução em falta)', () => {
+  const langs = ['pt-BR', 'es', 'fr', 'de', 'it', 'nl', 'pl', 'ru'] as const;
+  const ref = Object.keys(CONTENT['pt-BR'] ?? {}).sort();
+  expect(ref.length).toBeGreaterThan(700);
+  for (const l of langs) {
+    const keys = Object.keys(CONTENT[l] ?? {}).sort();
+    expect({ lang: l, keys }).toEqual({ lang: l, keys: ref });
+    for (const k of keys) expect((CONTENT[l] as Record<string, string>)[k].trim().length).toBeGreaterThan(0);
   }
 });

@@ -62,7 +62,7 @@ export const MYTHS: { text: L; isMyth: boolean; explanation: L }[] = [
     explanation: { pt: 'A expiração mais longa avisa o corpo de que pode baixar o alarme.', en: 'A longer out-breath signals the body it can lower the alarm.' },
   },
   {
-    text: { pt: 'Só estou seguro se levar sempre um saco ou comprimidos comigo.', en: 'I am only safe if I always carry a bag or pills with me.' },
+    text: { pt: 'Só estou em segurança se levar sempre um saco ou comprimidos comigo.', en: 'I am only safe if I always carry a bag or pills with me.' },
     isMyth: true,
     explanation: { pt: 'Isso é um comportamento de segurança — dá alívio momentâneo, mas mantém o medo.', en: 'That is a safety behavior — momentary relief, but it keeps the fear alive.' },
   },
