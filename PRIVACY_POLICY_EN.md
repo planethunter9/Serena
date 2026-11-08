@@ -2,7 +2,7 @@
 
 **Last updated: 6 November 2026**
 
-> **Note:** a template to adapt, not legal advice. Fill in the fields in `[ ]` (also in `data/legal.ts`). App stores require this policy at a public link. The text is the same one shown in the app.
+> **Note:** not legal advice. App stores require this policy at a public link: the web version (10 languages) is in `docs/privacy/index.html`, generated with `npm run privacy:site`. The text is the same one shown in the app (`data/legal.ts`).
 
 Serena is a psychoeducational support app for people living with emetophobia (the fear of vomiting). We know what you log here is personal and sensitive, so we explain in plain words what data we keep, why, where it is stored and how you control it.
 
@@ -15,7 +15,7 @@ Serena is a psychoeducational support app for people living with emetophobia (th
 
 ## 1. Who is responsible
 
-The data controller is [controller name / entity]. For any privacy question, write to [contact email].
+The data controller is Inês Nascimento. For any privacy question, write to noreplyserena@gmail.com.
 
 ## 2. What data we keep
 
@@ -39,7 +39,7 @@ To create and maintain your account, show your progress and history, send the re
 
 ## 6. Where the data is stored
 
-Your data is stored on your phone. While you are signed in, a backup copy linked to your account is also kept on Supabase, our authentication and database provider, which acts as a processor and hosts the data in [Supabase server region]. This copy is updated when you leave the app and restored when you sign in. We do not share your data with anyone else unless the law requires it.
+Your data is stored on your phone. While you are signed in, a backup copy linked to your account is also kept on Supabase, our authentication and database provider, which acts as a processor and hosts the data in West EU (Ireland). This copy is updated when you leave the app and restored when you sign in. We do not share your data with anyone else unless the law requires it.
 
 ## 7. Notifications
 
@@ -58,7 +58,7 @@ The connection to the cloud is encrypted (HTTPS) and each person can only access
 Under the GDPR you can access, correct, export and delete your data, restrict or object to processing, and withdraw consent.
 - Export: Settings › Backup › Export (JSON file).
 - Delete: Settings › Delete account. This is permanent.
-- Other requests: write to [contact email].
+- Other requests: write to noreplyserena@gmail.com.
 You can also lodge a complaint with the data protection authority in your country (in Portugal, the CNPD: www.cnpd.pt).
 
 ## 11. Minors

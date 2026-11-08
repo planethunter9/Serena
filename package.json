@@ -12,7 +12,8 @@
     "lint": "expo lint",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && expo lint && jest"
+    "check": "tsc --noEmit && expo lint && jest",
+    "privacy:site": "node scripts/build-privacy-site.js"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
