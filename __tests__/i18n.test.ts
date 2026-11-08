@@ -48,3 +48,7 @@ test('o conteúdo em italiano vem do ficheiro de traduções', () => {
 test('o conteúdo em neerlandês vem do ficheiro de traduções', () => {
   expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'nl')).toBe('Overgeven bestaat — en op een dag gebeurt het');
 });
+
+test('o conteúdo em polaco vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'pl')).toBe('Wymioty istnieją — i kiedyś się zdarzą');
+});
