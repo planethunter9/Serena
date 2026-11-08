@@ -569,6 +569,10 @@ export async function loadWalkthroughSeen(): Promise<boolean> {
 export async function saveWalkthroughSeen() {
   await setUserItem('walkthroughSeen', '1');
 }
+// "Ver o tutorial outra vez" (Definições): volta a mostrá-lo ao regressar ao início.
+export async function resetWalkthroughSeen() {
+  await setUserItem('walkthroughSeen', '0');
+}
 
 // --- Próximo passo (escolhido pelo utilizador) ----------------------------
 export async function loadNextStep(): Promise<string> {

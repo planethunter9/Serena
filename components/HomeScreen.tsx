@@ -477,8 +477,8 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   </Pressable>
                 </View>
               </View>
-            ) : key === 'hero' ? (
-              <CoachTarget key={key} name="pillars">{DASH[key]?.()}</CoachTarget>
+            ) : key === 'hero' || key === 'plan' ? (
+              <CoachTarget key={key} name={key === 'hero' ? 'pillars' : 'home-plan'}>{DASH[key]?.()}</CoachTarget>
             ) : (
               <View key={key}>{DASH[key]?.()}</View>
             )

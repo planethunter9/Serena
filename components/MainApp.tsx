@@ -5,16 +5,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
-import { useLang , tr2 } from '../i18n/i18n';
+import { useLang } from '../i18n/i18n';
 import * as Notifications from 'expo-notifications';
 import { cancelUntrackedReminders, knownNotificationIds } from '../notifications/notifications';
 import { routeForNotification } from '../notifications/routes';
 import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
-import { useCoach } from './CoachMarks';
+import { CoachTarget, useCoach } from './CoachMarks';
+import { TUTORIAL_NO_TARGET, TUTORIAL_ORDER, TutorialStepId, tutorialPack } from '../data/tutorial';
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
@@ -31,34 +32,57 @@ export default function MainApp() {
   const iosMajor = Platform.OS === 'ios' ? parseInt(String(Platform.Version), 10) : 0;
   const glassSupported = iosMajor >= 26;
   const { t, lang } = useLang();
-  const L = (pt: string, en: string) => tr2(lang, pt, en);
   const { data } = useData();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  // Coach marks (tutorial de abertura): percorre os quatro separadores,
-  // mudando de ecrã em cada passo e realçando um elemento real de cada um.
+  // Coach marks (tutorial de abertura): boas-vindas, depois percorre os quatro
+  // separadores (mudando de ecrã em cada passo e realçando um elemento real) e
+  // termina com uma mensagem. Corre quando ainda não foi visto — no primeiro
+  // arranque ou depois de "Ver o tutorial outra vez" nas Definições.
   const coach = useCoach();
-  useEffect(() => {
-    (async () => {
-      if (await loadWalkthroughSeen()) return;
-      setTimeout(() => {
-        coach.start(
-          [
-            { name: 'pillars', show: () => setTab('home'), text: L('Estes são os teus pilares. Vão-se enchendo à medida que praticas — Prática, Repetição e Aproximação.', 'These are your pillars. They fill up as you practise — Practice, Repetition and Approach.') },
-            { name: 'support-now', show: () => setTab('support'), text: L('No separador Apoio tens o que precisas num momento difícil. Começa aqui, em "Agora mesmo", quando estiveres com um gatilho.', 'The Support tab has what you need in a hard moment. Start here, under "Right now", when a trigger hits.') },
-            { name: 'calendar-card', show: () => setTab('calendar'), text: L('No Calendário marcas os dias: a vermelho os ataques ou comportamentos, a verde os dias em que fizeste exposição.', 'In the Calendar you mark your days: red for attacks or behaviours, green for days you did exposure.') },
-            { name: 'resources-list', show: () => setTab('resources'), text: L('E em Recursos tens tudo o resto — lições, exercícios, planos e os teus registos.', 'And Resources has everything else — lessons, exercises, plans and your logs.') },
-          ],
-          () => { saveWalkthroughSeen(); setTab('home'); },
+  const coachRef = useRef(coach);
+  const langRef = useRef(lang);
+  useEffect(() => { coachRef.current = coach; langRef.current = lang; });
+  const coachStarting = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      let cancelled = false;
+      const startTutorial = () => {
+        timer = null;
+        const pack = tutorialPack(langRef.current);
+        const home = () => setTab('home');
+        const show: Record<TutorialStepId, () => void> = {
+          welcome: home, pillars: home, 'home-plan': home, 'header-actions': home,
+          'support-now': () => setTab('support'), 'support-techniques': () => setTab('support'),
+          'calendar-card': () => setTab('calendar'), 'resources-list': () => setTab('resources'),
+          tabbar: home, end: home,
+        };
+        coachRef.current.start(
+          TUTORIAL_ORDER.map((id) => ({
+            name: TUTORIAL_NO_TARGET.includes(id) ? undefined : id,
+            title: pack.steps[id].title,
+            text: pack.steps[id].text,
+            show: show[id],
+          })),
+          async () => { setTab('home'); await saveWalkthroughSeen(); coachStarting.current = false; },
         );
-      }, 700);
-    })();
-    // Só no primeiro arranque deste ecrã (o tutorial não deve recomeçar).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      };
+      (async () => {
+        if (coachStarting.current || coachRef.current.active) return;
+        if (await loadWalkthroughSeen()) return;
+        if (cancelled || coachStarting.current) return;
+        coachStarting.current = true;
+        timer = setTimeout(startTutorial, 700);
+      })();
+      // Se o ecrã perder o foco antes de o tutorial arrancar, fica para a próxima.
+      return () => { cancelled = true; if (timer) { clearTimeout(timer); coachStarting.current = false; } };
+    }, [])
+  );
 
   // Recarrega a foto de perfil sempre que este ecrã volta a ficar em foco.
   useFocusEffect(
@@ -108,7 +132,7 @@ export default function MainApp() {
       <View style={{ paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <CoachTarget name="header-actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <Pressable onPress={() => router.push('/profile')} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.profile}>
               {photoUri ? (
                 <Image source={{ uri: photoUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
@@ -121,7 +145,7 @@ export default function MainApp() {
             <Pressable onPress={() => router.push('/settings')} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ padding: 6 }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
-          </View>
+          </CoachTarget>
         </View>
       </View>
 
@@ -151,7 +175,8 @@ export default function MainApp() {
       </View>
 
       {/* Menu flutuante em cápsula — Liquid Glass no iOS 26 */}
-      <View style={{ position: 'absolute', left: 20, right: 20, bottom: (insets.bottom || 10) + 6, height: 64, borderRadius: 32, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
+      <CoachTarget name="tabbar" style={{ position: 'absolute', left: 20, right: 20, bottom: (insets.bottom || 10) + 6, height: 64 }}>
+      <View style={{ flex: 1, borderRadius: 32, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
         {glassSupported ? (
           <GlassView glassEffectStyle="regular" tintColor={isDark ? 'rgba(22,33,42,0.55)' : 'rgba(255,255,255,0.7)'} style={StyleSheet.absoluteFill} />
         ) : (
@@ -178,6 +203,7 @@ export default function MainApp() {
           })}
         </View>
       </View>
+      </CoachTarget>
     </View>
   );
 }
