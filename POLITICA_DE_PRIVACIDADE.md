@@ -15,7 +15,7 @@ A Serena é uma app de apoio psicoeducativo para quem vive com emetofobia (medo 
 
 ## 1. Quem é o responsável
 
-O responsável pelo tratamento dos dados é Inês Nascimento. Para qualquer questão sobre privacidade, escreve para noreplyserena@gmail.com.
+O responsável pelo tratamento dos dados é Inês Nascimento. Para qualquer questão sobre privacidade, escreve para serenaapp.apoio@gmail.com.
 
 ## 2. Que dados guardamos
 
@@ -58,7 +58,7 @@ A ligação à cloud é cifrada (HTTPS) e cada pessoa só tem acesso aos seus pr
 Ao abrigo do RGPD, podes aceder, corrigir, exportar e apagar os teus dados, limitar ou opor-te ao tratamento e retirar o consentimento.
 - Exportar: Definições › Cópia de segurança › Exportar (ficheiro JSON).
 - Apagar: Definições › Eliminar conta. É definitivo.
-- Outros pedidos: escreve para noreplyserena@gmail.com.
+- Outros pedidos: escreve para serenaapp.apoio@gmail.com.
 Podes também apresentar reclamação à autoridade de proteção de dados do teu país. Em Portugal é a CNPD (www.cnpd.pt).
 
 ## 11. Menores
