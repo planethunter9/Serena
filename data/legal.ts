@@ -2,7 +2,7 @@
 // Ficheiro gerado a partir da mesma fonte que POLITICA_DE_PRIVACIDADE.md e
 // PRIVACY_POLICY_EN.md: se mudares o conteúdo, muda nos três (e nas 10 línguas).
 //
-// ⚠️ ANTES DE PUBLICAR: preenche os três dados abaixo. Não é aconselhamento
+// Dados do responsável abaixo. Depois de mudar o texto: npm run privacy:site. Não é aconselhamento
 // jurídico — se puderes, valida com alguém de proteção de dados.
 
 import type { Lang } from '../i18n/i18n';

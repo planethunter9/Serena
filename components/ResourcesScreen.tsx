@@ -4,7 +4,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { pick, TKey, useLang , tr2 } from '../i18n/i18n';
+import { LText, pick, TKey, useLang , tr2 } from '../i18n/i18n';
 import { loadResourcesOrder, saveResourcesOrder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -12,7 +12,7 @@ import { CoachTarget } from './CoachMarks';
 import { ScreenTitle } from './ui';
 
 // Cada item usa uma chave i18n (titleKey) OU um título inline (title).
-const ITEMS: { id: string; titleKey?: TKey; title?: { pt: string; en: string }; icon: keyof typeof Ionicons.glyphMap }[] = [
+const ITEMS: { id: string; titleKey?: TKey; title?: LText; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: 'lessons', titleKey: 'resources.lessons', icon: 'book-outline' },
   { id: 'exercises', titleKey: 'resources.exercises', icon: 'barbell-outline' },
   { id: 'goalsachievements', titleKey: 'resources.goalsachievements', icon: 'trophy-outline' },
@@ -21,10 +21,11 @@ const ITEMS: { id: string; titleKey?: TKey; title?: { pt: string; en: string }; 
   { id: 'journal', titleKey: 'resources.journal', icon: 'create-outline' },
   { id: 'safetyfeeding', titleKey: 'resources.safetyfeeding', icon: 'shield-checkmark-outline' },
   { id: 'crisislines', titleKey: 'resources.crisislines', icon: 'call-outline' },
+  { id: 'report', title: { pt: 'Resumo para a consulta', 'pt-BR': 'Resumo para a consulta', en: 'Summary for your appointment', es: 'Resumen para la consulta', fr: 'Résumé pour la consultation', de: 'Zusammenfassung für den Termin', it: 'Riepilogo per la visita', nl: 'Samenvatting voor de afspraak', pl: 'Podsumowanie na wizytę', ru: 'Сводка для приёма' }, icon: 'document-text-outline' },
 ];
 
 // Ids que já têm ecrã a funcionar.
-const READY = ['lessons', 'exercises', 'goalsachievements', 'reminders', 'plans', 'journal', 'safetyfeeding', 'crisislines'];
+const READY = ['lessons', 'exercises', 'goalsachievements', 'reminders', 'plans', 'journal', 'safetyfeeding', 'crisislines', 'report'];
 
 export default function ResourcesScreen({
   onOpen,

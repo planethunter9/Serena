@@ -2,7 +2,7 @@
 
 **Última atualização: 6 de novembro de 2026**
 
-> **Nota:** modelo para adaptares, não aconselhamento jurídico. Preenche os campos entre `[ ]` (também em `data/legal.ts`). As lojas exigem esta política num link público. O texto é o mesmo que aparece na app.
+> **Nota:** não é aconselhamento jurídico. As lojas exigem esta política num link público: a versão web (10 línguas) está em `docs/privacy/index.html` e gera-se com `npm run privacy:site`. O texto é o mesmo que aparece na app (`data/legal.ts`).
 
 A Serena é uma app de apoio psicoeducativo para quem vive com emetofobia (medo de vomitar). Sabemos que o que registas aqui é pessoal e sensível, por isso explicamos de forma simples que dados guardamos, porquê, onde ficam e como os controlas.
 
@@ -15,7 +15,7 @@ A Serena é uma app de apoio psicoeducativo para quem vive com emetofobia (medo 
 
 ## 1. Quem é o responsável
 
-O responsável pelo tratamento dos dados é [nome do responsável / entidade]. Para qualquer questão sobre privacidade, escreve para [email de contacto].
+O responsável pelo tratamento dos dados é Inês Nascimento. Para qualquer questão sobre privacidade, escreve para noreplyserena@gmail.com.
 
 ## 2. Que dados guardamos
 
@@ -39,7 +39,7 @@ Para criar e manter a tua conta, mostrar o teu progresso e histórico, enviar os
 
 ## 6. Onde ficam os dados
 
-Os teus dados ficam guardados no teu telemóvel. Enquanto tiveres sessão iniciada, é também guardada uma cópia de segurança associada à tua conta no Supabase, o nosso fornecedor de autenticação e base de dados, que atua como subcontratante e aloja os dados em [região dos servidores Supabase]. Esta cópia é atualizada quando sais da app e reposta quando inicias sessão. Não partilhamos os teus dados com mais ninguém, salvo obrigação legal.
+Os teus dados ficam guardados no teu telemóvel. Enquanto tiveres sessão iniciada, é também guardada uma cópia de segurança associada à tua conta no Supabase, o nosso fornecedor de autenticação e base de dados, que atua como subcontratante e aloja os dados em West EU (Ireland). Esta cópia é atualizada quando sais da app e reposta quando inicias sessão. Não partilhamos os teus dados com mais ninguém, salvo obrigação legal.
 
 ## 7. Notificações
 
@@ -58,7 +58,7 @@ A ligação à cloud é cifrada (HTTPS) e cada pessoa só tem acesso aos seus pr
 Ao abrigo do RGPD, podes aceder, corrigir, exportar e apagar os teus dados, limitar ou opor-te ao tratamento e retirar o consentimento.
 - Exportar: Definições › Cópia de segurança › Exportar (ficheiro JSON).
 - Apagar: Definições › Eliminar conta. É definitivo.
-- Outros pedidos: escreve para [email de contacto].
+- Outros pedidos: escreve para noreplyserena@gmail.com.
 Podes também apresentar reclamação à autoridade de proteção de dados do teu país. Em Portugal é a CNPD (www.cnpd.pt).
 
 ## 11. Menores

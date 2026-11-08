@@ -12,7 +12,8 @@
     "lint": "expo lint",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && expo lint && jest"
+    "check": "tsc --noEmit && expo lint && jest",
+    "privacy:site": "node scripts/build-privacy-site.js"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
@@ -57,6 +58,8 @@
     "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.14",
     "expo-notifications": "~58.1.6",
+    "expo-print": "~58.0.7",
+    "expo-quick-actions": "^6.0.2",
     "expo-router": "~58.0.26",
     "expo-sharing": "~58.0.20",
     "expo-splash-screen": "~58.0.11",

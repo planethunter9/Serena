@@ -1,6 +1,6 @@
 // Consentimento explícito para o tratamento de dados de saúde (RGPD, art. 9.º).
 // Aparece depois de entrar na conta e antes do questionário inicial (e uma vez a
-// quem já tinha conta). Sem os dois "aceito", não se pode usar a app — a pessoa
+// quem já tinha conta). Inclui o aviso "não substitui um profissional". Sem as três caixas, não se pode usar a app — a pessoa
 // pode sair da conta ou eliminá-la.
 
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,8 @@ import { Lang, useLang } from '../i18n/i18n';
 import { CONSENT_VERSION, saveHealthConsent } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { disclaimer } from '../data/disclaimer';
+import DisclaimerCard from './DisclaimerCard';
 import PrivacyScreen from './PrivacyScreen';
 import { PrimaryButton } from './ui';
 
@@ -253,6 +255,8 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
 
   const [policyOk, setPolicyOk] = useState(false);
   const [healthOk, setHealthOk] = useState(false);
+  const [ackOk, setAckOk] = useState(false);
+  const d = disclaimer(lang);
   const [showPolicy, setShowPolicy] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -297,6 +301,8 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
           ))}
         </View>
 
+        <DisclaimerCard />
+
         <View style={{ gap: spacing.sm }}>
           <Check checked={policyOk} label={x.policy} onToggle={() => setPolicyOk((v) => !v)} stateLabel={policyOk ? x.checked : x.unchecked} />
           <Pressable onPress={() => setShowPolicy(true)} accessibilityRole="link" hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4 }}>
@@ -304,9 +310,10 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14, textDecorationLine: 'underline' }}>{x.readPolicy}</Text>
           </Pressable>
           <Check checked={healthOk} label={x.health} onToggle={() => setHealthOk((v) => !v)} stateLabel={healthOk ? x.checked : x.unchecked} />
+          <Check checked={ackOk} label={d.ack} onToggle={() => setAckOk((v) => !v)} stateLabel={ackOk ? x.checked : x.unchecked} />
         </View>
 
-        <PrimaryButton label={x.accept} onPress={accept} disabled={!policyOk || !healthOk || busy} />
+        <PrimaryButton label={x.accept} onPress={accept} disabled={!policyOk || !healthOk || !ackOk || busy} />
         <Pressable onPress={decline} accessibilityRole="button" style={{ alignItems: 'center', padding: 12 }}>
           <Text style={{ color: colors.textMuted, fontWeight: '600', fontSize: 15 }}>{x.decline}</Text>
         </Pressable>
