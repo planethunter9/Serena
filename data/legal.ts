@@ -7,9 +7,9 @@
 
 import type { Lang } from '../i18n/i18n';
 
-export const PRIVACY_CONTROLLER = '[nome do responsável / entidade]';
-export const PRIVACY_EMAIL = '[email de contacto]';
-export const PRIVACY_REGION = '[região dos servidores Supabase, ex.: UE (Frankfurt)]';
+export const PRIVACY_CONTROLLER = 'Inês Nascimento';
+export const PRIVACY_EMAIL = 'noreplyserena@gmail.com';
+export const PRIVACY_REGION = 'West EU (Ireland)';
 
 export type PolicyDoc = { updated: string; intro: string; sections: { title: string; body: string }[] };
 
