@@ -12,6 +12,7 @@ import { dict as ptBRDict, inline as ptBRInline } from './translations/pt-BR';
 import { dict as nlDict, inline as nlInline } from './translations/nl';
 import { dict as plDict, inline as plInline } from './translations/pl';
 import { dict as ruDict, inline as ruInline } from './translations/ru';
+import { content as deContent } from './content/de';
 import { content as esContent } from './content/es';
 import { content as frContent } from './content/fr';
 import { content as ptBRContent } from './content/pt-BR';
@@ -806,6 +807,7 @@ export const CONTENT: Partial<Record<Lang, Record<string, string>>> = {
   'pt-BR': ptBRContent,
   es: esContent,
   fr: frContent,
+  de: deContent,
 };
 
 export function pick(obj: LText | undefined, lang: Lang): string {
