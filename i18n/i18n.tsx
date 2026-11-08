@@ -13,6 +13,7 @@ import { dict as nlDict, inline as nlInline } from './translations/nl';
 import { dict as plDict, inline as plInline } from './translations/pl';
 import { dict as ruDict, inline as ruInline } from './translations/ru';
 import { content as esContent } from './content/es';
+import { content as frContent } from './content/fr';
 import { content as ptBRContent } from './content/pt-BR';
 
 // Línguas suportadas. pt e en estão traduzidas a 100%; as restantes vão sendo
@@ -804,6 +805,7 @@ export type LText = { pt: string; en: string } & Partial<Record<Lang, string>>;
 export const CONTENT: Partial<Record<Lang, Record<string, string>>> = {
   'pt-BR': ptBRContent,
   es: esContent,
+  fr: frContent,
 };
 
 export function pick(obj: LText | undefined, lang: Lang): string {

@@ -32,3 +32,7 @@ test('o conteúdo em pt-BR vem do ficheiro de traduções', () => {
 test('o conteúdo em espanhol vem do ficheiro de traduções', () => {
   expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'es')).toBe('El vómito existe — y algún día ocurrirá');
 });
+
+test('o conteúdo em francês vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'fr')).toBe('Le vomissement existe — et un jour, il arrivera');
+});
