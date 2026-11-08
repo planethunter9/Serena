@@ -15,7 +15,7 @@ Serena is a psychoeducational support app for people living with emetophobia (th
 
 ## 1. Who is responsible
 
-The data controller is Inês Nascimento. For any privacy question, write to noreplyserena@gmail.com.
+The data controller is Inês Nascimento. For any privacy question, write to serenaapp.apoio@gmail.com.
 
 ## 2. What data we keep
 
@@ -58,7 +58,7 @@ The connection to the cloud is encrypted (HTTPS) and each person can only access
 Under the GDPR you can access, correct, export and delete your data, restrict or object to processing, and withdraw consent.
 - Export: Settings › Backup › Export (JSON file).
 - Delete: Settings › Delete account. This is permanent.
-- Other requests: write to noreplyserena@gmail.com.
+- Other requests: write to serenaapp.apoio@gmail.com.
 You can also lodge a complaint with the data protection authority in your country (in Portugal, the CNPD: www.cnpd.pt).
 
 ## 11. Minors
