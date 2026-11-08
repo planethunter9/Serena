@@ -800,7 +800,8 @@ export const INLINE: Partial<Record<Lang, Record<string, string>>> = {
 export function tr2(lang: Lang, pt: string, en: string): string {
   if (lang === 'pt') return pt;
   if (lang === 'en') return en;
-  return INLINE[lang]?.[en] ?? (lang === 'pt-BR' ? pt : en);
+  // Também procura nas traduções de conteúdo (etiquetas de data/*.ts usadas com tr2).
+  return INLINE[lang]?.[en] ?? CONTENT[lang]?.[en] ?? (lang === 'pt-BR' ? pt : en);
 }
 
 // Ajudante para conteúdo guardado como objeto por língua ({ pt, en, es, ... }),

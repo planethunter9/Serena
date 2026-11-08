@@ -24,4 +24,6 @@ export const SAFETY_BEHAVIORS: { id: string; label: L }[] = [
   { id: 'avoidalcohol', label: { pt: 'Evitar álcool, ou comer pouco antes de sair', en: 'Avoiding alcohol, or eating little before going out' } },
   { id: 'countdays', label: { pt: 'Contar os dias desde a última vez que estive doente', en: 'Counting the days since I was last sick' } },
   { id: 'barrier', label: { pt: 'Abrir portas/carregar botões com a manga ou usar máscara', en: 'Using my sleeve on doors/buttons or wearing a mask' } },
+  { id: 'kidcheck', label: { pt: "Perguntar aos filhos a toda a hora se estão maldispostos", en: "Constantly asking my children if they feel sick" } },
+  { id: 'kidaway', label: { pt: "Afastar-me dos filhos ou passá-los a outra pessoa quando estão doentes", en: "Keeping away from my children, or handing them over, when they are ill" } },
 ];

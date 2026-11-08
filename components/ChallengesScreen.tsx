@@ -32,6 +32,8 @@ export const CHALLENGES: { id: string; text: L }[] = [
   { id: 'c14', text: { pt: 'Fica sem companhia num momento em que a pedirias por segurança.', en: 'Be alone at a moment when you would ask for company for safety.' } },
   { id: 'c15', text: { pt: 'Deixa uma dúvida em aberto e diz a ti: "posso viver sem ter a certeza".', en: 'Leave a doubt open and tell yourself: "I can live without being certain".' } },
   { id: 'c16', text: { pt: 'Faz algo espontâneo, que não planeaste nem controlaste.', en: 'Do something spontaneous, unplanned and uncontrolled.' } },
+  { id: 'c17', text: { pt: "Fala sobre gravidez ou bebés sem mudar de assunto.", en: "Talk about pregnancy or babies without changing the subject." } },
+  { id: 'c18', text: { pt: "Hoje, não perguntes a uma criança se está maldisposta.", en: "Today, don't ask a child whether they feel sick." } },
 ];
 
 function ymd(d: Date) {
