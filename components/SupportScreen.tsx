@@ -95,6 +95,7 @@ export default function SupportScreen({
       {/* Técnicas */}
       <SectionHeader label={t('home.techniquesTitle')} />
       <Note text={anchorNote} />
+      <CoachTarget name="support-techniques" style={{ gap: spacing.md }}>
       {techniques.map((tech) => (
         <Pressable key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
           <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
@@ -107,6 +108,7 @@ export default function SupportScreen({
           <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
         </Pressable>
       ))}
+      </CoachTarget>
 
       {/* Sons */}
       <SectionHeader label={t('home.soundsTitle')} />

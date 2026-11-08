@@ -36,6 +36,7 @@ import { LanguageProvider, useLang } from '../i18n/i18n';
 import { AuthProvider } from '../auth/AuthContext';
 import { DataProvider } from '../store/DataContext';
 import { syncAffirmationReminder } from '../notifications/affirmation';
+import SyncBanner from '../components/SyncBanner';
 
 function ThemedStatusBar() {
   const { isDark } = useTheme();
@@ -132,6 +133,8 @@ function ThemedApp() {
     <>
       <ThemedStatusBar />
       <Stack key={remountKey} screenOptions={{ headerShown: false }} />
+      {/* Aviso "sem ligação" (sincronização com a cloud), por cima de todos os ecrãs */}
+      <SyncBanner />
     </>
   );
 }

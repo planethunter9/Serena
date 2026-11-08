@@ -11,7 +11,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang , tr2 } from '../i18n/i18n';
-import { exportUserData, importUserData, isoLocal, OnboardingData } from '../storage/storage';
+import { tutorialPack } from '../data/tutorial';
+import { exportUserData, importUserData, isoLocal, OnboardingData, resetWalkthroughSeen } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -191,6 +192,7 @@ export default function SettingsScreen({
         <NavRow icon="chatbox-ellipses-outline" label={tr2(lang, 'Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} />
         <NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />
         <NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />
+        <NavRow icon="compass-outline" label={tutorialPack(lang).ui.replay} onPress={async () => { await resetWalkthroughSeen(); onBack(); }} />
 
         {/* Cópia de segurança */}
         <Card style={{ gap: 10, marginTop: 4 }}>

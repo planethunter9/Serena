@@ -6,7 +6,7 @@ import { AppState } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../lib/supabase';
-import { pullProfile, pushProfile, schedulePush } from '../lib/sync';
+import { getSyncStatus, pullProfile, pushProfile, resetSync, retrySyncNow, schedulePush } from '../lib/sync';
 import { setOnLocalChange, setStorageUser, wipeLocalUserData } from '../storage/storage';
 
 // Permite que a janela do browser de OAuth se feche e devolva o controlo à app.
@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(u);
     } else if (!session) {
       setOnLocalChange(null);
+      resetSync();
       setStorageUser(null);
       userRef.current = null;
       setUser(null);
@@ -95,7 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Gere o refresh do token e faz backup ao ir para segundo plano.
     const appSub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') supabase.auth.startAutoRefresh();
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+        // Ao voltar à app, se a última sincronização falhou, tenta de novo já.
+        if (userRef.current && getSyncStatus() === 'offline') retrySyncNow();
+      }
       else {
         supabase.auth.stopAutoRefresh();
         if (userRef.current) pushProfile(userRef.current.id);
