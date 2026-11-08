@@ -8,6 +8,7 @@ import { tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { CoachTarget } from './CoachMarks';
+import DisclaimerCard from './DisclaimerCard';
 import { ScreenTitle } from './ui';
 
 function SectionHeader({ label }: { label: string }) {
@@ -91,6 +92,7 @@ export default function SupportScreen({
       </CoachTarget>
       <Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} />
       <Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} />
+      <DisclaimerCard variant="short" />
 
       {/* Técnicas */}
       <SectionHeader label={t('home.techniquesTitle')} />

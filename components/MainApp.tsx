@@ -13,6 +13,7 @@ import { useLang } from '../i18n/i18n';
 import * as Notifications from 'expo-notifications';
 import { cancelUntrackedReminders, knownNotificationIds } from '../notifications/notifications';
 import { routeForNotification } from '../notifications/routes';
+import { useQuickActions } from '../lib/quickActions';
 import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { CoachTarget, useCoach } from './CoachMarks';
 import { TUTORIAL_NO_TARGET, TUTORIAL_ORDER, TutorialStepId, tutorialPack } from '../data/tutorial';
@@ -37,6 +38,9 @@ export default function MainApp() {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Atalhos no ícone da app (pressão longa): gatilho, respirar, linhas de apoio.
+  useQuickActions(lang);
 
   // Coach marks (tutorial de abertura): boas-vindas, depois percorre os quatro
   // separadores (mudando de ecrã em cada passo e realçando um elemento real) e

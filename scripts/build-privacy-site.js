@@ -12,7 +12,8 @@ require.extensions['.ts'] = (module, filename) => {
 };
 
 const { buildPrivacyHtml } = require('../lib/privacySite.ts');
-const file = path.join(__dirname, '..', 'docs', 'privacy', 'index.html');
+const root = path.dirname(require.resolve('../package.json'));
+const file = path.join(root, 'docs', 'privacy', 'index.html');
 fs.mkdirSync(path.dirname(file), { recursive: true });
 fs.writeFileSync(file, buildPrivacyHtml());
 console.log('Página gerada:', path.relative(process.cwd(), file));

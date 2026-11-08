@@ -659,4 +659,5 @@ export const inline: Record<string, string> = {
   "Emetophobia is different for everyone — build the plan with whatever makes sense for you. Pick from the suggestions or add your own tasks.": "Emetofobia u każdego wygląda inaczej — ułóż plan z tego, co ma dla ciebie sens. Wybierz z propozycji albo dodaj własne zadania.",
   "You don't have anything visible on your profile yet. Tap \"Edit\" to choose what to show.": "W profilu nie ma jeszcze nic widocznego. Dotknij \"Edytuj\", aby wybrać, co ma być pokazywane.",
   "Change photo": "Zmień zdjęcie",
+  "Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).": "Serena to wsparcie psychoedukacyjne dla osób żyjących z emetofobią (lękiem przed wymiotowaniem). Pomaga zrozumieć fobię i ćwiczyć techniki oparte na terapii poznawczo-behawioralnej (CBT) oraz ekspozycji z powstrzymaniem reakcji (ERP).",
 };

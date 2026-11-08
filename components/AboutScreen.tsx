@@ -7,6 +7,7 @@ import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { SOURCES } from './CitationsScreen';
+import DisclaimerCard from './DisclaimerCard';
 import { Card, TopBackBar } from './ui';
 
 export default function AboutScreen({ onBack }: { onBack: () => void }) {
@@ -27,11 +28,13 @@ export default function AboutScreen({ onBack }: { onBack: () => void }) {
           </View>
           <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
             {L(
-              'A Serena é um apoio psicoeducativo para quem vive com emetofobia (o medo de vomitar). Ajuda-te a compreender a fobia e a praticar técnicas baseadas na terapia cognitivo-comportamental (CBT) e na exposição com prevenção de resposta (ERP).\n\nNão substitui o acompanhamento de um profissional de saúde nem é um tratamento médico. Em caso de crise, usa as linhas de apoio em Recursos.',
-              'Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).\n\nIt does not replace care from a health professional and is not medical treatment. In a crisis, use the support lines in Resources.',
+              'A Serena é um apoio psicoeducativo para quem vive com emetofobia (o medo de vomitar). Ajuda-te a compreender a fobia e a praticar técnicas baseadas na terapia cognitivo-comportamental (CBT) e na exposição com prevenção de resposta (ERP).',
+              'Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).',
             )}
           </Text>
         </Card>
+
+        <DisclaimerCard />
 
         {/* Fontes */}
         <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm }}>
