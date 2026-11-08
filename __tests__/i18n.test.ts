@@ -1,7 +1,7 @@
 // Traduções: nada fica em branco e a política existe em todas as línguas.
 import { expect, test } from '@jest/globals';
 import { getPrivacyPolicy } from '../data/legal';
-import { LANGS, pick, tr2 } from '../i18n/i18n';
+import { CONTENT, LANGS, pick, tr2 } from '../i18n/i18n';
 
 test('pick cai em português (pt-BR) ou inglês quando falta a tradução', () => {
   const o = { pt: 'olá', en: 'hello' };
@@ -51,4 +51,19 @@ test('o conteúdo em neerlandês vem do ficheiro de traduções', () => {
 
 test('o conteúdo em polaco vem do ficheiro de traduções', () => {
   expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'pl')).toBe('Wymioty istnieją — i kiedyś się zdarzą');
+});
+
+test('o conteúdo em russo vem do ficheiro de traduções', () => {
+  expect(pick({ pt: 'O vómito existe — e um dia vai acontecer', en: 'Vomiting exists — and one day it will happen' }, 'ru')).toBe('Рвота существует — и однажды она случится');
+});
+
+test('as 8 línguas traduzidas têm exatamente o mesmo conteúdo (nenhuma tradução em falta)', () => {
+  const langs = ['pt-BR', 'es', 'fr', 'de', 'it', 'nl', 'pl', 'ru'] as const;
+  const ref = Object.keys(CONTENT['pt-BR'] ?? {}).sort();
+  expect(ref.length).toBeGreaterThan(700);
+  for (const l of langs) {
+    const keys = Object.keys(CONTENT[l] ?? {}).sort();
+    expect({ lang: l, keys }).toEqual({ lang: l, keys: ref });
+    for (const k of keys) expect((CONTENT[l] as Record<string, string>)[k].trim().length).toBeGreaterThan(0);
+  }
 });

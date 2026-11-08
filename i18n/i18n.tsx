@@ -18,6 +18,7 @@ import { content as frContent } from './content/fr';
 import { content as itContent } from './content/it';
 import { content as nlContent } from './content/nl';
 import { content as plContent } from './content/pl';
+import { content as ruContent } from './content/ru';
 import { content as ptBRContent } from './content/pt-BR';
 
 // Línguas suportadas. pt e en estão traduzidas a 100%; as restantes vão sendo
@@ -814,6 +815,7 @@ export const CONTENT: Partial<Record<Lang, Record<string, string>>> = {
   it: itContent,
   nl: nlContent,
   pl: plContent,
+  ru: ruContent,
 };
 
 export function pick(obj: LText | undefined, lang: Lang): string {
