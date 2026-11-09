@@ -64,37 +64,25 @@
       "expo-asset",
       "expo-sharing",
       [
-        "expo-dynamic-app-icon",
+        "expo-quick-actions/icon/plugin",
         {
           "rose": {
-            "ios": "./assets/images/lotus-rose.png",
-            "android": "./assets/images/lotus-rose.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-rose.png"
           },
           "blue": {
-            "ios": "./assets/images/lotus-blue.png",
-            "android": "./assets/images/lotus-blue.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-blue.png"
           },
           "green": {
-            "ios": "./assets/images/lotus-green.png",
-            "android": "./assets/images/lotus-green.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-green.png"
           },
           "violet": {
-            "ios": "./assets/images/lotus-violet.png",
-            "android": "./assets/images/lotus-violet.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-violet.png"
           },
           "amber": {
-            "ios": "./assets/images/lotus-amber.png",
-            "android": "./assets/images/lotus-amber.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-amber.png"
           },
           "noir": {
-            "ios": "./assets/images/lotus-noir.png",
-            "android": "./assets/images/lotus-noir.png",
-            "prerendered": true
+            "image": "./assets/images/lotus-noir.png"
           }
         }
       ]
