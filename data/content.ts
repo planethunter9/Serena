@@ -23,6 +23,7 @@ export const LOSS_OPTIONS: { id: string; label: L }[] = [
   { id: 'espontaneidade', label: { pt: 'Ser espontâneo / sair sem planear tudo', en: 'Being spontaneous / going out without a plan' } },
   { id: 'sono', label: { pt: 'Dormir descansado', en: 'Sleeping soundly' } },
   { id: 'tempo', label: { pt: 'Tempo perdido em verificações e pesquisas', en: 'Time lost to checking and searching' } },
+  { id: 'presenca', label: { pt: "Estar presente para os filhos ou a família", en: "Being present for my children or family" } },
 ];
 
 export const RECOVER_OPTIONS: { id: string; label: L }[] = [
@@ -31,6 +32,8 @@ export const RECOVER_OPTIONS: { id: string; label: L }[] = [
   { id: 'confianca', label: { pt: 'Confiança em mim', en: 'Confidence in myself' } },
   { id: 'sono', label: { pt: 'Dormir descansado', en: 'Sleeping soundly' } },
   { id: 'espontaneidade', label: { pt: 'Ser espontâneo', en: 'Being spontaneous' } },
+  { id: 'familia', label: { pt: "Viver a gravidez ou a parentalidade com mais calma", en: "Living pregnancy or parenthood more calmly" } },
+  { id: 'decidir', label: { pt: "Decidir sobre ter filhos sem ser o medo a decidir", en: "Deciding about having children without letting fear decide" } },
 ];
 
 export const SYMPTOM_OPTIONS: { id: string; label: L }[] = [
@@ -63,6 +66,8 @@ export const TRIGGERS_OPTIONS: { id: string; label: L }[] = [
   { id: 'cheio', label: { pt: 'Sensação de estômago muito cheio', en: 'Feeling of a very full stomach' } },
   { id: 'stress', label: { pt: 'Stress ou ansiedade que dá mal-estar de estômago', en: 'Stress or anxiety that upsets the stomach' } },
   { id: 'cheiros', label: { pt: 'Calor ou cheiros fortes de comida', en: 'Heat or strong food smells' } },
+  { id: 'gravidez', label: { pt: "Gravidez: enjoos, falar de engravidar ou de partos", en: "Pregnancy: morning sickness, talk of getting pregnant or giving birth" } },
+  { id: 'filho_doente', label: { pt: "Uma criança dizer que lhe dói a barriga ou que está enjoada", en: "A child saying their tummy hurts or they feel sick" } },
 ];
 
 export const PLANS: { id: string; title: L; subtitle: L; desc: L }[] = [
@@ -380,6 +385,60 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
     ],
   },
   {
+    id: 'ch10',
+    title: { pt: "Gravidez e filhos", en: "Pregnancy and children" },
+    lessons: [
+      {
+        id: 'kids1',
+        title: { pt: 'Crianças e gravidez', en: 'Children and pregnancy' },
+        body: {
+          pt: 'Dois medos muito comuns na emetofobia envolvem as crianças e a gravidez — e costumam pesar em decisões grandes da vida.\n\nCrianças: como apanham viroses com mais facilidade, muita gente com emetofobia evita estar com elas, teme ser mãe ou pai, ou afasta-se de sobrinhos e amigos com filhos. É verdade que as crianças adoecem mais — mas também é verdade que esses episódios são curtos, previsíveis e geríveis, e que muitíssimos pais com esta fobia cuidam dos filhos e recuperam na mesma. Aplica-se o de sempre: aproximares-te aos poucos em vez de evitar, e não compensar com excesso de higiene, verificações ou vigilância.\n\nGravidez: o medo dos enjoos pode levar a adiar ou recusar engravidar. Ajuda saber que, embora as náuseas sejam comuns no início da gravidez, a maioria das grávidas vomita pouco ou nada, que costuma melhorar depois do primeiro trimestre, e que há acompanhamento e opções para os casos mais difíceis. A decisão de ter filhos é profundamente pessoal e só tua — a ideia aqui é que a tomes a partir de informação e dos teus valores, não a partir da catástrofe que a fobia pinta.\n\nUm aviso: isto é informação psicoeducativa, não aconselhamento médico. Para decisões sobre gravidez, ou se os enjoos forem muito intensos, fala com o teu médico; e se este medo estiver a moldar grandes escolhas da tua vida, vale muito o apoio de um profissional de saúde mental.',
+          en: 'Two very common emetophobia fears involve children and pregnancy — and they often weigh on big life decisions.\n\nChildren: because they catch stomach bugs more easily, many people with emetophobia avoid being around them, fear becoming a parent, or keep their distance from nieces, nephews and friends with kids. It is true that children get ill more often — but it is also true that these episodes are short, predictable and manageable, and that a great many parents with this phobia care for their children and recover all the same. The usual approach applies: moving closer little by little instead of avoiding, and not compensating with excessive hygiene, checking or monitoring.\n\nPregnancy: the fear of sickness can lead people to delay or refuse pregnancy. It helps to know that, although nausea is common in early pregnancy, most pregnant people vomit little or not at all, that it usually improves after the first trimester, and that there is support and there are options for the harder cases. The decision to have children is deeply personal and yours alone — the idea here is to make it from information and your values, not from the catastrophe the phobia paints.\n\nA caution: this is psychoeducational information, not medical advice. For decisions about pregnancy, or if sickness is very intense, talk to your doctor; and if this fear is shaping big choices in your life, support from a mental-health professional is well worth it.',
+        },
+      },
+      {
+        id: 'preg1',
+        title: { pt: "O medo de engravidar", en: "The fear of pregnancy" },
+        body: {
+          pt: "Para muitas pessoas com emetofobia, a ideia de engravidar traz logo uma imagem: meses de enjoos e vómitos. Não admira que leve a adiar ou a afastar a ideia de ter filhos — às vezes sem nunca o dizer em voz alta.\n\nOs factos ajudam a pôr essa imagem no tamanho certo. As náuseas são comuns no início da gravidez, mas os vómitos são menos frequentes e, para muita gente, ocasionais ou inexistentes. Na maioria dos casos melhoram entre as 16 e as 20 semanas. As formas graves (hiperémese gravídica) são raras — cerca de 1 em cada 100 gravidezes — e têm tratamento e acompanhamento médico.\n\nRepara também no que a fobia faz com a incerteza: transforma \"pode acontecer\" em \"vai acontecer e não vou aguentar\". Ninguém consegue saber de antemão como vai ser — e a tua capacidade de lidar com desconforto é maior do que o medo te diz.\n\nQuerer ou não querer filhos é uma escolha legítima, em qualquer sentido. A pergunta que vale a pena fazer é: se o medo não existisse, o que escolherias? Se a resposta for diferente da que estás a viver, é um bom tema para trabalhar com um profissional — e um bom motivo para continuares o teu plano.",
+          en: "For many people with emetophobia, the idea of pregnancy instantly brings up an image: months of nausea and vomiting. No wonder it leads to postponing or pushing away the idea of having children — sometimes without ever saying it out loud.\n\nThe facts help put that image at the right size. Nausea is common in early pregnancy, but vomiting is less frequent and, for many people, occasional or absent. In most cases it improves between weeks 16 and 20. Severe forms (hyperemesis gravidarum) are rare — about 1 in 100 pregnancies — and they have treatment and medical follow-up.\n\nNotice too what the phobia does with uncertainty: it turns \"it might happen\" into \"it will happen and I won't cope\". Nobody can know in advance how it will be — and your ability to handle discomfort is greater than the fear tells you.\n\nWanting or not wanting children is a legitimate choice, either way. The question worth asking is: if the fear did not exist, what would you choose? If the answer is different from the one you are living, it is a good topic to work on with a professional — and a good reason to keep going with your plan.",
+        },
+      },
+      {
+        id: 'preg2',
+        title: { pt: "Durante a gravidez", en: "During pregnancy" },
+        body: {
+          pt: "Se a gravidez já faz parte da tua vida, o medo pode ficar mais alto — sobretudo no início, quando as náuseas são mais comuns. Algumas coisas ajudam.\n\nConta à equipa que te acompanha (médico de família, obstetra, enfermeiro ou parteira) que tens emetofobia. Não é um pormenor: ajuda-os a explicar-te o que é normal, a planear contigo e a oferecer opções se os enjoos forem fortes. Há tratamentos seguros na gravidez para náuseas e vómitos — quem decide é a equipa de saúde, não a internet.\n\nCuidado com a restrição alimentar. Comer muito pouco ou só uma lista \"segura\" pode parecer proteção, mas na gravidez a alimentação importa ainda mais. Se o medo está a reduzir o que comes, fala com a equipa e trabalha-o como trabalharias outro comportamento de segurança.\n\nLembra-te de que a náusea não é sinal de que algo está mal: na gravidez é, na maioria das vezes, uma resposta hormonal esperada. Usa as mesmas ferramentas de sempre — respirar, deixar a onda passar, não verificar o corpo a toda a hora.\n\nProcura ajuda médica sem demora se não conseguires manter líquidos durante mais de um dia, se urinares muito pouco ou se sentires muita fraqueza ou tonturas — isso é diferente do medo e merece atenção. E a terapia (CBT/ERP) pode continuar durante a gravidez, com acompanhamento profissional.",
+          en: "If pregnancy is already part of your life, the fear can get louder — especially at the start, when nausea is most common. A few things help.\n\nTell the team looking after you (GP, obstetrician, nurse or midwife) that you have emetophobia. It is not a minor detail: it helps them explain what is normal, plan with you and offer options if the sickness is strong. There are treatments for nausea and vomiting that are safe in pregnancy — the health team decides, not the internet.\n\nWatch out for restricting food. Eating very little, or only from a \"safe\" list, can feel like protection, but in pregnancy nutrition matters even more. If fear is shrinking what you eat, talk to the team and work on it as you would any other safety behaviour.\n\nRemember that nausea is not a sign that something is wrong: in pregnancy it is, most of the time, an expected hormonal response. Use the same tools as always — breathe, let the wave pass, don't keep checking your body.\n\nSeek medical help promptly if you cannot keep fluids down for more than a day, if you pass very little urine, or if you feel very weak or dizzy — that is different from fear and deserves attention. And therapy (CBT/ERP) can continue during pregnancy, with professional support.",
+        },
+      },
+      {
+        id: 'preg3',
+        title: { pt: "Parto e primeiros meses", en: "Birth and the first months" },
+        body: {
+          pt: "Muitas pessoas com emetofobia têm medo de vomitar durante o parto. Pode acontecer — é relativamente comum no trabalho de parto —, mas a equipa está habituada, costuma ser rápido e há medicação para as náuseas que podes pedir. Incluir a emetofobia no teu plano de parto e falar dela nas consultas antes ajuda muito: dá-te voz e tira o fator surpresa.\n\nDepois do nascimento, os bebés bolsam com frequência — pequenas quantidades de leite que voltam depois de mamar. É normal, não é doença e faz parte do dia a dia com um bebé. No início pode custar; muitas pessoas descobrem que, à medida que tratam do bebé, o medo vai baixando — é uma exposição que acontece naturalmente, várias vezes por dia.\n\nOs primeiros meses trazem cansaço e pouco sono, o que aumenta a ansiedade em qualquer pessoa. Se a ansiedade ficar muito alta, se surgirem pensamentos intrusivos que te assustam ou se te sentires sem forças, fala com a tua equipa de saúde: a ansiedade e a depressão pós-parto são comuns e tratáveis, e pedir ajuda é cuidar de ti e do bebé.",
+          en: "Many people with emetophobia are afraid of vomiting during birth. It can happen — it is relatively common in labour — but the team is used to it, it is usually quick, and there is anti-nausea medication you can ask for. Including emetophobia in your birth plan and talking about it at appointments beforehand helps a lot: it gives you a voice and removes the element of surprise.\n\nAfter the birth, babies often spit up — small amounts of milk that come back after feeding. It is normal, it is not illness, and it is part of everyday life with a baby. It can be hard at first; many people find that, as they care for the baby, the fear goes down — it is exposure that happens naturally, several times a day.\n\nThe first months bring tiredness and little sleep, which raises anxiety in anyone. If anxiety gets very high, if intrusive thoughts appear that frighten you, or if you feel you have no strength left, talk to your health team: postnatal anxiety and depression are common and treatable, and asking for help is caring for yourself and for the baby.",
+        },
+      },
+      {
+        id: 'kids2',
+        title: { pt: "Quando um filho fica doente", en: "When a child gets sick" },
+        body: {
+          pt: "É o cenário que muitos pais e mães com emetofobia mais temem — e também aquele em que muita gente descobre que consegue. Um plano feito com calma, antes de acontecer, ajuda.\n• Prepara um \"kit\" simples: balde ou bacia, toalhas velhas, sacos e roupa para trocar. Ter o básico à mão reduz o pânico; não é preciso mais do que isso.\n• Combina com outra pessoa (se houver) como dividem as tarefas. Dividir é saudável; desaparecer por completo é evitação.\n• Lembra-te de que as viroses de estômago nas crianças costumam durar 1 a 2 dias. O mais importante é dar líquidos aos poucos e estar presente.\n• Higiene adequada, sim: lavar as mãos com água e sabão e limpar as superfícies. Limpeza obsessiva ou isolar a casa inteira, não.\n\nDurante, o medo vai estar lá. Não precisas de estar em calma para cuidar — só de continuar a fazer o próximo passo. A criança precisa mais da tua presença do que de calma perfeita.\n\nProcura um médico se a criança não conseguir beber, tiver sinais de desidratação (muito pouco xixi, boca seca, muito sono) ou se algo te preocupar — isso é cuidar, não é ceder ao medo.\n\nDepois, repara no que aconteceu: o que temias e o que realmente se passou. Regista-o como uma exposição não planeada — é uma das provas mais fortes de que consegues.",
+          en: "It is the scenario many parents with emetophobia fear most — and also the one where many people discover they can cope. A plan made calmly, before it happens, helps.\n• Put together a simple kit: bucket or bowl, old towels, bags and a change of clothes. Having the basics to hand reduces panic; you don't need more than that.\n• Agree with another person (if there is one) how you will share the tasks. Sharing is healthy; disappearing completely is avoidance.\n• Remember that stomach bugs in children usually last 1 to 2 days. What matters most is giving fluids little by little and being there.\n• Sensible hygiene, yes: washing hands with soap and water and cleaning surfaces. Obsessive cleaning or sealing off the whole house, no.\n\nDuring it, the fear will be there. You don't need to be calm to care for them — just keep doing the next step. The child needs your presence more than perfect calm.\n\nSee a doctor if the child cannot drink, shows signs of dehydration (very little pee, dry mouth, unusual sleepiness) or if anything worries you — that is caring, not giving in to fear.\n\nAfterwards, notice what happened: what you feared and what really took place. Log it as an unplanned exposure — it is one of the strongest pieces of evidence that you can cope.",
+        },
+      },
+      {
+        id: 'kids3',
+        title: { pt: "Não passar o medo aos filhos", en: "Not passing the fear on to your children" },
+        body: {
+          pt: "As crianças aprendem muito ao observar os adultos. Isso não quer dizer que a fobia passe de forma automática — mas o que fazemos à frente delas conta. A boa notícia é que trabalhar o teu medo já é uma forma de as proteger.\n\nAlgumas ideias:\n• Fala de vomitar de forma simples e neutra: \"às vezes o corpo deita fora o que lhe faz mal, e depois melhora.\"\n• Evita passar-lhes os teus comportamentos de segurança: verificar validades por elas, cancelar festas por haver \"um vírus a circular\", perguntar a toda a hora se estão maldispostas.\n• Deixa-as viver uma infância normal — escola, festas, comida variada, brincadeiras com outras crianças.\n• Não precisas de esconder que tens medo. Podes dizer: \"isto mete-me medo, mas estou a aprender a lidar com ele\" — é um exemplo valioso de coragem.\n\nSe notares que uma criança começa a ter um medo intenso de vomitar (evitar comer, perguntar muitas vezes se vai ficar doente, não querer ir à escola), fala com o pediatra ou com um psicólogo infantil. Quanto mais cedo, mais fácil.",
+          en: "Children learn a lot by watching adults. That does not mean the phobia is passed on automatically — but what we do in front of them counts. The good news is that working on your own fear is already a way of protecting them.\n\nSome ideas:\n• Talk about vomiting in a simple, neutral way: \"sometimes the body gets rid of what is bad for it, and then it feels better.\"\n• Avoid passing on your safety behaviours: checking expiry dates for them, cancelling parties because \"there is a bug going round\", constantly asking if they feel sick.\n• Let them have a normal childhood — school, parties, varied food, playing with other children.\n• You don't need to hide that you are afraid. You can say: \"this scares me, but I am learning to deal with it\" — it is a valuable example of courage.\n\nIf you notice a child starting to have an intense fear of vomiting (avoiding food, often asking if they will get sick, not wanting to go to school), talk to their paediatrician or a child psychologist. The earlier, the easier.",
+        },
+      },
+    ],
+  },
+  {
     id: 'ch7',
     title: { pt: 'Saber mais', en: 'Learn more' },
     lessons: [
@@ -448,14 +507,6 @@ export const CHAPTERS: { id: string; title: L; lessons: { id: string; title: L; 
         },
       },
       {
-        id: 'kids1',
-        title: { pt: 'Crianças e gravidez', en: 'Children and pregnancy' },
-        body: {
-          pt: 'Dois medos muito comuns na emetofobia envolvem as crianças e a gravidez — e costumam pesar em decisões grandes da vida.\n\nCrianças: como apanham viroses com mais facilidade, muita gente com emetofobia evita estar com elas, teme ser mãe ou pai, ou afasta-se de sobrinhos e amigos com filhos. É verdade que as crianças adoecem mais — mas também é verdade que esses episódios são curtos, previsíveis e geríveis, e que muitíssimos pais com esta fobia cuidam dos filhos e recuperam na mesma. Aplica-se o de sempre: aproximares-te aos poucos em vez de evitar, e não compensar com excesso de higiene, verificações ou vigilância.\n\nGravidez: o medo dos enjoos pode levar a adiar ou recusar engravidar. Ajuda saber que, embora as náuseas sejam comuns no início da gravidez, a maioria das grávidas vomita pouco ou nada, que costuma melhorar depois do primeiro trimestre, e que há acompanhamento e opções para os casos mais difíceis. A decisão de ter filhos é profundamente pessoal e só tua — a ideia aqui é que a tomes a partir de informação e dos teus valores, não a partir da catástrofe que a fobia pinta.\n\nUm aviso: isto é informação psicoeducativa, não aconselhamento médico. Para decisões sobre gravidez, ou se os enjoos forem muito intensos, fala com o teu médico; e se este medo estiver a moldar grandes escolhas da tua vida, vale muito o apoio de um profissional de saúde mental.',
-          en: 'Two very common emetophobia fears involve children and pregnancy — and they often weigh on big life decisions.\n\nChildren: because they catch stomach bugs more easily, many people with emetophobia avoid being around them, fear becoming a parent, or keep their distance from nieces, nephews and friends with kids. It is true that children get ill more often — but it is also true that these episodes are short, predictable and manageable, and that a great many parents with this phobia care for their children and recover all the same. The usual approach applies: moving closer little by little instead of avoiding, and not compensating with excessive hygiene, checking or monitoring.\n\nPregnancy: the fear of sickness can lead people to delay or refuse pregnancy. It helps to know that, although nausea is common in early pregnancy, most pregnant people vomit little or not at all, that it usually improves after the first trimester, and that there is support and there are options for the harder cases. The decision to have children is deeply personal and yours alone — the idea here is to make it from information and your values, not from the catastrophe the phobia paints.\n\nA caution: this is psychoeducational information, not medical advice. For decisions about pregnancy, or if sickness is very intense, talk to your doctor; and if this fear is shaping big choices in your life, support from a mental-health professional is well worth it.',
-        },
-      },
-      {
         id: 'ocd1',
         title: { pt: 'Emetofobia e OCD', en: 'Emetophobia and OCD' },
         body: {
@@ -506,6 +557,7 @@ export const SUBTYPE_OPTIONS: { id: string; label: L }[] = [
   { id: 'pregnancy', label: { pt: 'Medo relacionado com enjoos da gravidez', en: 'Fear related to pregnancy sickness' } },
   { id: 'animals', label: { pt: 'Medo de ver animais vomitar', en: 'Fear of seeing animals be sick' } },
   { id: 'general', label: { pt: 'Medo generalizado — praticamente tudo', en: 'Generalized — pretty much everything' } },
+  { id: 'parenting', label: { pt: "Medo de ter de cuidar de um filho doente", en: "Fear of having to care for a sick child" } },
 ];
 
 // "O que te ajuda a lidar com a fobia?" — estratégias de coping.
@@ -523,37 +575,47 @@ export const COPING_OPTIONS: { id: string; label: L }[] = [
 ];
 
 // Frases de coping por gatilho (tom de "consigo lidar", mais eficaz que "não vai acontecer nada").
-// As chaves correspondem aos ids em TRIGGERS_OPTIONS.
+// As chaves são os ids de TRIGGERS_OPTIONS (o gatilho guardado no perfil).
 export const TRIGGER_PHRASES: Record<string, L[]> = {
-  'náusea': [
+  nausea: [
     { pt: 'A náusea é desconfortável, mas passa — quase sempre sem nada acontecer.', en: 'Nausea is uncomfortable, but it passes — almost always with nothing happening.' },
     { pt: 'Sentir náuseas não é o mesmo que vomitar.', en: 'Feeling nauseous is not the same as vomiting.' },
     { pt: 'Já senti isto antes e fiquei bem. Consigo ficar com esta sensação.', en: 'I have felt this before and I was okay. I can stay with this feeling.' },
   ],
-  'outros sintomas': [
+  outros_sintomas: [
     { pt: 'Estes sintomas são desagradáveis, não perigosos.', en: 'These symptoms are unpleasant, not dangerous.' },
     { pt: 'O meu corpo sabe regular-se. Isto costuma passar sozinho.', en: 'My body knows how to regulate itself. This usually passes on its own.' },
     { pt: 'Posso deixar a sensação existir sem lutar contra ela.', en: 'I can let the sensation exist without fighting it.' },
   ],
-  'crianças': [
+  criancas: [
     { pt: 'Estar perto de crianças não me faz adoecer automaticamente.', en: 'Being around children does not automatically make me sick.' },
     { pt: 'A maior parte dos dias passa sem qualquer problema.', en: 'Most days pass without any problem.' },
     { pt: 'Sou capaz de lidar com este momento, aconteça o que acontecer.', en: 'I can handle this moment, whatever happens.' },
   ],
-  'viajar': [
+  viajar: [
     { pt: 'O enjoo de viagem é temporário e controlável.', en: 'Travel sickness is temporary and manageable.' },
     { pt: 'Posso respirar devagar e focar-me no horizonte.', en: 'I can breathe slowly and focus on the horizon.' },
     { pt: 'Estou em segurança. Isto passa.', en: 'I am safe. This will pass.' },
   ],
-  'comida contaminada': [
+  comida_fora: [
     { pt: 'A grande maioria das refeições é perfeitamente segura.', en: 'The vast majority of meals are perfectly safe.' },
     { pt: 'Não preciso de verificar tudo para estar bem.', en: 'I do not need to check everything to be okay.' },
     { pt: 'Um mal-estar não significa que vou vomitar.', en: 'Feeling off does not mean I will vomit.' },
   ],
-  'ver outros': [
+  ver_outros: [
     { pt: 'Ver alguém enjoado é desconfortável, mas não me faz mal a mim.', en: 'Seeing someone sick is uncomfortable, but it does not harm me.' },
     { pt: 'Posso desviar o olhar, respirar, e a sensação desce.', en: 'I can look away, breathe, and the feeling comes down.' },
     { pt: 'Este desconforto é a minha ansiedade, não um perigo real.', en: 'This discomfort is my anxiety, not a real danger.' },
+  ],
+  gravidez: [
+    { pt: "As náuseas na gravidez são comuns e, na maioria das vezes, passam ou melhoram.", en: "Nausea in pregnancy is common and, most of the time, it passes or improves." },
+    { pt: "Não preciso de saber agora como vai ser. Lido com isso quando e se acontecer.", en: "I don't need to know now how it will be. I'll deal with it when and if it happens." },
+    { pt: "Há uma equipa de saúde para ajudar — não tenho de passar por isto sem apoio.", en: "There is a health team to help — I don't have to go through this without support." },
+  ],
+  filho_doente: [
+    { pt: "Uma virose numa criança costuma ser curta. Consigo cuidar, mesmo com medo.", en: "A stomach bug in a child is usually short. I can care for them, even while scared." },
+    { pt: "A criança precisa da minha presença, não de calma perfeita.", en: "The child needs my presence, not perfect calm." },
+    { pt: "Uma dor de barriga não significa que vá vomitar.", en: "A tummy ache does not mean they will be sick." },
   ],
 };
 
@@ -591,6 +653,9 @@ export const FEEDING_BEHAVIORS: { id: string; label: L; why: L; alternative: L }
   { id: 'avoidmedia', label: { pt: 'Evitar filmes/conteúdos com vómito', en: 'Avoiding films/content with vomiting' },
     why: { pt: 'Impede a habituação: a palavra e a imagem mantêm todo o seu poder.', en: 'It prevents habituation: the word and image keep all their power.' },
     alternative: { pt: 'Exposição gradual — começa por palavras e desenhos, sobe devagar (vê os Jogos e Exercícios).', en: 'Gradual exposure — start with words and cartoons, move up slowly (see Games and Exercises).' } },
+  { id: 'kidlimits', label: { pt: "Limitar a vida dos filhos por causa do medo", en: "Limiting your children's lives because of the fear" },
+    why: { pt: "Cancelar festas, deixá-los em casa quando \"há um vírus a circular\" ou desinfetar tudo dá alívio por instantes, mas mantém o teu medo — e pode ensiná-lo às crianças.", en: "Cancelling parties, keeping them home when \"there is a bug going round\" or disinfecting everything brings brief relief, but keeps your fear going — and can teach it to the children." },
+    alternative: { pt: "Deixa-os viver uma infância normal e trabalha o teu medo à parte, com o teu plano. Uma higiene razoável chega.", en: "Let them have a normal childhood and work on your fear separately, with your plan. Sensible hygiene is enough." } },
 ];
 
 // Guia de sensações: distinguir sensações comuns e inofensivas (não é reassurance,

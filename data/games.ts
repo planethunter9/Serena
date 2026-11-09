@@ -136,4 +136,19 @@ export const MYTHS: { text: L; isMyth: boolean; explanation: L }[] = [
     isMyth: true,
     explanation: { pt: 'Na emetofobia a restrição serve para evitar vomitar, não para emagrecer — ao contrário da anorexia.', en: 'In emetophobia the restriction aims to avoid vomiting, not to lose weight — unlike anorexia.' },
   },
+  {
+    text: { pt: "Quem tem emetofobia não consegue cuidar de um filho doente.", en: "People with emetophobia cannot care for a sick child." },
+    isMyth: true,
+    explanation: { pt: "Muitas pessoas com emetofobia cuidam dos filhos doentes: o medo está lá, mas não as impede de agir. E cada vez que o fazem, ele perde força.", en: "Many people with emetophobia care for their sick children: the fear is there, but it does not stop them acting. And each time they do it, the fear loses strength." },
+  },
+  {
+    text: { pt: "Na gravidez, toda a gente vomita todos os dias.", en: "In pregnancy, everyone vomits every day." },
+    isMyth: true,
+    explanation: { pt: "As náuseas são comuns no início, mas muitas pessoas vomitam pouco ou nada durante a gravidez, e na maioria dos casos melhora a meio da gravidez.", en: "Nausea is common early on, but many people vomit little or not at all during pregnancy, and in most cases it improves by mid-pregnancy." },
+  },
+  {
+    text: { pt: "As crianças podem aprender medos ao observar os adultos.", en: "Children can learn fears by watching adults." },
+    isMyth: false,
+    explanation: { pt: "É verdade: as crianças aprendem muito pelo exemplo. Mostrar que consegues lidar com o desconforto ensina-lhes que é suportável.", en: "True: children learn a lot by example. Showing that you can handle discomfort teaches them that it is bearable." },
+  },
 ];

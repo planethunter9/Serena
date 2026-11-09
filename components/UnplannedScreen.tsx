@@ -32,6 +32,7 @@ export const UNPLANNED_TRIGGERS: { id: string; label: L }[] = [
   { id: 'food', label: { pt: 'Comida que me pareceu "arriscada"', en: 'Food that felt "risky"' } },
   { id: 'transport', label: { pt: 'Transporte / sítio sem saída fácil', en: 'Transport / place with no easy exit' } },
   { id: 'child', label: { pt: 'Criança doente', en: 'A sick child' } },
+  { id: 'pregnancy', label: { pt: "Gravidez / enjoo de gravidez", en: "Pregnancy / pregnancy sickness" } },
 ];
 
 // Passos para o próprio momento (curtos, para ler em pânico).

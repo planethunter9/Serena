@@ -28,7 +28,6 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "package": "com.planethunter.serena",
-      "versionCode": 3,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]

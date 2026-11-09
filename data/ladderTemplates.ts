@@ -121,4 +121,16 @@ export const LADDER_TEMPLATES: { subtypeId: string; steps: L[] }[] = [
       { pt: 'Cuidar do animal com um mal-estar ligeiro', en: 'Care for the pet with mild discomfort' },
     ],
   },
+  {
+    subtypeId: 'parenting',
+    steps: [
+      { pt: "Dizer \"uma criança pode vomitar e eu consigo cuidar\"", en: "Say \"a child might be sick and I can look after them\"" },
+      { pt: "Ler sobre como cuidar de uma criança com uma virose", en: "Read about caring for a child with a stomach bug" },
+      { pt: "Preparar o \"kit\" (balde, toalhas, roupa) e deixá-lo à vista", en: "Put together the kit (bucket, towels, clothes) and keep it in sight" },
+      { pt: "Ver um vídeo de um bebé a bolsar", en: "Watch a video of a baby spitting up" },
+      { pt: "Limpar algo que imita vómito (ex.: papa derramada)", en: "Clean something that mimics vomit (e.g. spilled baby food)" },
+      { pt: "Ficar no mesmo espaço quando uma criança diz que está enjoada", en: "Stay in the same room when a child says they feel sick" },
+      { pt: "Cuidar de uma criança doente sem desinfetar tudo depois", en: "Care for a sick child without disinfecting everything afterwards" },
+    ],
+  },
 ];
