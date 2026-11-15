@@ -17,19 +17,18 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import Avatar from './Avatar';
 import { Card, TopBackBar } from './ui';
-import { FadeInItem, PressableScale } from '../lib/motion';
 
 // Linha de navegação no estilo dos Recursos.
 function NavRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   const { colors } = useTheme();
   return (
-    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
       <View style={{ width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name={icon} size={22} color={colors.primary} />
       </View>
       <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 }}>{label}</Text>
       <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-    </PressableScale>
+    </Pressable>
   );
 }
 
@@ -181,7 +180,7 @@ export default function SettingsScreen({
       <TopBackBar title={t('settings.title')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
         {user && (
-          <PressableScale onPress={onOpenProfile} accessibilityRole="button" accessibilityLabel={t('profile.title')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+          <Pressable onPress={onOpenProfile} accessibilityRole="button" accessibilityLabel={t('profile.title')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
             <Avatar uri={photoUri} size={52} bg={colors.primarySoft} iconColor={colors.primary} />
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{profileName || user.name}</Text>
@@ -189,19 +188,19 @@ export default function SettingsScreen({
               <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600', marginTop: 2 }}>{t('profile.title')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-          </PressableScale>
+          </Pressable>
         )}
 
         {/* Navegação */}
-        <FadeInItem index={0}><NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} /></FadeInItem>
-        <FadeInItem index={1}><NavRow icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} /></FadeInItem>
-        <FadeInItem index={2}><NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} /></FadeInItem>
-        <FadeInItem index={3}><NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} /></FadeInItem>
-        <FadeInItem index={4}><NavRow icon="people-outline" label={tr2(lang, 'Modo acompanhante', 'Companion mode')} onPress={() => router.push('/companion' as any)} /></FadeInItem>
-        <FadeInItem index={5}><NavRow icon="chatbox-ellipses-outline" label={tr2(lang, 'Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} /></FadeInItem>
-        <FadeInItem index={6}><NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} /></FadeInItem>
-        <FadeInItem index={7}><NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} /></FadeInItem>
-        <FadeInItem index={8}><NavRow icon="compass-outline" label={tutorialPack(lang).ui.replay} onPress={async () => { await resetWalkthroughSeen(); onBack(); }} /></FadeInItem>
+        <NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />
+        <NavRow icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} />
+        <NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />
+        <NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />
+        <NavRow icon="people-outline" label={tr2(lang, 'Modo acompanhante', 'Companion mode')} onPress={() => router.push('/companion' as any)} />
+        <NavRow icon="chatbox-ellipses-outline" label={tr2(lang, 'Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} />
+        <NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />
+        <NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />
+        <NavRow icon="compass-outline" label={tutorialPack(lang).ui.replay} onPress={async () => { await resetWalkthroughSeen(); onBack(); }} />
 
         {/* Cópia de segurança */}
         <Card style={{ gap: 10, marginTop: 4 }}>
