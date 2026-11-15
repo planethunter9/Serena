@@ -5,7 +5,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../auth/AuthContext';
+import { useA11y } from '../lib/a11y';
 import { useLang , tr2 } from '../i18n/i18n';
 import { loadProfile, OnboardingData, ProfileData, ProfileItem, saveProfile } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -46,6 +48,8 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
   const [p, setP] = useState<ProfileData | null>(null);
   const [editing, setEditing] = useState(false);
   const L = (pt: string, en: string) => tr2(lang, pt, en);
+  const router = useRouter();
+  const a11y = useA11y();
 
   useEffect(() => {
     loadProfile().then((loaded) => setP({ ...loaded, name: loaded.name || user?.name || '' }));
@@ -82,7 +86,15 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
   if (!editing) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <TopBackBar title={t('profile.title')} onBack={onBack} />
+        <TopBackBar
+          title={t('profile.title')}
+          onBack={onBack}
+          right={
+            <Pressable onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="settings-outline" size={22} color={colors.text} />
+            </Pressable>
+          }
+        />
         <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
 
           {/* Cartão de topo (identidade) — info à esquerda, foto à direita */}

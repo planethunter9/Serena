@@ -6,7 +6,7 @@ import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
@@ -41,6 +41,17 @@ export default function MainApp() {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Abre as Definições. A vibração confirma que o toque chegou ao botão; se a
+  // navegação falhar, mostra o erro (em vez de não acontecer nada).
+  function openSettings() {
+    tapHaptic();
+    try {
+      router.push('/settings');
+    } catch (e) {
+      Alert.alert('Definições', String((e as Error)?.message ?? e));
+    }
+  }
 
   // Atalhos no ícone da app (pressão longa): gatilho, respirar, linhas de apoio.
   useQuickActions(lang);
@@ -143,7 +154,7 @@ export default function MainApp() {
             <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={a11y.profile} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Avatar uri={photoUri} size={32} />
             </Pressable>
-            <Pressable onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
           </CoachTarget>
