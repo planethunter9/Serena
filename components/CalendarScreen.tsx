@@ -1,5 +1,5 @@
 // Calendário mensal: marca os dias com ataques/comportamentos (vermelho)
-// e os dias de terapia exposta (verde).
+// e os dias com exposição (verde).
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -89,7 +89,13 @@ export default function CalendarScreen() {
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
   const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  const cellW = `${100 / 7}%`;
+  // Semanas de 7 dias (a última é completada com vazios).
+  const weeks: (number | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    const w = cells.slice(i, i + 7);
+    while (w.length < 7) w.push(null);
+    weeks.push(w);
+  }
 
   function typeLabel(type: string) {
     if (type === 'anxiety') return t('home.anxiety');
@@ -147,36 +153,42 @@ export default function CalendarScreen() {
         </View>
 
         {/* Dias da semana */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row' }}>
           {WEEKDAYS[lang].map((w, i) => (
-            <View key={i} style={{ width: cellW, alignItems: 'center', paddingVertical: 4 }}>
-              <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600' }}>{w}</Text>
+            <View key={i} style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600' }} numberOfLines={1}>{w}</Text>
             </View>
           ))}
         </View>
 
-        {/* Grelha de dias */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {cells.map((day, idx) => {
-            if (day === null) return <View key={'e' + idx} style={{ width: cellW, height: 46 }} />;
-            const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
-            const hasAttack = !!byDate[dateStr];
-            const hasExp = expSet.has(dateStr);
-            const isToday = dateStr === todayStr;
-            const isSelected = dateStr === selected;
-            return (
-              <Pressable key={dateStr} onPress={() => setSelected(dateStr)} style={{ width: cellW, height: 46, alignItems: 'center', justifyContent: 'center' }}>
-                <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? colors.primary : isToday ? colors.primarySoft : 'transparent' }}>
-                  <Text style={{ color: isSelected ? '#fff' : colors.text, fontSize: 15, fontWeight: isToday ? '700' : '500' }}>{day}</Text>
-                </View>
-                {/* Marcas: vermelho (ataque) e/ou verde (exposição) */}
-                <View style={{ flexDirection: 'row', gap: 3, marginTop: 2, height: 6 }}>
-                  {hasAttack && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />}
-                  {hasExp && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />}
-                </View>
-              </Pressable>
-            );
-          })}
+        {/* Grelha de dias: uma linha por semana, 7 colunas iguais (flex: 1).
+            Antes usava largura de 100/7 % com quebra de linha, o que em algumas
+            versões do React Native somava mais de 100 % e empurrava o domingo. */}
+        <View>
+          {weeks.map((week, wi) => (
+            <View key={wi} style={{ flexDirection: 'row' }}>
+              {week.map((day, di) => {
+                if (day === null) return <View key={'e' + di} style={{ flex: 1, height: 46 }} />;
+                const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`;
+                const hasAttack = !!byDate[dateStr];
+                const hasExp = expSet.has(dateStr);
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selected;
+                return (
+                  <Pressable key={dateStr} onPress={() => setSelected(dateStr)} accessibilityRole="button" accessibilityState={{ selected: isSelected }} style={{ flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? colors.primary : isToday ? colors.primarySoft : 'transparent' }}>
+                      <Text style={{ color: isSelected ? '#fff' : colors.text, fontSize: 15, fontWeight: isToday ? '700' : '500' }}>{day}</Text>
+                    </View>
+                    {/* Marcas: vermelho (ataque) e/ou verde (exposição) */}
+                    <View style={{ flexDirection: 'row', gap: 3, marginTop: 2, height: 6 }}>
+                      {hasAttack && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />}
+                      {hasExp && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
         </View>
       </Card>
       </CoachTarget>

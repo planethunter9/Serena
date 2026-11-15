@@ -139,11 +139,11 @@ export default function MainApp() {
       <View style={{ paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          <CoachTarget name="header-actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <Pressable onPress={() => router.push('/profile')} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.profile}>
+          <CoachTarget name="header-actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={a11y.profile} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Avatar uri={photoUri} size={32} />
             </Pressable>
-            <Pressable onPress={() => router.push('/settings')} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ padding: 6 }}>
+            <Pressable onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
           </CoachTarget>
