@@ -6,13 +6,28 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthContext';
 import { APP_NAME } from '../data/content';
-import { useLang , tr2 } from '../i18n/i18n';
+import { Lang, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import PrivacyScreen from './PrivacyScreen';
+import SuccessModal from './SuccessModal';
 import { PrimaryButton } from './ui';
 
 type Mode = 'login' | 'signup' | 'reset';
+
+// Confirmação depois de repor a palavra-passe (modal), nas 10 línguas.
+const RESET_DONE: Record<Lang, { title: string; body: string; button: string }> = {
+  pt: { title: 'Palavra-passe reposta', body: 'A tua palavra-passe foi alterada. Já podes iniciar sessão com a nova.', button: 'Iniciar sessão' },
+  'pt-BR': { title: 'Senha redefinida', body: 'Sua senha foi alterada. Agora você já pode entrar com a nova.', button: 'Entrar' },
+  en: { title: 'Password reset', body: 'Your password has been changed. You can now sign in with the new one.', button: 'Sign in' },
+  es: { title: 'Contraseña restablecida', body: 'Tu contraseña se ha cambiado. Ya puedes iniciar sesión con la nueva.', button: 'Iniciar sesión' },
+  fr: { title: 'Mot de passe réinitialisé', body: 'Ton mot de passe a été modifié. Tu peux maintenant te connecter avec le nouveau.', button: 'Se connecter' },
+  de: { title: 'Passwort zurückgesetzt', body: 'Dein Passwort wurde geändert. Du kannst dich jetzt mit dem neuen anmelden.', button: 'Anmelden' },
+  it: { title: 'Password reimpostata', body: 'La tua password è stata cambiata. Ora puoi accedere con quella nuova.', button: 'Accedi' },
+  nl: { title: 'Wachtwoord opnieuw ingesteld', body: 'Je wachtwoord is gewijzigd. Je kunt nu inloggen met het nieuwe.', button: 'Inloggen' },
+  pl: { title: 'Hasło zresetowane', body: 'Hasło zostało zmienione. Możesz teraz zalogować się nowym hasłem.', button: 'Zaloguj się' },
+  ru: { title: 'Пароль сброшен', body: 'Пароль изменён. Теперь можно войти с новым паролем.', button: 'Войти' },
+};
 
 // Força da palavra-passe: -1 vazia, 0 fraca, 1 média, 2 forte.
 // Conta critérios (comprimento, dígitos, maiúsculas+minúsculas, símbolos).
@@ -68,6 +83,8 @@ export default function AuthScreen() {
   const [consent, setConsent] = useState(false);
   const [showPolicy, setShowPolicy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [resetDone, setResetDone] = useState(false);
+  const rd = RESET_DONE[lang] ?? RESET_DONE.en;
 
   const isSignup = mode === 'signup';
   const isReset = mode === 'reset';
@@ -116,7 +133,8 @@ export default function AuthScreen() {
     setBusy(true);
     const res = await confirmReset(email, code, newPass);
     setBusy(false);
-    if (res.ok) return; // fica com sessão iniciada; o gate mostra a app
+    // A sessão temporária é terminada: mostra a confirmação e volta ao início de sessão.
+    if (res.ok) { setResetDone(true); return; }
     setError(res.message ?? errorText(res.error) ?? L('Código inválido ou expirado.', 'Invalid or expired code.'));
   }
 
@@ -250,6 +268,15 @@ export default function AuthScreen() {
           </>
         )}
       </ScrollView>
+
+      <SuccessModal
+        visible={resetDone}
+        title={rd.title}
+        body={rd.body}
+        button={rd.button}
+        icon="lock-open-outline"
+        onClose={() => { setResetDone(false); setPassword(''); goMode('login'); }}
+      />
     </KeyboardAvoidingView>
   );
 }
