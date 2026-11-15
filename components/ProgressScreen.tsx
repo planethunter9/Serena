@@ -69,7 +69,7 @@ const WEEKDAYS_BY_LANG: Record<string, string[]> = {
 };
 
 export default function ProgressScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   // Cor por nível (0–5): verde baixo, amarelo médio, vermelho alto — do tema.
@@ -239,13 +239,13 @@ export default function ProgressScreen() {
 
       {/* Percurso */}
       <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 2 }}>
-        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700' }}>{L('O TEU PERCURSO', 'YOUR JOURNEY')}</Text>
-        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{journeyMsg}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600', letterSpacing: 0.4 }}>{L('O TEU PERCURSO', 'YOUR JOURNEY')}</Text>
+        <Text style={{ color: colors.text, fontSize: 17, lineHeight: 24 }}>{journeyMsg}</Text>
       </View>
 
-      {/* Seletor Geral / Semana — chips estilo Notion (ativo preenchido, inativo contornado) */}
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {([['all', 'albums-outline'], ['week', 'calendar-outline']] as const).map(([v, icon]) => {
+      {/* Seletor Geral / Semana (mesmo estilo do seletor dos gráficos) */}
+      <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
+        {(['all', 'week'] as const).map((v) => {
           const active = statScope === v;
           return (
             <Pressable
@@ -253,30 +253,31 @@ export default function ProgressScreen() {
               onPress={() => setStatScope(v)}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, backgroundColor: active ? colors.primary : colors.card, borderWidth: active ? 0 : 1, borderColor: colors.border }}
+              style={{ flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}
             >
-              <Ionicons name={icon} size={15} color={active ? '#fff' : colors.textMuted} />
-              <Text style={{ color: active ? '#fff' : colors.textMuted, fontWeight: '700', fontSize: 13 }}>{v === 'all' ? L('Geral', 'Overall') : L('Semana', 'This week')}</Text>
+              <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '600', fontSize: 13 }}>{v === 'all' ? L('Geral', 'Overall') : L('Semana', 'This week')}</Text>
             </Pressable>
           );
         })}
       </View>
 
       {/* Estatísticas */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: -spacing.sm }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
         {stats.map((s) => (
           <View
             key={s.label}
             style={{
               width: '47%', flexGrow: 1, backgroundColor: colors.card, borderRadius: radius.lg,
               borderWidth: s.highlight ? 2 : 1, borderColor: s.highlight ? colors.primary : colors.border,
-              padding: spacing.lg, gap: 4,
+              padding: spacing.lg, gap: 2,
             }}
           >
-            {s.icon === 'flame-outline' ? <FlameIcon size={18} /> : <Ionicons name={s.icon} size={18} color={s.color} />}
-            <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{s.value}</Text>
-            <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{s.label}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{s.sub}</Text>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: s.icon === 'flame-outline' ? (isDark ? '#3a2a10' : '#fff1d6') : colors.cardAlt, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+              {s.icon === 'flame-outline' ? <FlameIcon size={18} /> : <Ionicons name={s.icon} size={18} color={s.color} />}
+            </View>
+            <Text style={{ color: colors.text, fontSize: 26, fontWeight: '600' }}>{s.value}</Text>
+            <Text style={{ color: colors.text, fontSize: 13 }}>{s.label}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{s.sub}</Text>
           </View>
         ))}
       </View>
@@ -288,7 +289,7 @@ export default function ProgressScreen() {
           const label = v === 'anxiety' ? L('Ansiedade', 'Anxiety') : v === 'severity' ? L('Gravidade', 'Severity') : v === 'exposures' ? L('Exposições', 'Exposures') : L('Largados', 'Dropped');
           return (
             <Pressable key={v} onPress={() => setChartView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-              <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+              <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
             </Pressable>
           );
         })}
@@ -299,7 +300,7 @@ export default function ProgressScreen() {
           <>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Ansiedade ao longo do tempo', 'Anxiety over time')}</Text>
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Ansiedade ao longo do tempo', 'Anxiety over time')}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Intensidade diária (0–5) · média', 'Daily intensity (0–5) · average')} {avg.toFixed(1)}/5</Text>
               </View>
               {weekPct !== null && (() => {
@@ -309,7 +310,7 @@ export default function ProgressScreen() {
                   <View style={{ alignItems: 'flex-end', gap: 2 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.cardAlt, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 }}>
                       <Ionicons name={icon as any} size={13} color={c} />
-                      <Text style={{ color: c, fontWeight: '800', fontSize: 13 }}>{Math.abs(weekPct)}%</Text>
+                      <Text style={{ color: c, fontWeight: '600', fontSize: 13 }}>{Math.abs(weekPct)}%</Text>
                     </View>
                     <Text style={{ color: colors.textMuted, fontSize: 10 }}>{L('vs. semana passada', 'vs. last week')}</Text>
                   </View>
@@ -367,7 +368,7 @@ export default function ProgressScreen() {
                             {WEEKDAYS.map((wd, j) => {
                               const isToday = wk[j] === todayIso;
                               return (
-                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '700' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
+                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '600' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
                               );
                             })}
                             {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
@@ -381,10 +382,10 @@ export default function ProgressScreen() {
                               );
                             })}
                             {last && (
-                              <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="700" fill={valueColor(last.v)} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
+                              <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="600" fill={valueColor(last.v)} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
                             )}
                           </Svg>
-                          <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, fontWeight: '600', color: colors.textMuted }}>{range}</Text>
+                          <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, color: colors.textMuted }}>{range}</Text>
                         </View>
                       );
                     })}
@@ -396,7 +397,7 @@ export default function ProgressScreen() {
         ) : chartView === 'severity' ? (
           <>
             <View style={{ gap: 2 }}>
-              <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')}</Text>
+              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Os teus check-ins de gravidade (0–5)', 'Your severity check-ins (0–5)')}</Text>
             </View>
             {severity.length < 2 ? (
@@ -431,7 +432,7 @@ export default function ProgressScreen() {
                       {pts.map((p, i) => (
                         <Circle key={'p' + i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={i === pts.length - 1 ? 3 : 2} />
                       ))}
-                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={10} fontWeight="700" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
+                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={10} fontWeight="600" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
                     </Svg>
                   );
                 })()}
@@ -441,7 +442,7 @@ export default function ProgressScreen() {
           </>
         ) : chartView === 'exposures' ? (
           <>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')}</Text>
+            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')}</Text>
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('antes', 'before')}</Text></View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('depois', 'after')}</Text></View>
@@ -453,14 +454,18 @@ export default function ProgressScreen() {
                 {chartW > 0 && (() => {
                   const chrono = [...exposures].reverse().slice(-12); // mais antigas → recentes
                   const w = chartW, h = CHART_HEIGHT, pad = 10, nn = chrono.length;
-                  const xA = (i: number) => (nn <= 1 ? w / 2 : pad + (i / (nn - 1)) * (w - pad * 2));
+                  const left = pad + 22; // espaço para a escala 0–10
+                  const xA = (i: number) => (nn <= 1 ? w / 2 : left + (i / (nn - 1)) * (w - left - pad));
                   const yA = (v: number) => (h - pad) - (v / 10) * (h - pad * 2);
                   const bPts = chrono.map((s, i) => ({ x: xA(i), y: yA(s.before) }));
                   const aPts = chrono.map((s, i) => ({ x: xA(i), y: yA(typeof s.after === 'number' ? s.after : s.before) }));
                   return (
                     <Svg width={w} height={h}>
                       {[0, 5, 10].map((v) => (
-                        <Line key={v} x1={pad} y1={yA(v)} x2={w - pad} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={0.5} />
+                        <Line key={v} x1={pad + 16} y1={yA(v)} x2={w - pad} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={0.5} />
+                      ))}
+                      {[0, 5, 10].map((v) => (
+                        <SvgText key={'yl' + v} x={pad + 10} y={yA(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
                       ))}
                       <Path d={smoothLine(bPts)} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
                       <Path d={smoothLine(aPts)} fill="none" stroke={colors.success} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
@@ -476,7 +481,7 @@ export default function ProgressScreen() {
         ) : (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ color: colors.success, fontSize: 30, fontWeight: '800' }}>{dropped.length}</Text>
+              <Text style={{ color: colors.success, fontSize: 30, fontWeight: '600' }}>{dropped.length}</Text>
               <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{L('comportamentos que estás a largar', 'behaviours you are dropping')}</Text>
             </View>
             {dropped.length === 0 ? (
