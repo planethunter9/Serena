@@ -371,9 +371,12 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
           <>
             <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{L('Ainda não definiste o teu próximo passo. Toca em "definir".', 'You haven\'t set your next step yet. Tap "set".')}</Text>
             {!!sug && (
-              <Pressable onPress={() => { setNsText(sug); setNsSheetOpen(true); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
-                <Ionicons name="bulb-outline" size={14} color={colors.primary} />
-                <Text style={{ color: colors.primary, fontSize: 13 }} numberOfLines={1}>{L('Sugestão: ', 'Suggestion: ')}{sug}</Text>
+              <Pressable onPress={() => { setNsText(sug); setNsSheetOpen(true); }} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.md }}>
+                <Ionicons name="bulb-outline" size={14} color={colors.primary} style={{ marginTop: 2 }} />
+                {/* flexShrink: o texto quebra linha dentro do cartão em vez de sair pela direita */}
+                <Text style={{ color: colors.primary, fontSize: 13, lineHeight: 18, flexShrink: 1 }} numberOfLines={3}>
+                  <Text style={{ fontWeight: '700' }}>{L('Sugestão: ', 'Suggestion: ')}</Text>{sug}
+                </Text>
               </Pressable>
             )}
           </>

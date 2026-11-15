@@ -6,7 +6,7 @@ import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
@@ -22,6 +22,7 @@ import { TUTORIAL_NO_TARGET, TUTORIAL_ORDER, TutorialStepId, tutorialPack } from
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
+import Avatar from './Avatar';
 import CalendarScreen from './CalendarScreen';
 import HomeScreen from './HomeScreen';
 import SupportScreen from './SupportScreen';
@@ -140,13 +141,7 @@ export default function MainApp() {
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
           <CoachTarget name="header-actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <Pressable onPress={() => router.push('/profile')} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.profile}>
-              {photoUri ? (
-                <Image source={{ uri: photoUri }} style={{ width: 32, height: 32, borderRadius: 16 }} />
-              ) : (
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border }}>
-                  <Ionicons name="person" size={18} color={colors.textMuted} />
-                </View>
-              )}
+              <Avatar uri={photoUri} size={32} />
             </Pressable>
             <Pressable onPress={() => router.push('/settings')} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ padding: 6 }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />

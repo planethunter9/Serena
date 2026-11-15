@@ -1,15 +1,32 @@
 // Perfil: modo de VISUALIZAÇÃO por defeito; edição pelo botão "Editar".
 
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang , tr2 } from '../i18n/i18n';
 import { loadProfile, OnboardingData, ProfileData, ProfileItem, saveProfile } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import ProfilePhoto from './Avatar';
 import { Card, PrimaryButton, TopBackBar } from './ui';
+
+// A foto escolhida vem da cache do seletor (que o sistema pode limpar):
+// copia-a para a pasta da app, que é permanente. Se falhar, usa a original.
+async function keepPhoto(uri: string): Promise<string> {
+  try {
+    const dir = FileSystem.documentDirectory + 'profile/';
+    await FileSystem.makeDirectoryAsync(dir, { intermediates: true }).catch(() => {});
+    const ext = (uri.split('?')[0].match(/\.(jpe?g|png|heic|webp)$/i)?.[1] ?? 'jpg').toLowerCase();
+    const dest = `${dir}photo-${Date.now()}.${ext}`;
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    return dest;
+  } catch {
+    return uri;
+  }
+}
 
 function asItems(arr: any[]): ProfileItem[] {
   if (!Array.isArray(arr)) return [];
@@ -18,13 +35,7 @@ function asItems(arr: any[]): ProfileItem[] {
 
 function Avatar({ uri, size, onPress, label }: { uri?: string | null; size: number; onPress?: () => void; label?: string }) {
   const { colors } = useTheme();
-  const inner = uri ? (
-    <Image source={{ uri }} accessibilityIgnoresInvertColors style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderColor: colors.card }} />
-  ) : (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: colors.card }}>
-      <Ionicons name="person" size={size * 0.42} color={colors.primary} />
-    </View>
-  );
+  const inner = <ProfilePhoto uri={uri} size={size} border={3} bg={colors.card} iconColor={colors.primary} />;
   return onPress ? <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>{inner}</Pressable> : inner;
 }
 
@@ -50,7 +61,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert(t('profile.permPhoto')); return; }
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.6 });
-    if (!res.canceled && res.assets?.[0]?.uri) set('photoUri', res.assets[0].uri);
+    if (!res.canceled && res.assets?.[0]?.uri) set('photoUri', await keepPhoto(res.assets[0].uri));
   }
 
   function save() {
