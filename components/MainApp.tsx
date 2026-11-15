@@ -6,7 +6,7 @@ import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
@@ -15,6 +15,7 @@ import { cancelUntrackedReminders, knownNotificationIds } from '../notifications
 import { routeForNotification } from '../notifications/routes';
 import { useQuickActions } from '../lib/quickActions';
 import Animated from 'react-native-reanimated';
+import { NATIVE_BAR_HEIGHT, NATIVE_HEADER_SLOT, NativeHeaderButtons, USE_NATIVE_HEADER } from './NativeHeader';
 import { enterFade, PressableScale, tapHaptic } from '../lib/motion';
 import { loadAffirmationReminder, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { CoachTarget, useCoach } from './CoachMarks';
@@ -40,16 +41,15 @@ export default function MainApp() {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
 
-  // Abre as Definições. A vibração confirma que o toque chegou ao botão; se a
-  // navegação falhar, mostra o erro (em vez de não acontecer nada).
   function openSettings() {
-    tapHaptic();
-    try {
-      router.push('/settings');
-    } catch (e) {
-      Alert.alert('Definições', String((e as Error)?.message ?? e));
-    }
+    router.push('/settings');
   }
+
+  const settingsButton = (
+    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: NATIVE_HEADER_SLOT, height: NATIVE_HEADER_SLOT, alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name="settings-outline" size={24} color={colors.text} />
+    </Pressable>
+  );
 
   // Atalhos no ícone da app (pressão longa): gatilho, respirar, linhas de apoio.
   useQuickActions(lang);
@@ -137,24 +137,22 @@ export default function MainApp() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Barra de topo */}
+      {/* Barra de topo: "Serena" à esquerda, Definições (com o Perfil lá dentro) à direita.
+          No iPhone a roda dentada vai para a barra de navegação nativa (ver
+          NativeHeader.tsx: a zona da direita da barra nativa apanhava os toques);
+          no Android fica no próprio cabeçalho. */}
+      <NativeHeaderButtons right={settingsButton} />
       <View style={{ paddingTop: insets.top }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.xl, paddingVertical: spacing.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl, paddingRight: USE_NATIVE_HEADER ? spacing.lg : spacing.xl - 10, height: USE_NATIVE_HEADER ? NATIVE_BAR_HEIGHT : 60, marginBottom: USE_NATIVE_HEADER ? spacing.md : 0 }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          {/* Definições (o Perfil está dentro delas). Toda a zona à direita do título
-              abre as Definições. O ícone fica onde estava o do perfil, afastado da
-              margem: no iPhone (Expo Go) a ponta direita do cabeçalho (~60 pt) não
-              recebe toques, por isso o ícone não pode ficar encostado ao canto. */}
-          <Pressable
-            onPress={openSettings}
-            accessibilityRole="button"
-            accessibilityLabel={a11y.settings}
-            style={{ flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: spacing.xl + 48, marginLeft: spacing.lg }}
-          >
-            <CoachTarget name="header-actions" style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="settings-outline" size={24} color={colors.text} />
+          {USE_NATIVE_HEADER ? (
+            // Lugar reservado onde a barra nativa desenha a roda dentada (para o tutorial a realçar).
+            <CoachTarget name="header-actions" style={{ width: NATIVE_HEADER_SLOT, height: NATIVE_HEADER_SLOT }}>
+              <View pointerEvents="none" />
             </CoachTarget>
-          </Pressable>
+          ) : (
+            <CoachTarget name="header-actions">{settingsButton}</CoachTarget>
+          )}
         </View>
       </View>
 
