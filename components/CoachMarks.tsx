@@ -17,7 +17,7 @@ import { AccessibilityInfo, Pressable, Text, View, useWindowDimensions } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tutorialPack } from '../data/tutorial';
 import { clampRect, Rect } from '../lib/coachGeometry';
-import { DURATION, enterFade, exitFade, PressableScale, useReducedMotion } from '../lib/motion';
+import { DURATION, enterFade, PressableScale, useReducedMotion } from '../lib/motion';
 import Animated, { cancelAnimation, FadeInDown, ReduceMotion, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 import { useLang } from '../i18n/i18n';
@@ -178,7 +178,9 @@ export function CoachProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{ register, unregister, start, active }}>
       {children}
       {active && (
-        <Animated.View entering={enterFade} exiting={exitFade} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} accessibilityViewIsModal>
+        // Sem animação de saída: no iOS (nova arquitetura) uma vista com "exiting"
+        // pode ficar invisível por cima da app e apanhar toques.
+        <Animated.View entering={enterFade} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} accessibilityViewIsModal>
           {/* Apanha os toques fora do balão (o tutorial só avança pelos botões) */}
           <Pressable onPress={() => {}} accessible={false} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
           {/* Zonas escuras à volta do buraco */}

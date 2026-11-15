@@ -363,7 +363,7 @@ const TR = {
     'exposure.markedToday': 'Feito hoje - toca para desmarcar',
     'exposure.phasesTitle': 'As 5 fases da exposição',
     'exposure.reminderTitle': 'Lembrete importante',
-    'calendar.legendExposure': 'Dia de terapia exposta',
+    'calendar.legendExposure': 'Dia com exposição',
     'calendar.exposureDay': 'Terapia exposta',
     'ach.mark': 'Marcar',
 'common.reorder': 'Reordenar',
