@@ -142,13 +142,14 @@ export default function MainApp() {
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
           {/* Definições (o Perfil está dentro delas). Toda a zona à direita do título
-              abre as Definições e o ícone fica afastado da margem: no iPhone, a ponta
-              direita do cabeçalho às vezes não recebia o toque. */}
+              abre as Definições. O ícone fica onde estava o do perfil, afastado da
+              margem: no iPhone (Expo Go) a ponta direita do cabeçalho (~60 pt) não
+              recebe toques, por isso o ícone não pode ficar encostado ao canto. */}
           <Pressable
             onPress={openSettings}
             accessibilityRole="button"
             accessibilityLabel={a11y.settings}
-            style={{ flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: spacing.xl + 8, marginLeft: spacing.lg }}
+            style={{ flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: spacing.xl + 48, marginLeft: spacing.lg }}
           >
             <CoachTarget name="header-actions" style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
