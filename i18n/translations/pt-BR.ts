@@ -655,4 +655,6 @@ export const inline: Record<string, string> = {
   "Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).": "O Serena é um apoio psicoeducativo para quem vive com emetofobia (o medo de vomitar). Ajuda você a entender a fobia e a praticar técnicas baseadas na terapia cognitivo-comportamental (TCC) e na exposição com prevenção de resposta (EPR).",
   "This app's content is based on reliable clinical sources. Tap a source to open it. This is psychoeducational support and does not replace a health professional.": "O conteúdo deste app se baseia em fontes clínicas confiáveis. Toque em uma fonte para abri-la. Isto é apoio psicoeducativo e não substitui um profissional de saúde.",
   "Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.": "Escolha um modelo do seu medo. Os degraus são adicionados à sua escada — você pode editá-los, removê-los e reordená-los.",
+  "Summary": "Resumo",
+  "Behaviours you are dropping": "Comportamentos que você está largando",
 };

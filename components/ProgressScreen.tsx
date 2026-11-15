@@ -1,8 +1,10 @@
-// "Estatísticas": cartões de estatística + gráficos (medo por semana, atividade
-// por dia, comportamentos largados). (Pilares na Visão geral; lições em Recursos.)
+// "Estatísticas" (segundo separador do Início): no mesmo estilo da Visão geral —
+// cartões com cabeçalho (ícone + título) e seletores pequenos lá dentro.
+// Cartão "Resumo" (Geral/Semana + 4 indicadores) e cartão dos gráficos
+// (ansiedade por semana, gravidade, exposições, comportamentos largados).
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang , tr2 } from '../i18n/i18n';
@@ -32,15 +34,33 @@ import {
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import EmptyState from './EmptyState';
-import { Card, ScreenTitle } from './ui';
+import { Card } from './ui';
 
-// Ícone de chama com "cores de chama" (laranja por fora, amarelo no núcleo),
-// empilhando dois glifos — sem dependências extra.
-function FlameIcon({ size = 18 }: { size?: number }) {
+// Seletor pequeno dentro do cartão — o mesmo dos pilares na Visão geral.
+function Segmented<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {
+  const { colors } = useTheme();
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Ionicons name="flame" size={size} color="#f97316" style={{ position: 'absolute' }} />
-      <Ionicons name="flame" size={size * 0.6} color="#fde047" style={{ position: 'absolute', bottom: 0 }} />
+    <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 3 }}>
+      {options.map(([v, label]) => {
+        const active = value === v;
+        return (
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
+            <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+// Cabeçalho de cartão — ícone azul + título, como em toda a app.
+function CardHeader({ icon, title, right }: { icon: keyof typeof Ionicons.glyphMap; title: string; right?: ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Ionicons name={icon} size={18} color={colors.primary} />
+      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{title}</Text>
+      {right}
     </View>
   );
 }
@@ -69,7 +89,7 @@ const WEEKDAYS_BY_LANG: Record<string, string[]> = {
 };
 
 export default function ProgressScreen() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   // Cor por nível (0–5): verde baixo, amarelo médio, vermelho alto — do tema.
@@ -233,74 +253,46 @@ export default function ProgressScreen() {
   };
 
 
+  const chartTitle = chartView === 'anxiety' ? L('Ansiedade ao longo do tempo', 'Anxiety over time')
+    : chartView === 'severity' ? L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')
+    : chartView === 'exposures' ? L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')
+    : L('Comportamentos que estás a largar', 'Behaviours you are dropping');
+
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
-      <ScreenTitle title={L('A tua evolução', 'Your progress')} />
-
-      {/* Percurso */}
-      <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 2 }}>
-        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600', letterSpacing: 0.4 }}>{L('O TEU PERCURSO', 'YOUR JOURNEY')}</Text>
-        <Text style={{ color: colors.text, fontSize: 17, lineHeight: 24 }}>{journeyMsg}</Text>
-      </View>
-
-      {/* Seletor Geral / Semana (mesmo estilo do seletor dos gráficos) */}
-      <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-        {(['all', 'week'] as const).map((v) => {
-          const active = statScope === v;
-          return (
-            <Pressable
-              key={v}
-              onPress={() => setStatScope(v)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={{ flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}
-            >
-              <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '600', fontSize: 13 }}>{v === 'all' ? L('Geral', 'Overall') : L('Semana', 'This week')}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Estatísticas */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {stats.map((s) => (
-          <View
-            key={s.label}
-            style={{
-              width: '47%', flexGrow: 1, backgroundColor: colors.card, borderRadius: radius.lg,
-              borderWidth: s.highlight ? 2 : 1, borderColor: s.highlight ? colors.primary : colors.border,
-              padding: spacing.lg, gap: 2,
-            }}
-          >
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: s.icon === 'flame-outline' ? (isDark ? '#3a2a10' : '#fff1d6') : colors.cardAlt, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-              {s.icon === 'flame-outline' ? <FlameIcon size={18} /> : <Ionicons name={s.icon} size={18} color={s.color} />}
+    <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg, paddingBottom: 120 }}>
+      {/* Resumo: Geral / Semana + 4 indicadores */}
+      <Card style={{ gap: spacing.md }}>
+        <CardHeader icon="stats-chart-outline" title={L('Resumo', 'Summary')} />
+        <Segmented value={statScope} onChange={setStatScope} options={[['all', L('Geral', 'Overall')], ['week', L('Semana', 'This week')]]} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.sm }}>
+          {stats.map((s) => (
+            <View key={s.label} style={{ width: '48.5%', backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.md, gap: 2 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name={s.icon} size={15} color={s.color} />
+                <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{s.value}</Text>
+              </View>
+              <Text style={{ color: colors.text, fontSize: 13 }}>{s.label}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>{s.sub}</Text>
             </View>
-            <Text style={{ color: colors.text, fontSize: 26, fontWeight: '600' }}>{s.value}</Text>
-            <Text style={{ color: colors.text, fontSize: 13 }}>{s.label}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{s.sub}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+        <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+          <Ionicons name="leaf-outline" size={13} color={colors.primary} /> {journeyMsg}
+        </Text>
+      </Card>
 
-      {/* Seletor Ansiedade / Gravidade / Exposições / Largados */}
-      <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-        {(['anxiety', 'severity', 'exposures', 'dropped'] as const).map((v) => {
-          const active = chartView === v;
-          const label = v === 'anxiety' ? L('Ansiedade', 'Anxiety') : v === 'severity' ? L('Gravidade', 'Severity') : v === 'exposures' ? L('Exposições', 'Exposures') : L('Largados', 'Dropped');
-          return (
-            <Pressable key={v} onPress={() => setChartView(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-              <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Card style={{ gap: 14 }}>
+      {/* Gráficos */}
+      <Card style={{ gap: spacing.md }}>
+        <CardHeader icon="analytics-outline" title={chartTitle} />
+        <Segmented
+          value={chartView}
+          onChange={setChartView}
+          options={[['anxiety', L('Ansiedade', 'Anxiety')], ['severity', L('Gravidade', 'Severity')], ['exposures', L('Exposições', 'Exposures')], ['dropped', L('Largados', 'Dropped')]]}
+        />
         {chartView === 'anxiety' ? (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Ansiedade ao longo do tempo', 'Anxiety over time')}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Intensidade diária (0–5) · média', 'Daily intensity (0–5) · average')} {avg.toFixed(1)}/5</Text>
               </View>
               {weekPct !== null && (() => {
@@ -397,7 +389,6 @@ export default function ProgressScreen() {
         ) : chartView === 'severity' ? (
           <>
             <View style={{ gap: 2 }}>
-              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Os teus check-ins de gravidade (0–5)', 'Your severity check-ins (0–5)')}</Text>
             </View>
             {severity.length < 2 ? (
@@ -442,7 +433,6 @@ export default function ProgressScreen() {
           </>
         ) : chartView === 'exposures' ? (
           <>
-            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '500' }}>{L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')}</Text>
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('antes', 'before')}</Text></View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('depois', 'after')}</Text></View>
