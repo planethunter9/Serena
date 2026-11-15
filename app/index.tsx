@@ -13,7 +13,6 @@ import AuthScreen from '../components/AuthScreen';
 import ConsentScreen from '../components/ConsentScreen';
 import { CoachProvider } from '../components/CoachMarks';
 import MainApp from '../components/MainApp';
-import { HideNativeHeader } from '../components/NativeHeader';
 import Onboarding from '../components/Onboarding';
 import { CONSENT_VERSION, loadHealthConsent } from '../storage/storage';
 import { useData } from '../store/DataContext';
@@ -49,15 +48,13 @@ export default function Index() {
   if (authLoading || (user && (dataLoading || !consentReady))) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
-        <HideNativeHeader />
         <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
-  // A barra nativa (com a roda dentada) só aparece na app principal (MainApp).
-  if (!user) return <><HideNativeHeader /><AuthScreen /></>;
-  if (!consent?.ok) return <><HideNativeHeader /><ConsentScreen onAccepted={() => setConsent({ userId: user.id, ok: true })} /></>;
-  if (!data) return <><HideNativeHeader /><Onboarding onComplete={updateData} /></>;
+  if (!user) return <AuthScreen />;
+  if (!consent?.ok) return <ConsentScreen onAccepted={() => setConsent({ userId: user.id, ok: true })} />;
+  if (!data) return <Onboarding onComplete={updateData} />;
   return (
     <CoachProvider>
       <MainApp />

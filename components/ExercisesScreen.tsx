@@ -8,6 +8,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, Tex
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { SUBTYPE_OPTIONS } from '../data/content';
+import ExposureDaysCard from './ExposureDaysCard';
 import { EXPOSURE_LADDER } from '../data/exercises';
 import { LADDER_TEMPLATES } from '../data/ladderTemplates';
 import { pick, useLang , tr2 } from '../i18n/i18n';
@@ -349,9 +350,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
         </Pressable>
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{tr2(lang, 'Escadas prontas', 'Ready-made ladders')}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
-          {lang === 'pt'
-            ? 'Escolhe um modelo do teu medo. Os degraus são acrescentados à tua escada — podes editá-los, removê-los e reordená-los.'
-            : 'Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.'}
+          {tr2(lang, 'Escolhe um modelo do teu medo. Os degraus são acrescentados à tua escada — podes editá-los, removê-los e reordená-los.', 'Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.')}
         </Text>
         {templates.map((tpl) => {
           const label = pick(SUBTYPE_OPTIONS.find((o) => o.id === tpl.subtypeId)?.label, lang) || tpl.subtypeId;
@@ -387,29 +386,8 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   // Lista da escada (visual limpo).
   return (
     <ScrollView contentContainerStyle={{ gap: spacing.md }}>
-      {/* Contador compacto */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg }}>
-        <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{streak}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: '700' }}>{t('exposure.streakTitle')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('exposure.streakHint')}</Text>
-        </View>
-        <Pressable
-          onPress={toggleToday}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={markedToday ? (tr2(lang, 'Registado hoje, toca para anular', 'Logged today, tap to undo')) : (tr2(lang, 'Registar sessão de hoje', "Log today's session"))}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: markedToday ? colors.successSoft : colors.primary, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999 }}
-        >
-          <Ionicons name={markedToday ? 'checkmark' : 'add'} size={16} color={markedToday ? colors.success : '#fff'} />
-          <Text style={{ color: markedToday ? colors.success : '#fff', fontWeight: '700', fontSize: 13 }}>
-            {markedToday ? (tr2(lang, 'Registado hoje', 'Logged today')) : (tr2(lang, 'Registar hoje', 'Log today'))}
-          </Text>
-        </Pressable>
-      </View>
-
+      {/* Dias de exposição: série, últimos 7 dias e registar hoje */}
+      <ExposureDaysCard days={expDays} streak={streak} markedToday={markedToday} onToggle={toggleToday} />
 
       {/* Referência recolhível (fechada por defeito) */}
       <Collapsible title={t('exposure.phasesTitle')} icon="list-outline">

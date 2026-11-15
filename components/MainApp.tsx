@@ -15,7 +15,6 @@ import { cancelUntrackedReminders, knownNotificationIds } from '../notifications
 import { routeForNotification } from '../notifications/routes';
 import { useQuickActions } from '../lib/quickActions';
 import Animated from 'react-native-reanimated';
-import { NATIVE_BAR_HEIGHT, NATIVE_HEADER_SLOT, NativeHeaderButtons, USE_NATIVE_HEADER } from './NativeHeader';
 import { enterFade, PressableScale, tapHaptic } from '../lib/motion';
 import { loadAffirmationReminder, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { CoachTarget, useCoach } from './CoachMarks';
@@ -46,7 +45,7 @@ export default function MainApp() {
   }
 
   const settingsButton = (
-    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: NATIVE_HEADER_SLOT, height: NATIVE_HEADER_SLOT, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
       <Ionicons name="settings-outline" size={24} color={colors.text} />
     </Pressable>
   );
@@ -137,22 +136,11 @@ export default function MainApp() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Barra de topo: "Serena" à esquerda, Definições (com o Perfil lá dentro) à direita.
-          No iPhone a roda dentada vai para a barra de navegação nativa (ver
-          NativeHeader.tsx: a zona da direita da barra nativa apanhava os toques);
-          no Android fica no próprio cabeçalho. */}
-      <NativeHeaderButtons right={settingsButton} />
+      {/* Barra de topo: "Serena" à esquerda e Definições (com o Perfil lá dentro) à direita */}
       <View style={{ paddingTop: insets.top }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl, paddingRight: USE_NATIVE_HEADER ? spacing.lg : spacing.xl - 10, height: USE_NATIVE_HEADER ? NATIVE_BAR_HEIGHT : 60, marginBottom: USE_NATIVE_HEADER ? spacing.md : 0 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl, paddingRight: spacing.xl - 10, height: 60 }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          {USE_NATIVE_HEADER ? (
-            // Lugar reservado onde a barra nativa desenha a roda dentada (para o tutorial a realçar).
-            <CoachTarget name="header-actions" style={{ width: NATIVE_HEADER_SLOT, height: NATIVE_HEADER_SLOT }}>
-              <View pointerEvents="none" />
-            </CoachTarget>
-          ) : (
-            <CoachTarget name="header-actions">{settingsButton}</CoachTarget>
-          )}
+          <CoachTarget name="header-actions">{settingsButton}</CoachTarget>
         </View>
       </View>
 

@@ -3,7 +3,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import { pick, useLang } from '../i18n/i18n';
+import { pick, tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
@@ -91,9 +91,7 @@ export default function CitationsScreen({ onBack }: { onBack: () => void }) {
       <TopBackBar title={t('resources.citations')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 40 }}>
         <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-          {lang === 'pt'
-            ? 'O conteúdo desta app baseia-se em fontes clínicas fidedignas. Toca numa fonte para a abrir. Isto é apoio psicoeducativo e não substitui um profissional de saúde.'
-            : 'This app\'s content is based on reliable clinical sources. Tap a source to open it. This is psychoeducational support and does not replace a health professional.'}
+          {tr2(lang, 'O conteúdo desta app baseia-se em fontes clínicas fidedignas. Toca numa fonte para a abrir. Isto é apoio psicoeducativo e não substitui um profissional de saúde.', 'This app\'s content is based on reliable clinical sources. Tap a source to open it. This is psychoeducational support and does not replace a health professional.')}
         </Text>
 
         {SOURCES.map((s, i) => (

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { FEEDING_BEHAVIORS } from '../data/content';
 import { SAFETY_BEHAVIORS } from '../data/safety';
-import { pick, useLang } from '../i18n/i18n';
+import { pick, tr2, useLang } from '../i18n/i18n';
 import { DroppedBehavior, isoLocal, loadDropped, loadFeeding, loadSafety, SafetyItem, saveDropped, saveSafety } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -97,7 +97,7 @@ function SafetyBody() {
           style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.primarySoft, paddingHorizontal: 12, height: 36, borderRadius: 999 }}
         >
           <Ionicons name={adding ? 'close' : 'add'} size={18} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{lang === 'pt' ? 'Adicionar' : 'Add'}</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{tr2(lang, 'Adicionar', 'Add')}</Text>
         </Pressable>
       </View>
 
@@ -193,8 +193,8 @@ export default function SafetyFeeding({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<'feeding' | 'safety'>('feeding');
   const tabLabel = (v: 'feeding' | 'safety') =>
     v === 'feeding'
-      ? (lang === 'pt' ? 'Alimentar o medo' : 'Feeding the fear')
-      : (lang === 'pt' ? 'Comportamentos' : 'Behaviours');
+      ? tr2(lang, 'Alimentar o medo', 'Feeding the fear')
+      : tr2(lang, 'Comportamentos', 'Behaviours');
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

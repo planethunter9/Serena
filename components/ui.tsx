@@ -7,7 +7,6 @@ import { Pressable, Text, View, ViewStyle } from 'react-native';
 import Animated, { ReduceMotion, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PressableScale, tapHaptic } from '../lib/motion';
-import { HideNativeHeader, NATIVE_BAR_HEIGHT, NativeHeaderButtons, USE_NATIVE_HEADER } from './NativeHeader';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 
@@ -122,41 +121,17 @@ export function OptionRow({
 
 // Cabeçalho com botão "Voltar", usado nos ecrãs que abrem por cima
 // (Definições e detalhe de cada Recurso).
-// No iPhone, se houver um botão à direita (ex.: Histórico), o "Voltar" e esse
-// botão vão para a barra de navegação nativa (ver NativeHeader.tsx: a zona da
-// direita da barra nativa apanhava os toques); o título fica igual.
 export function TopBackBar({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode }) {
   const { colors } = useTheme();
   const a11y = useA11y();
   const insets = useSafeAreaInsets();
-  const backButton = (
-    <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.back} style={{ padding: 8 }}>
-      <Ionicons name="chevron-back" size={26} color={colors.text} />
-    </Pressable>
-  );
-  const titleText = (
-    <Text numberOfLines={1} accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
-  );
-
-  if (USE_NATIVE_HEADER && right) {
-    return (
-      <View style={{ paddingTop: insets.top, backgroundColor: colors.background }}>
-        <NativeHeaderButtons left={backButton} right={<View style={{ paddingHorizontal: 6 }}>{right}</View>} />
-        {/* Os botões estão na barra nativa por cima; aqui fica só o título, alinhado com eles. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', height: NATIVE_BAR_HEIGHT, paddingLeft: 58, paddingRight: 64, marginBottom: spacing.sm }}>
-          {titleText}
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: colors.background }}>
-      {/* Garante a barra nativa escondida (ex.: ao voltar de uma vista com botões nativos). */}
-      <HideNativeHeader />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.sm, paddingVertical: spacing.sm }}>
-        {backButton}
-        {titleText}
+        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.back} style={{ padding: 8 }}>
+          <Ionicons name="chevron-back" size={26} color={colors.text} />
+        </Pressable>
+        <Text numberOfLines={1} accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
         {right ? <View style={{ paddingRight: 8 }}>{right}</View> : null}
       </View>
     </View>
