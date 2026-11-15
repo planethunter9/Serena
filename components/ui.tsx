@@ -4,9 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useA11y } from '../lib/a11y';
 import { ReactNode } from 'react';
 import { Pressable, Text, View, ViewStyle } from 'react-native';
+import Animated, { ReduceMotion, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PressableScale, tapHaptic } from '../lib/motion';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+
+// "Pop" do visto ao marcar uma opção.
+export const checkPop = ZoomIn.springify().damping(12).stiffness(260).reduceMotion(ReduceMotion.System);
 
 export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
   const { colors } = useTheme();
@@ -44,7 +49,7 @@ export function PrimaryButton({
 }) {
   const { colors } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
@@ -60,10 +65,12 @@ export function PrimaryButton({
       <Text style={{ color: disabled ? colors.textMuted : '#ffffff', fontSize: 17, fontWeight: '600' }}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
+// Opção de escolha múltipla: encolhe ao toque, vibra levemente e o visto
+// aparece com um pequeno "pop".
 export function OptionRow({
   label,
   selected,
@@ -75,8 +82,8 @@ export function OptionRow({
 }) {
   const { colors } = useTheme();
   return (
-    <Pressable
-      onPress={onPress}
+    <PressableScale
+      onPress={() => { tapHaptic(); onPress(); }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={label}
@@ -103,10 +110,12 @@ export function OptionRow({
           justifyContent: 'center',
         }}
       >
-        {selected && <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>✓</Text>}
+        {selected && (
+          <Animated.Text entering={checkPop} style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>✓</Animated.Text>
+        )}
       </View>
       <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

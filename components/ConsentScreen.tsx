@@ -15,7 +15,9 @@ import { radius, spacing } from '../theme/theme';
 import { disclaimer } from '../data/disclaimer';
 import DisclaimerCard from './DisclaimerCard';
 import PrivacyScreen from './PrivacyScreen';
-import { PrimaryButton } from './ui';
+import Animated from 'react-native-reanimated';
+import { enterItem, FadeInItem, PressableScale, tapHaptic } from '../lib/motion';
+import { checkPop, PrimaryButton } from './ui';
 
 type Txt = {
   title: string; intro: string; points: string[];
@@ -230,8 +232,8 @@ const TXT: Record<Lang, Txt> = {
 function Check({ checked, label, onToggle, stateLabel }: { checked: boolean; label: string; onToggle: () => void; stateLabel: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable
-      onPress={onToggle}
+    <PressableScale
+      onPress={() => { tapHaptic(); onToggle(); }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       accessibilityLabel={label}
@@ -239,10 +241,14 @@ function Check({ checked, label, onToggle, stateLabel }: { checked: boolean; lab
       style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start', padding: spacing.md, borderRadius: radius.md, borderWidth: 2, borderColor: checked ? colors.primary : colors.border, backgroundColor: checked ? colors.primarySoft : colors.card }}
     >
       <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.primary : colors.border, backgroundColor: checked ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
-        {checked && <Ionicons name="checkmark" size={16} color="#fff" />}
+        {checked && (
+          <Animated.View entering={checkPop}>
+            <Ionicons name="checkmark" size={16} color="#fff" />
+          </Animated.View>
+        )}
       </View>
       <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21, flex: 1 }}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -286,24 +292,24 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl, gap: spacing.lg }}>
-        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View entering={enterItem(0)} style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="shield-checkmark-outline" size={28} color={colors.primary} />
-        </View>
-        <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 26, fontWeight: '800' }}>{x.title}</Text>
-        <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{x.intro}</Text>
+        </Animated.View>
+        <Animated.Text entering={enterItem(1)} accessibilityRole="header" style={{ color: colors.text, fontSize: 26, fontWeight: '800' }}>{x.title}</Animated.Text>
+        <Animated.Text entering={enterItem(2)} style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{x.intro}</Animated.Text>
 
-        <View style={{ gap: 8, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg }}>
+        <Animated.View entering={enterItem(3)} style={{ gap: 8, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg }}>
           {x.points.map((p) => (
             <View key={p} style={{ flexDirection: 'row', gap: 10 }}>
               <Ionicons name="checkmark-circle-outline" size={18} color={colors.success} style={{ marginTop: 2 }} />
               <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20, flex: 1 }}>{p}</Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
 
-        <DisclaimerCard />
+        <FadeInItem index={4}><DisclaimerCard /></FadeInItem>
 
-        <View style={{ gap: spacing.sm }}>
+        <Animated.View entering={enterItem(5)} style={{ gap: spacing.sm }}>
           <Check checked={policyOk} label={x.policy} onToggle={() => setPolicyOk((v) => !v)} stateLabel={policyOk ? x.checked : x.unchecked} />
           <Pressable onPress={() => setShowPolicy(true)} accessibilityRole="link" hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4 }}>
             <Ionicons name="document-text-outline" size={16} color={colors.primary} />
@@ -311,7 +317,7 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
           </Pressable>
           <Check checked={healthOk} label={x.health} onToggle={() => setHealthOk((v) => !v)} stateLabel={healthOk ? x.checked : x.unchecked} />
           <Check checked={ackOk} label={d.ack} onToggle={() => setAckOk((v) => !v)} stateLabel={ackOk ? x.checked : x.unchecked} />
-        </View>
+        </Animated.View>
 
         <PrimaryButton label={x.accept} onPress={accept} disabled={!policyOk || !healthOk || !ackOk || busy} />
         <Pressable onPress={decline} accessibilityRole="button" style={{ alignItems: 'center', padding: 12 }}>

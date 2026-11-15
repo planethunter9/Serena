@@ -1,6 +1,6 @@
 // Tutorial de abertura: textos completos nas 10 línguas e realce dentro do ecrã.
 import { expect, test } from '@jest/globals';
-import { clampRect } from '../components/CoachMarks';
+import { clampRect } from '../lib/coachGeometry';
 import { TUTORIAL_ORDER, tutorialPack } from '../data/tutorial';
 import { LANGS } from '../i18n/i18n';
 

@@ -16,12 +16,18 @@ import { ReactNode, RefObject, createContext, useCallback, useContext, useEffect
 import { AccessibilityInfo, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tutorialPack } from '../data/tutorial';
+import { clampRect, Rect } from '../lib/coachGeometry';
+import { DURATION, enterFade, exitFade, PressableScale, useReducedMotion } from '../lib/motion';
+import Animated, { cancelAnimation, FadeInDown, ReduceMotion, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+
 import { useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 
+// O balão de cada passo entra a subir, com uma mola suave.
+const tooltipIn = FadeInDown.springify().damping(16).stiffness(170).reduceMotion(ReduceMotion.System);
+
 export type CoachStep = { name?: string; title?: string; text: string; show?: () => void };
-type Rect = { x: number; y: number; w: number; h: number };
 
 type CoachCtx = {
   register: (name: string, ref: RefObject<any>) => void;
@@ -43,18 +49,6 @@ export function CoachTarget({ name, children, style }: { name: string; children:
       {children}
     </View>
   );
-}
-
-// Recorta o retângulo à zona visível e limita a altura (listas compridas),
-// para sobrar espaço para o balão. Devolve null se quase nada estiver visível.
-export function clampRect(r: Rect, screenW: number, screenH: number, topInset = 0): Rect | null {
-  const top = Math.max(r.y, topInset);
-  const bottom = Math.min(r.y + r.h, screenH);
-  const left = Math.max(r.x, 0);
-  const right = Math.min(r.x + r.w, screenW);
-  if (bottom - top < 36 || right - left < 36) return null;
-  const maxH = screenH * 0.45;
-  return { x: left, y: top, w: right - left, h: Math.min(bottom - top, maxH) };
 }
 
 const PAD = 8;
@@ -138,30 +132,68 @@ export function CoachProvider({ children }: { children: ReactNode }) {
   }
   tooltipTop = Math.max(minTop, Math.min(tooltipTop, maxTop));
 
+  // ---- Animação do "buraco" (zona realçada) ----------------------------------
+  // O buraco desliza de um elemento para o seguinte; nos passos sem alvo fecha-se
+  // no centro (efeito de íris). O anel à volta pulsa devagar.
+  const reduce = useReducedMotion();
+  const hx = useSharedValue(SCREEN.width / 2);
+  const hy = useSharedValue(SCREEN.height / 2);
+  const hw = useSharedValue(0);
+  const hh = useSharedValue(0);
+  const ringOp = useSharedValue(0);
+  const pulse = useSharedValue(1);
+
+  const tx = r ? r.x - PAD : SCREEN.width / 2;
+  const ty = r ? r.y - PAD : SCREEN.height / 2;
+  const tw = r ? r.w + PAD * 2 : 0;
+  const th = r ? r.h + PAD * 2 : 0;
+  useEffect(() => {
+    if (!active) {
+      // Prepara a próxima abertura: o buraco começa fechado no centro.
+      hx.set(SCREEN.width / 2); hy.set(SCREEN.height / 2); hw.set(0); hh.set(0); ringOp.set(0);
+      return;
+    }
+    if (!ready) return; // enquanto mede, mantém a posição anterior
+    const go = (v: number) => (reduce ? v : withSpring(v, { damping: 22, stiffness: 170, mass: 0.9 }));
+    hx.set(go(tx)); hy.set(go(ty)); hw.set(go(tw)); hh.set(go(th));
+    ringOp.set(withTiming(tw > 0 ? 1 : 0, { duration: DURATION.base }));
+  }, [active, ready, tx, ty, tw, th, reduce, SCREEN.width, SCREEN.height, hx, hy, hw, hh, ringOp]);
+
+  useEffect(() => {
+    if (!active || reduce) { cancelAnimation(pulse); pulse.set(1); return; }
+    pulse.set(withRepeat(withSequence(withTiming(1.025, { duration: 1100 }), withTiming(1, { duration: 1100 })), -1));
+    return () => cancelAnimation(pulse);
+  }, [active, reduce, pulse]);
+
+  const topS = useAnimatedStyle(() => ({ height: Math.max(0, hy.get()) }));
+  const bottomS = useAnimatedStyle(() => ({ top: hy.get() + hh.get() }));
+  const leftS = useAnimatedStyle(() => ({ top: hy.get(), height: hh.get(), width: Math.max(0, hx.get()) }));
+  const rightS = useAnimatedStyle(() => ({ top: hy.get(), height: hh.get(), left: hx.get() + hw.get() }));
+  const ringS = useAnimatedStyle(() => ({
+    left: hx.get(), top: hy.get(), width: hw.get(), height: hh.get(),
+    opacity: ringOp.get(), transform: [{ scale: pulse.get() }],
+  }));
+
   return (
     <Ctx.Provider value={{ register, unregister, start, active }}>
       {children}
       {active && (
-        <View style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} accessibilityViewIsModal>
-          {r ? (
-            <>
-              {/* Zonas escuras à volta do buraco */}
-              <View style={{ position: 'absolute', left: 0, top: 0, width: SCREEN.width, height: Math.max(0, r.y - PAD), backgroundColor: DIM }} />
-              <View style={{ position: 'absolute', left: 0, top: r.y + r.h + PAD, width: SCREEN.width, height: Math.max(0, SCREEN.height - (r.y + r.h + PAD)), backgroundColor: DIM }} />
-              <View style={{ position: 'absolute', left: 0, top: Math.max(0, r.y - PAD), width: Math.max(0, r.x - PAD), height: r.h + PAD * 2, backgroundColor: DIM }} />
-              <View style={{ position: 'absolute', left: r.x + r.w + PAD, top: Math.max(0, r.y - PAD), width: Math.max(0, SCREEN.width - (r.x + r.w + PAD)), height: r.h + PAD * 2, backgroundColor: DIM }} />
-              {/* Apanha toques sobre o elemento realçado (tutorial guiado, só avança pelos botões) */}
-              <Pressable onPress={() => {}} accessible={false} style={{ position: 'absolute', left: r.x - PAD, top: r.y - PAD, width: r.w + PAD * 2, height: r.h + PAD * 2 }} />
-              {/* Anel de destaque */}
-              <View pointerEvents="none" style={{ position: 'absolute', left: r.x - PAD, top: r.y - PAD, width: r.w + PAD * 2, height: r.h + PAD * 2, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.primary }} />
-            </>
-          ) : (
-            <Pressable onPress={() => {}} accessible={false} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, backgroundColor: DIM }} />
-          )}
+        <Animated.View entering={enterFade} exiting={exitFade} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} accessibilityViewIsModal>
+          {/* Apanha os toques fora do balão (o tutorial só avança pelos botões) */}
+          <Pressable onPress={() => {}} accessible={false} style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }} />
+          {/* Zonas escuras à volta do buraco */}
+          <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, top: 0, right: 0, backgroundColor: DIM }, topS]} />
+          <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: DIM }, bottomS]} />
+          <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, backgroundColor: DIM }, leftS]} />
+          <Animated.View pointerEvents="none" style={[{ position: 'absolute', right: 0, backgroundColor: DIM }, rightS]} />
+          {/* Anel de destaque */}
+          <Animated.View pointerEvents="none" style={[{ position: 'absolute', borderRadius: radius.lg, borderWidth: 2, borderColor: colors.primary }, ringS]} />
 
-          {/* Balão (só depois de medir, para não saltar de sítio) */}
+          {/* Balão (só depois de medir, para não saltar de sítio); entra a cada passo */}
           {ready && (
-            <View
+            <Animated.View
+              key={idx}
+              entering={tooltipIn}
               onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); if (Math.abs(h - tipH) > 2) setTipH(h); }}
               style={{ position: 'absolute', left: spacing.xl, right: spacing.xl, top: tooltipTop, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, gap: 10, borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 10 }}
             >
@@ -185,17 +217,17 @@ export function CoachProvider({ children }: { children: ReactNode }) {
                 ) : null}
                 <View style={{ flex: 1 }} />
                 {idx > 0 && (
-                  <Pressable onPress={prev} hitSlop={6} accessibilityRole="button" style={{ paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999, borderWidth: 1, borderColor: colors.border }}>
+                  <PressableScale onPress={prev} hitSlop={6} accessibilityRole="button" style={{ paddingHorizontal: 12, paddingVertical: 9, borderRadius: 999, borderWidth: 1, borderColor: colors.border }}>
                     <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>{ui.back}</Text>
-                  </Pressable>
+                  </PressableScale>
                 )}
-                <Pressable onPress={next} accessibilityRole="button" style={{ backgroundColor: colors.primary, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9, marginLeft: 6 }}>
+                <PressableScale onPress={next} accessibilityRole="button" style={{ backgroundColor: colors.primary, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9, marginLeft: 6 }}>
                   <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{isLast ? ui.done : ui.next}</Text>
-                </Pressable>
+                </PressableScale>
               </View>
-            </View>
+            </Animated.View>
           )}
-        </View>
+        </Animated.View>
       )}
     </Ctx.Provider>
   );

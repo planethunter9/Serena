@@ -14,6 +14,8 @@ import * as Notifications from 'expo-notifications';
 import { cancelUntrackedReminders, knownNotificationIds } from '../notifications/notifications';
 import { routeForNotification } from '../notifications/routes';
 import { useQuickActions } from '../lib/quickActions';
+import Animated from 'react-native-reanimated';
+import { enterFade, PressableScale, tapHaptic } from '../lib/motion';
 import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { CoachTarget, useCoach } from './CoachMarks';
 import { TUTORIAL_NO_TARGET, TUTORIAL_ORDER, TutorialStepId, tutorialPack } from '../data/tutorial';
@@ -153,8 +155,8 @@ export default function MainApp() {
         </View>
       </View>
 
-      {/* Conteúdo do separador */}
-      <View style={{ flex: 1 }}>
+      {/* Conteúdo do separador (fade suave ao trocar) */}
+      <Animated.View key={tab} entering={enterFade} style={{ flex: 1 }}>
         {tab === 'home' && (
           <HomeScreen startDate={data ? data.completedAt : new Date().toISOString()} />
         )}
@@ -176,7 +178,7 @@ export default function MainApp() {
             onSoon={(title) => router.push({ pathname: '/resource', params: { title } })}
           />
         )}
-      </View>
+      </Animated.View>
 
       {/* Menu flutuante em cápsula — Liquid Glass no iOS 26 */}
       <CoachTarget name="tabbar" style={{ position: 'absolute', left: 20, right: 20, bottom: (insets.bottom || 10) + 6, height: 64 }}>
@@ -190,9 +192,10 @@ export default function MainApp() {
           {TABS.map((tb) => {
             const active = tab === tb.key;
             return (
-              <Pressable
+              <PressableScale
                 key={tb.key}
-                onPress={() => setTab(tb.key)}
+                scaleTo={0.9}
+                onPress={() => { if (tb.key !== tab) tapHaptic(); setTab(tb.key); }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
                 accessibilityLabel={t(tb.labelKey)}
@@ -202,7 +205,7 @@ export default function MainApp() {
                 <Text style={{ color: active ? colors.primary : colors.textMuted, fontWeight: active ? '700' : '500', fontSize: 12 }}>
                   {t(tb.labelKey)}
                 </Text>
-              </Pressable>
+              </PressableScale>
             );
           })}
         </View>

@@ -8,7 +8,12 @@ import { useLang } from '../i18n/i18n';
 import { ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import Animated, { ReduceMotion, ZoomIn } from 'react-native-reanimated';
+import { enterFade, exitFade, layoutSmooth, PressableScale, tapHaptic } from '../lib/motion';
 import { Card } from './ui';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const chipIn = (i: number) => ZoomIn.delay(Math.min(i, 12) * 25).springify().damping(14).reduceMotion(ReduceMotion.System);
 
 export default function ListEditor({
   title,
@@ -75,7 +80,7 @@ export default function ListEditor({
       {items.map((item) => {
         const editing = editingId === item.id;
         return (
-          <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Animated.View key={item.id} entering={enterFade} exiting={exitFade} layout={layoutSmooth} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {editing ? (
               <>
                 <TextInput value={editText} onChangeText={setEditText} onSubmitEditing={saveEdit} autoFocus style={inputBase} />
@@ -94,34 +99,37 @@ export default function ListEditor({
                 </Pressable>
               </>
             )}
-          </View>
+          </Animated.View>
         );
       })}
 
       {/* Botão "Adicionar da lista" (só se houver catálogo com opções por escolher) */}
       {available.length > 0 && (
         <>
-          <Pressable
-            onPress={() => setPickerOpen((o) => !o)}
+          <PressableScale
+            onPress={() => { tapHaptic(); setPickerOpen((o) => !o); }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.cardAlt, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, marginTop: 4 }}
           >
             <Ionicons name={pickerOpen ? 'chevron-up' : 'list-outline'} size={16} color={colors.primary} />
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('settings.addFromList')}</Text>
-          </Pressable>
+          </PressableScale>
 
           {pickerOpen && (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-              {available.map((o) => (
-                <Pressable
+            <Animated.View entering={enterFade} exiting={exitFade} layout={layoutSmooth} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+              {available.map((o, i) => (
+                <AnimatedPressable
                   key={o.id}
-                  onPress={() => addFromCatalog(o)}
+                  entering={chipIn(i)}
+                  exiting={exitFade}
+                  layout={layoutSmooth}
+                  onPress={() => { tapHaptic(); addFromCatalog(o); }}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}
                 >
                   <Ionicons name="add" size={15} color={colors.primary} />
                   <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{o.label}</Text>
-                </Pressable>
+                </AnimatedPressable>
               ))}
-            </View>
+            </Animated.View>
           )}
         </>
       )}
