@@ -10,7 +10,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { CoachTarget } from './CoachMarks';
 import Animated from 'react-native-reanimated';
-import { FadeInItem, layoutSmooth, PressableScale } from '../lib/motion';
+import { layoutSmooth, PressableScale } from '../lib/motion';
 import { ScreenTitle } from './ui';
 
 // Cada item usa uma chave i18n (titleKey) OU um título inline (title).
@@ -100,12 +100,10 @@ export default function ResourcesScreen({
           }
 
           return (
-            <FadeInItem key={r.id} index={i}>
-              <PressableScale onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} accessibilityRole="button" accessibilityLabel={title} style={rowStyle}>
-                {body}
-                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-              </PressableScale>
-            </FadeInItem>
+            <PressableScale key={r.id} onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} accessibilityRole="button" accessibilityLabel={title} style={rowStyle}>
+              {body}
+              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+            </PressableScale>
           );
         })}
       </CoachTarget>
