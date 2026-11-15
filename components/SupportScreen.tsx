@@ -9,7 +9,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { CoachTarget } from './CoachMarks';
 import DisclaimerCard from './DisclaimerCard';
-import { FadeInItem, PressableScale } from '../lib/motion';
+import { PressableScale } from '../lib/motion';
 import { ScreenTitle } from './ui';
 
 function SectionHeader({ label }: { label: string }) {
@@ -91,17 +91,16 @@ export default function SupportScreen({
       <CoachTarget name="support-now">
         <Row title={t('home.triggerTitle')} desc={t('home.triggerDesc')} icon="flash-outline" onPress={onTrigger} highlight />
       </CoachTarget>
-      <FadeInItem index={1}><Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} /></FadeInItem>
-      <FadeInItem index={2}><Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} /></FadeInItem>
-      <FadeInItem index={3}><DisclaimerCard variant="short" /></FadeInItem>
+      <Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} />
+      <Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} />
+      <DisclaimerCard variant="short" />
 
       {/* Técnicas */}
       <SectionHeader label={t('home.techniquesTitle')} />
       <Note text={anchorNote} />
       <CoachTarget name="support-techniques" style={{ gap: spacing.md }}>
-      {techniques.map((tech, i) => (
-        <FadeInItem key={tech.key} index={i + 4}>
-        <PressableScale onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+      {techniques.map((tech) => (
+        <PressableScale key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
           <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={tech.icon} size={22} color={colors.primary} />
           </View>
@@ -111,7 +110,6 @@ export default function SupportScreen({
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
         </PressableScale>
-        </FadeInItem>
       ))}
       </CoachTarget>
 
