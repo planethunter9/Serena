@@ -5,16 +5,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang , tr2 } from '../i18n/i18n';
 import { tutorialPack } from '../data/tutorial';
-import { exportUserData, importUserData, isoLocal, OnboardingData, resetWalkthroughSeen } from '../storage/storage';
+import { exportUserData, importUserData, isoLocal, loadProfile, OnboardingData, resetWalkthroughSeen } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import Avatar from './Avatar';
 import { Card, TopBackBar } from './ui';
 import { FadeInItem, PressableScale } from '../lib/motion';
 
@@ -54,6 +55,14 @@ export default function SettingsScreen({
   const router = useRouter();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [backupBusy, setBackupBusy] = useState(false);
+  // Foto e nome do perfil (recarregados ao voltar do ecrã de Perfil).
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('');
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile().then((p) => { setPhotoUri(p.photoUri); setProfileName(p.name); });
+    }, [])
+  );
 
   // Exporta todos os dados locais para um ficheiro JSON e abre a folha de partilha
   // (para guardar na nuvem, enviar por email, etc.).
@@ -172,16 +181,15 @@ export default function SettingsScreen({
       <TopBackBar title={t('settings.title')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
         {user && (
-          <Pressable onPress={onOpenProfile} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="person-outline" size={24} color={colors.primary} />
-            </View>
+          <PressableScale onPress={onOpenProfile} accessibilityRole="button" accessibilityLabel={t('profile.title')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+            <Avatar uri={photoUri} size={52} bg={colors.primarySoft} iconColor={colors.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{user.name}</Text>
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{profileName || user.name}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>{user.email}</Text>
+              <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600', marginTop: 2 }}>{t('profile.title')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-          </Pressable>
+          </PressableScale>
         )}
 
         {/* Navegação */}
