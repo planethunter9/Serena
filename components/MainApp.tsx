@@ -139,14 +139,21 @@ export default function MainApp() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Barra de topo */}
       <View style={{ paddingTop: insets.top }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          {/* Só as Definições (o Perfil está dentro delas) */}
-          <CoachTarget name="header-actions">
-            <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+          {/* Definições (o Perfil está dentro delas). Toda a zona à direita do título
+              abre as Definições e o ícone fica afastado da margem: no iPhone, a ponta
+              direita do cabeçalho às vezes não recebia o toque. */}
+          <Pressable
+            onPress={openSettings}
+            accessibilityRole="button"
+            accessibilityLabel={a11y.settings}
+            style={{ flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: spacing.xl + 8, marginLeft: spacing.lg }}
+          >
+            <CoachTarget name="header-actions" style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
-            </Pressable>
-          </CoachTarget>
+            </CoachTarget>
+          </Pressable>
         </View>
       </View>
 
