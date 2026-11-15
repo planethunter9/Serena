@@ -12,6 +12,10 @@ import { loadLessonsDone } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { TopBackBar } from './ui';
+import Animated from 'react-native-reanimated';
+import { enterItem, layoutSmooth } from '../lib/motion';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function LessonsScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
@@ -36,7 +40,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
           const doneCount = ch.lessons.filter((l) => done.includes(l.id)).length;
           const open = expanded.includes(ch.id);
           return (
-            <View key={ch.id} style={{ gap: spacing.sm }}>
+            <Animated.View key={ch.id} entering={enterItem(ci)} layout={layoutSmooth} style={{ gap: spacing.sm }}>
               {/* Cabeçalho do capítulo — clicável para abrir/fechar */}
               <Pressable onPress={() => toggleChapter(ch.id)} style={{ gap: 4 }}>
                 <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -61,11 +65,12 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                 <Text style={{ color: colors.textMuted, fontSize: 12 }}>{doneCount}/{ch.lessons.length}</Text>
               </View>
 
-              {open && ch.lessons.map((les) => {
+              {open && ch.lessons.map((les, li) => {
                 const isDone = done.includes(les.id);
                 return (
-                  <Pressable
+                  <AnimatedPressable
                     key={les.id}
+                    entering={enterItem(li)}
                     onPress={() => router.push({ pathname: '/lesson', params: { id: les.id } } as any)}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border }}
                   >
@@ -81,10 +86,10 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                     </View>
                     <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{pick(les.title, lang)}</Text>
                     <Text style={{ color: colors.textMuted, fontSize: 20 }}>›</Text>
-                  </Pressable>
+                  </AnimatedPressable>
                 );
               })}
-            </View>
+            </Animated.View>
           );
         })}
       </ScrollView>

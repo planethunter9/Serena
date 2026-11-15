@@ -3,12 +3,13 @@
 // Agrupado por secções; nada colapsável (tem de estar tudo a um toque).
 
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { CoachTarget } from './CoachMarks';
 import DisclaimerCard from './DisclaimerCard';
+import { FadeInItem, PressableScale } from '../lib/motion';
 import { ScreenTitle } from './ui';
 
 function SectionHeader({ label }: { label: string }) {
@@ -31,7 +32,7 @@ function Note({ text }: { text: string }) {
 function Row({ title, desc, icon, onPress, highlight }: { title: string; desc: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; highlight?: boolean }) {
   const { colors } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={title}
@@ -46,7 +47,7 @@ function Row({ title, desc, icon, onPress, highlight }: { title: string; desc: s
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{desc}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={highlight ? colors.primary : colors.textMuted} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -90,16 +91,17 @@ export default function SupportScreen({
       <CoachTarget name="support-now">
         <Row title={t('home.triggerTitle')} desc={t('home.triggerDesc')} icon="flash-outline" onPress={onTrigger} highlight />
       </CoachTarget>
-      <Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} />
-      <Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} />
-      <DisclaimerCard variant="short" />
+      <FadeInItem index={1}><Row title={t('support.urgesurf')} desc={t('support.urgesurfDesc')} icon="water-outline" onPress={onUrgeSurf} /></FadeInItem>
+      <FadeInItem index={2}><Row title={t('home.unplannedTitle')} desc={t('home.unplannedDesc')} icon="footsteps-outline" onPress={onUnplanned} /></FadeInItem>
+      <FadeInItem index={3}><DisclaimerCard variant="short" /></FadeInItem>
 
       {/* Técnicas */}
       <SectionHeader label={t('home.techniquesTitle')} />
       <Note text={anchorNote} />
       <CoachTarget name="support-techniques" style={{ gap: spacing.md }}>
-      {techniques.map((tech) => (
-        <Pressable key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
+      {techniques.map((tech, i) => (
+        <FadeInItem key={tech.key} index={i + 4}>
+        <PressableScale onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
           <View style={{ width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={tech.icon} size={22} color={colors.primary} />
           </View>
@@ -108,7 +110,8 @@ export default function SupportScreen({
             <Text style={{ color: colors.textMuted, fontSize: 13 }}>{tech.desc}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </Pressable>
+        </PressableScale>
+        </FadeInItem>
       ))}
       </CoachTarget>
 
@@ -119,10 +122,10 @@ export default function SupportScreen({
           { key: 'calm' as const, label: t('home.soundsCalm'), icon: 'leaf-outline' as const },
           { key: 'sleep' as const, label: t('home.soundsSleep'), icon: 'moon-outline' as const },
         ].map((s) => (
-          <Pressable key={s.key} onPress={() => onSounds(s.key)} style={{ flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, alignItems: 'center', gap: 8 }}>
+          <PressableScale key={s.key} onPress={() => onSounds(s.key)} style={{ flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, alignItems: 'center', gap: 8 }}>
             <Ionicons name={s.icon} size={26} color={colors.primary} />
             <Text style={{ color: colors.text, fontWeight: '600' }}>{s.label}</Text>
-          </Pressable>
+          </PressableScale>
         ))}
       </View>
     </ScrollView>

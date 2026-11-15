@@ -8,6 +8,8 @@ import { pick, useLang } from '../i18n/i18n';
 import { OnboardingData } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { enterItem, enterStep, FadeInItem, useAnimatedNumber } from '../lib/motion';
 import { OptionRow, PrimaryButton } from './ui';
 
 const TOTAL_STEPS = 7;
@@ -40,6 +42,10 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   const { t, lang } = useLang();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
+  // Direção da última mudança de passo (para a animação deslizar do lado certo).
+  const [dir, setDir] = useState<1 | -1>(1);
+  const progress = useAnimatedNumber(step > 0 ? (step + 1) / TOTAL_STEPS : 0);
+  const progressStyle = useAnimatedStyle(() => ({ width: `${progress.get() * 100}%` }));
 
   const [subtypes, setSubtypes] = useState<string[]>([]);
   const [customSubtypes, setCustomSubtypes] = useState<{ id: string; label: string }[]>([]);
@@ -113,6 +119,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
   function next() {
     if (step < TOTAL_STEPS - 1) {
+      setDir(1);
       setStep(step + 1);
     } else {
       onComplete({
@@ -130,7 +137,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
   }
 
   function back() {
-    if (step > 0) setStep(step - 1);
+    if (step > 0) { setDir(-1); setStep(step - 1); }
   }
 
   const buttonLabel = step === 0 ? t('common.start') : step === TOTAL_STEPS - 1 ? t('common.finish') : t('common.continue');
@@ -145,27 +152,28 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         )}
         {step > 0 && (
           <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.track, overflow: 'hidden' }}>
-            <View style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%`, height: '100%', backgroundColor: colors.primary }} />
+            <Animated.View style={[{ height: '100%', backgroundColor: colors.primary }, progressStyle]} />
           </View>
         )}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.sm, gap: spacing.md }}>
+      <ScrollView key={step} contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.sm, gap: spacing.md }}>
+       <Animated.View entering={enterStep(dir)} style={{ gap: spacing.md }}>
         {step === 0 && (
           <View style={{ gap: spacing.md, paddingTop: spacing.xxl }}>
-            <Text style={{ color: colors.textMuted, fontSize: 17 }}>{t('onb.welcomeEyebrow')}</Text>
-            <Text style={{ color: colors.text, fontSize: 34, fontWeight: '800', lineHeight: 40 }}>
+            <Animated.Text entering={enterItem(0)} style={{ color: colors.textMuted, fontSize: 17 }}>{t('onb.welcomeEyebrow')}</Animated.Text>
+            <Animated.Text entering={enterItem(1)} style={{ color: colors.text, fontSize: 34, fontWeight: '800', lineHeight: 40 }}>
               {t('onb.welcomeTitle')}{'\n'}
               <Text style={{ color: colors.primary }}>{pick(PHOBIA.name, lang)}</Text>
-            </Text>
-            <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 23 }}>{t('onb.welcomeSubtitle')}</Text>
+            </Animated.Text>
+            <Animated.Text entering={enterItem(2)} style={{ color: colors.textMuted, fontSize: 16, lineHeight: 23 }}>{t('onb.welcomeSubtitle')}</Animated.Text>
           </View>
         )}
 
         {step === 1 && (
           <StepList title={t('onb.qSubtypesTitle')} subtitle={t('onb.qSubtypesSubtitle')}>
-            {allSubtypes.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={subtypes.includes(o.id)} onPress={() => toggle(subtypes, setSubtypes, o.id)} />
+            {allSubtypes.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={subtypes.includes(o.id)} onPress={() => toggle(subtypes, setSubtypes, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={subtypeText}
@@ -177,8 +185,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 2 && (
           <StepList title={t('onb.q1Title', { phobia: pick(PHOBIA.name, lang) })} subtitle={t('onb.q1Subtitle')}>
-            {allLosses.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} />
+            {allLosses.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={losses.includes(o.id)} onPress={() => toggle(losses, setLosses, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={lossText}
@@ -190,8 +198,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 3 && (
           <StepList title={t('onb.q2Title')} subtitle={t('onb.q2Subtitle')}>
-            {allRecover.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={recover.includes(o.id)} onPress={() => toggle(recover, setRecover, o.id)} />
+            {allRecover.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={recover.includes(o.id)} onPress={() => toggle(recover, setRecover, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={recoverText}
@@ -203,8 +211,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 4 && (
           <StepList title={t('onb.q3Title')} subtitle={t('onb.q3Subtitle')}>
-            {allSymptoms.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={symptoms.includes(o.id)} onPress={() => toggle(symptoms, setSymptoms, o.id)} />
+            {allSymptoms.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={symptoms.includes(o.id)} onPress={() => toggle(symptoms, setSymptoms, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={symptomText}
@@ -216,8 +224,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 5 && (
           <StepList title={t('onb.qTriggersTitle')} subtitle={t('onb.qTriggersSubtitle')}>
-            {allTriggers.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={triggers.includes(o.id)} onPress={() => toggle(triggers, setTriggers, o.id)} />
+            {allTriggers.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={triggers.includes(o.id)} onPress={() => toggle(triggers, setTriggers, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={triggerText}
@@ -229,8 +237,8 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
 
         {step === 6 && (
           <StepList title={t('onb.qCopingTitle')} subtitle={t('onb.qCopingSubtitle')}>
-            {allCoping.map((o) => (
-              <OptionRow key={o.id} label={o.label} selected={coping.includes(o.id)} onPress={() => toggle(coping, setCoping, o.id)} />
+            {allCoping.map((o, i) => (
+              <FadeInItem key={o.id} index={i + 1}><OptionRow label={o.label} selected={coping.includes(o.id)} onPress={() => toggle(coping, setCoping, o.id)} /></FadeInItem>
             ))}
             <CustomInput
               value={copingText}
@@ -240,6 +248,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
           </StepList>
         )}
 
+       </Animated.View>
       </ScrollView>
 
       <View style={{ padding: spacing.xl, paddingBottom: (insets.bottom || 0) + spacing.md }}>

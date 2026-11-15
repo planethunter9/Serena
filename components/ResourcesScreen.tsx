@@ -9,6 +9,8 @@ import { loadResourcesOrder, saveResourcesOrder } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { CoachTarget } from './CoachMarks';
+import Animated from 'react-native-reanimated';
+import { FadeInItem, layoutSmooth, PressableScale } from '../lib/motion';
 import { ScreenTitle } from './ui';
 
 // Cada item usa uma chave i18n (titleKey) OU um título inline (title).
@@ -85,7 +87,7 @@ export default function ResourcesScreen({
 
           if (reordering) {
             return (
-              <View key={r.id} style={rowStyle}>
+              <Animated.View key={r.id} layout={layoutSmooth} style={rowStyle}>
                 {body}
                 <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-up" size={22} color={colors.primary} />
@@ -93,15 +95,17 @@ export default function ResourcesScreen({
                 <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === items.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === items.length - 1 ? 0.3 : 1 }}>
                   <Ionicons name="chevron-down" size={22} color={colors.primary} />
                 </Pressable>
-              </View>
+              </Animated.View>
             );
           }
 
           return (
-            <Pressable key={r.id} onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} accessibilityRole="button" accessibilityLabel={title} style={rowStyle}>
-              {body}
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
+            <FadeInItem key={r.id} index={i}>
+              <PressableScale onPress={() => (READY.includes(r.id) ? onOpen(r.id) : onSoon(title))} accessibilityRole="button" accessibilityLabel={title} style={rowStyle}>
+                {body}
+                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              </PressableScale>
+            </FadeInItem>
           );
         })}
       </CoachTarget>
