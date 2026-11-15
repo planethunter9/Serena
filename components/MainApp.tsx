@@ -16,13 +16,12 @@ import { routeForNotification } from '../notifications/routes';
 import { useQuickActions } from '../lib/quickActions';
 import Animated from 'react-native-reanimated';
 import { enterFade, PressableScale, tapHaptic } from '../lib/motion';
-import { loadAffirmationReminder, loadProfile, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
+import { loadAffirmationReminder, loadReminders, loadWalkthroughSeen, saveWalkthroughSeen } from '../storage/storage';
 import { CoachTarget, useCoach } from './CoachMarks';
 import { TUTORIAL_NO_TARGET, TUTORIAL_ORDER, TutorialStepId, tutorialPack } from '../data/tutorial';
 import { useData } from '../store/DataContext';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
-import Avatar from './Avatar';
 import CalendarScreen from './CalendarScreen';
 import HomeScreen from './HomeScreen';
 import SupportScreen from './SupportScreen';
@@ -40,7 +39,6 @@ export default function MainApp() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>('home');
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   // Abre as Definições. A vibração confirma que o toque chegou ao botão; se a
   // navegação falhar, mostra o erro (em vez de não acontecer nada).
@@ -102,13 +100,6 @@ export default function MainApp() {
     }, [])
   );
 
-  // Recarrega a foto de perfil sempre que este ecrã volta a ficar em foco.
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile().then((p) => setPhotoUri(p.photoUri));
-    }, [])
-  );
-
   // Tocar numa notificação abre o ecrã correspondente (lembrete → Exercícios,
   // afirmação do dia → frases positivas). Funciona também com a app fechada.
   const lastResponse = Notifications.useLastNotificationResponse();
@@ -150,10 +141,8 @@ export default function MainApp() {
       <View style={{ paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
-          <CoachTarget name="header-actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={a11y.profile} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-              <Avatar uri={photoUri} size={32} />
-            </Pressable>
+          {/* Só as Definições (o Perfil está dentro delas) */}
+          <CoachTarget name="header-actions">
             <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="settings-outline" size={24} color={colors.text} />
             </Pressable>
