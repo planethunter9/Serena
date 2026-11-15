@@ -54,6 +54,20 @@ function expStreakOf(days: string[]): number {
   return n;
 }
 
+// Dias da semana (abreviados) em todas as línguas da app.
+const WEEKDAYS_BY_LANG: Record<string, string[]> = {
+  pt: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+  'pt-BR': ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+  en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  es: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+  fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+  de: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+  it: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+  nl: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
+  pl: ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'],
+  ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+};
+
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
@@ -157,9 +171,7 @@ export default function ProgressScreen() {
   const plotH = CHART_HEIGHT - AX_BOTTOM;
   const yAt = (v: number) => plotH - PAD - (v / 5) * (plotH - PAD * 2);
   const dmShort = (iso: string) => { const p = iso.split('-'); return `${p[2]}/${p[1]}`; };
-  const WEEKDAYS = lang === 'pt'
-    ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const WEEKDAYS = WEEKDAYS_BY_LANG[lang] ?? WEEKDAYS_BY_LANG.en;
 
   // Intensidade por dia (0–5): registos de medo, desconforto da exposição (SUDS 0–10 → 0–5)
   // e ataques (puxam para cima). Dia sem dados = sem ponto.

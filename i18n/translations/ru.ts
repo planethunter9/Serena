@@ -653,4 +653,6 @@ export const inline: Record<string, string> = {
   "You don't have anything visible on your profile yet. Tap \"Edit\" to choose what to show.": "В профиле пока ничего не отображается. Нажми «Изменить», чтобы выбрать, что показывать.",
   "Change photo": "Сменить фото",
   "Serena is psychoeducational support for people living with emetophobia (the fear of vomiting). It helps you understand the phobia and practise techniques based on cognitive behavioural therapy (CBT) and exposure and response prevention (ERP).": "Serena — это психообразовательная поддержка для людей с эметофобией (страхом рвоты). Приложение помогает понять фобию и практиковать техники когнитивно-поведенческой терапии (КПТ) и экспозиции с предотвращением реакции (ЭПР).",
+  "This app's content is based on reliable clinical sources. Tap a source to open it. This is psychoeducational support and does not replace a health professional.": "Материалы приложения основаны на надёжных клинических источниках. Нажми на источник, чтобы открыть его. Это психообразовательная поддержка, и она не заменяет специалиста.",
+  "Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.": "Выбери шаблон для своего страха. Шаги добавятся в твою лестницу — их можно изменять, удалять и переставлять.",
 };

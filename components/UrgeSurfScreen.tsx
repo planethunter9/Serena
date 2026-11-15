@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
-import { pick, useLang } from '../i18n/i18n';
+import { pick, tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, PrimaryButton, TopBackBar } from './ui';
@@ -97,7 +97,7 @@ export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={lang === 'pt' ? 'Surfar o impulso' : 'Urge surfing'} onBack={onBack} />
+      <TopBackBar title={tr2(lang, 'Surfar o impulso', 'Urge surfing')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 40 }}>
         {step === 'intro' && (
           <>

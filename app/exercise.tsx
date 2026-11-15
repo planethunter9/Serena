@@ -10,7 +10,7 @@ import { MythGame, WordGame } from '../components/GamesScreen';
 import MemoryView from '../components/MemoryReprocessing';
 import { HistoryButton } from '../components/HistoryButton';
 import { TopBackBar } from '../components/ui';
-import { useLang } from '../i18n/i18n';
+import { tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 
@@ -25,10 +25,10 @@ export default function ExerciseRoute() {
     : type === 'thought' ? t('thought.title')
     : type === 'memory' ? t('memory.title')
     : type === 'challenges' ? t('challenges.title')
-    : type === 'experiments' ? (lang === 'pt' ? 'Experiências' : 'Experiments')
+    : type === 'experiments' ? tr2(lang, 'Experiências', 'Experiments')
     : type === 'myth' ? t('games.myth')
     : type === 'words' ? t('games.words')
-    : type === 'acceptance' ? (lang === 'pt' ? 'Aceitação e valores' : 'Acceptance & values')
+    : type === 'acceptance' ? tr2(lang, 'Aceitação e valores', 'Acceptance & values')
     : t('resources.exercises');
 
   return (
