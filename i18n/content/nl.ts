@@ -819,4 +819,5 @@ export const content: Record<string, string> = {
   "Nausea is common early on, but many people vomit little or not at all during pregnancy, and in most cases it improves by mid-pregnancy.": "Misselijkheid komt in het begin vaak voor, maar veel mensen geven tijdens de zwangerschap weinig of niet over, en meestal wordt het halverwege de zwangerschap beter.",
   "Children can learn fears by watching adults.": "Kinderen kunnen angsten leren door volwassenen te observeren.",
   "True: children learn a lot by example. Showing that you can handle discomfort teaches them that it is bearable.": "Klopt: kinderen leren veel van het voorbeeld. Laten zien dat je met ongemak kunt omgaan, leert hen dat het te verdragen is.",
+  "Reset default colors": "Standaardkleuren herstellen",
 };

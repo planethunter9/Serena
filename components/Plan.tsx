@@ -159,7 +159,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
         return (
           <Pressable key={task.key} onPress={() => toggleDone(task.key)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={task.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
             <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-              {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
+              {checked && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>✓</Text>}
             </View>
             <Text style={{ color: checked ? colors.textMuted : colors.text, fontSize: 15, flex: 1, textDecorationLine: checked ? 'line-through' : 'none' }}>{task.label}</Text>
           </Pressable>

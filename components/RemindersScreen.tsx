@@ -13,7 +13,7 @@ import { AffirmationReminder, loadAffirmationReminder, loadReminders, Reminder, 
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import EmptyState from './EmptyState';
-import { Card, PrimaryButton, TopBackBar } from './ui';
+import { Card, CardHeader, PrimaryButton, Segmented, TopBackBar } from './ui';
 
 function two(n: number) {
   const v = Number.isFinite(n) ? n : 0;
@@ -27,7 +27,7 @@ function Stepper({ value, onUp, onDown }: { value: string; onUp: () => void; onD
       <Pressable onPress={onUp} hitSlop={8} accessibilityRole="button" accessibilityLabel="+" style={{ padding: 6 }}>
         <Ionicons name="chevron-up" size={28} color={colors.primary} />
       </Pressable>
-      <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800', width: 70, textAlign: 'center' }}>{value}</Text>
+      <Text style={{ color: colors.text, fontSize: 40, fontWeight: '600', width: 70, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{value}</Text>
       <Pressable onPress={onDown} hitSlop={8} accessibilityRole="button" accessibilityLabel="−" style={{ padding: 6 }}>
         <Ionicons name="chevron-down" size={28} color={colors.primary} />
       </Pressable>
@@ -135,30 +135,30 @@ function RemindersBody() {
   if (editing) {
     return (
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 120 }}>
-        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>{isNew ? t('reminders.newTitle') : t('reminders.editTitle')}</Text>
+        <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{isNew ? t('reminders.newTitle') : t('reminders.editTitle')}</Text>
 
         <Card style={{ gap: spacing.md, alignItems: 'center' }}>
-          <Text style={{ color: colors.text, fontWeight: '600', alignSelf: 'flex-start' }}>{t('reminders.time')}</Text>
+          <View style={{ alignSelf: 'stretch' }}><CardHeader icon="time-outline" title={t('reminders.time')} /></View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Stepper value={two(editing.hour)} onUp={() => bump('hour', 1)} onDown={() => bump('hour', -1)} />
-            <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800' }}>:</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 40, fontWeight: '600' }}>:</Text>
             <Stepper value={two(editing.minute)} onUp={() => bump('minute', 5)} onDown={() => bump('minute', -5)} />
           </View>
         </Card>
 
         <Card style={{ gap: 8 }}>
-          <Text style={{ color: colors.text, fontWeight: '600' }}>{t('reminders.labelField')}</Text>
+          <CardHeader icon="create-outline" title={t('reminders.labelField')} />
           <TextInput
             value={String(editing.label ?? '')}
             onChangeText={(v) => setEditing((c) => (c ? { ...c, label: v } : c))}
             placeholder={t('reminders.labelPlaceholder')}
             placeholderTextColor={colors.textMuted}
-            style={{ padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }}
+            style={{ padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15 }}
           />
         </Card>
 
         <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.text, fontWeight: '600', fontSize: 16 }}>{t('reminders.enabled')}</Text>
+          <View style={{ flex: 1 }}><CardHeader icon="notifications-outline" title={t('reminders.enabled')} /></View>
           <Switch
             value={editing.enabled}
             onValueChange={(v) => setEditing((c) => (c ? { ...c, enabled: v } : c))}
@@ -197,8 +197,11 @@ function RemindersBody() {
           onPress={() => openEdit(r)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}
         >
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: r.enabled ? colors.primarySoft : colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={r.enabled ? 'notifications-outline' : 'notifications-off-outline'} size={20} color={r.enabled ? colors.primary : colors.textMuted} />
+          </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: r.enabled ? colors.text : colors.textMuted, fontSize: 30, fontWeight: '800' }}>{two(r.hour)}:{two(r.minute)}</Text>
+            <Text style={{ color: r.enabled ? colors.text : colors.textMuted, fontSize: 26, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{two(r.hour)}:{two(r.minute)}</Text>
             <Text style={{ color: colors.textMuted, fontSize: 13 }}>{String(r.label ?? '').trim() || t('reminders.everyDay')}</Text>
           </View>
           <Switch
@@ -212,7 +215,7 @@ function RemindersBody() {
 
       <Pressable
         onPress={openNew}
-        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.primary, borderStyle: 'dashed', marginTop: 4 }}
+        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, borderRadius: radius.lg, backgroundColor: colors.primarySoft, marginTop: 4 }}
       >
         <Ionicons name="add" size={20} color={colors.primary} />
         <Text style={{ color: colors.primary, fontWeight: '700' }}>{t('reminders.addNew')}</Text>
@@ -263,7 +266,7 @@ function AffirmationBody() {
       </Text>
 
       <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ color: colors.text, fontWeight: '600', fontSize: 16 }}>{tt('Ativar', 'Enable')}</Text>
+        <View style={{ flex: 1 }}><CardHeader icon="sunny-outline" title={tt('Ativar', 'Enable')} /></View>
         <Switch
           value={state.enabled}
           onValueChange={(v) => setState((c) => (c ? { ...c, enabled: v } : c))}
@@ -273,20 +276,20 @@ function AffirmationBody() {
 
       {state.enabled && (
         <Card style={{ gap: spacing.md, alignItems: 'center' }}>
-          <Text style={{ color: colors.text, fontWeight: '600', alignSelf: 'flex-start' }}>{tt('Hora', 'Time')}</Text>
+          <View style={{ alignSelf: 'stretch' }}><CardHeader icon="time-outline" title={tt('Hora', 'Time')} /></View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Stepper value={two(state.hour)} onUp={() => bump('hour', 1)} onDown={() => bump('hour', -1)} />
-            <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800' }}>:</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 40, fontWeight: '600' }}>:</Text>
             <Stepper value={two(state.minute)} onUp={() => bump('minute', 5)} onDown={() => bump('minute', -5)} />
           </View>
         </Card>
       )}
 
       {/* Pré-visualização */}
-      <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg }}>
-        <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}>{tt('Exemplo', 'Example')}</Text>
-        <Text style={{ color: colors.text, fontSize: 16, fontStyle: 'italic' }}>“{pick(sample, lang)}”</Text>
-      </View>
+      <Card style={{ gap: spacing.sm }}>
+        <CardHeader icon="chatbubble-ellipses-outline" title={tt('Exemplo', 'Example')} />
+        <Text style={{ color: colors.text, fontSize: 16, lineHeight: 23, fontStyle: 'italic' }}>“{pick(sample, lang)}”</Text>
+      </Card>
 
       <PrimaryButton label={tt('Guardar', 'Save')} onPress={save} disabled={busy} />
     </ScrollView>
@@ -306,18 +309,7 @@ export default function RemindersScreen({ onBack }: { onBack: () => void }) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={tr2(lang, 'Lembretes', 'Reminders')} onBack={onBack} />
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm }}>
-        <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 4 }}>
-          {(['reminders', 'affirmation'] as const).map((v) => {
-            const active = tab === v;
-            return (
-              <Pressable key={v} onPress={() => setTab(v)} style={{ flex: 1, paddingVertical: 10, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-                <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 14 }}>
-                  {tabLabel(v)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <Segmented value={tab} onChange={setTab} options={[['reminders', tabLabel('reminders')], ['affirmation', tabLabel('affirmation')]]} />
       </View>
       {tab === 'reminders' ? <RemindersBody /> : <AffirmationBody />}
     </View>

@@ -1,7 +1,7 @@
-  // Ecrã "Personalização": escolher paleta de cores, cor personalizada (HEX) e
-// tipo de letra. Só o azul e a fonte do sistema são grátis; o resto fica atrás
-// de uma paywall (o pack de personalização). Enquanto não há compras reais,
-// o botão "Desbloquear" ativa o estado localmente para teste.
+  // Ecrã "Personalização": aspeto (claro/escuro), paleta de cores, cor
+// personalizada (HEX), tipo de letra e cores do círculo dos pilares.
+// Na 1.0 é tudo grátis (PERSONALIZATION_FREE em ThemeContext); o "pack" pago
+// fica preparado para quando houver compras reais.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -9,7 +9,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { pick, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { deriveColors, FONTS, lightColors, normalizeHex, PRESETS, radius, spacing } from '../theme/theme';
-import { Card, TopBackBar } from './ui';
+import { Card, CardHeader, Segmented, TopBackBar } from './ui';
 
 type L = { pt: string; en: string };
 
@@ -63,7 +63,6 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
       }),
       [
         { text: tt({ pt: 'Agora não', en: 'Not now' }), style: 'cancel' },
-        { text: tt({ pt: 'Desbloquear (teste)', en: 'Unlock (test)' }), onPress: () => theme.setUnlocked(true) },
       ],
     );
     return false;
@@ -92,14 +91,14 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={tt({ pt: 'Personalização', en: 'Personalization' })} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 60 }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg, paddingBottom: 60 }}>
 
-        {/* Paywall / estado */}
-        {!unlocked ? (
+        {/* Pack de personalização (só quando houver compras reais; na 1.0 é grátis) */}
+        {!unlocked && (
           <Card style={{ gap: 10, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="color-palette-outline" size={20} color={colors.primary} />
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>{tt({ pt: 'Deixa a Serena com a tua cara', en: 'Make Serena yours' })}</Text>
+              <Ionicons name="color-palette-outline" size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{tt({ pt: 'Deixa a Serena com a tua cara', en: 'Make Serena yours' })}</Text>
             </View>
             <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21 }}>
               {tt({
@@ -107,75 +106,57 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
                 en: 'Unlock every palette, your own color and 20 fonts — one purchase, forever.',
               })}
             </Text>
-            <Pressable onPress={() => theme.setUnlocked(true)} style={{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center', marginTop: 4 }}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>{tt({ pt: 'Desbloquear (teste)', en: 'Unlock (test)' })}</Text>
-            </Pressable>
-            <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: 'center' }}>
-              {tt({ pt: 'Botão temporário — será ligado à compra na App Store/Play.', en: 'Temporary button — will be wired to the App Store/Play purchase.' })}
-            </Text>
           </Card>
-        ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="checkmark-circle" size={18} color={colors.success} />
-            <Text style={{ color: colors.textMuted, fontSize: 13, flex: 1 }}>{tt({ pt: 'Personalização desbloqueada.', en: 'Personalization unlocked.' })}</Text>
-            <Pressable onPress={() => theme.setUnlocked(false)} hitSlop={6}>
-              <Text style={{ color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' }}>{tt({ pt: 'repor', en: 'reset' })}</Text>
-            </Pressable>
-          </View>
         )}
 
-        {/* Modo claro/escuro */}
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800' }}>{tt({ pt: 'Aspeto', en: 'Appearance' })}</Text>
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {([['light', { pt: 'Claro', en: 'Light' }, 'sunny-outline'], ['dark', { pt: 'Escuro', en: 'Dark' }, 'moon-outline']] as const).map(([mode, label, icon]) => {
-            const active = theme.themeName === mode;
-            return (
-              <Pressable key={mode} onPress={() => theme.setThemeName(mode)} style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingVertical: 12, borderRadius: radius.md, backgroundColor: active ? colors.primary : colors.card, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
-                <Ionicons name={icon as any} size={18} color={active ? '#fff' : colors.text} />
-                <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{tt(label)}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Aspeto: claro / escuro */}
+        <Card style={{ gap: spacing.md }}>
+          <CardHeader icon="contrast-outline" title={tt({ pt: 'Aspeto', en: 'Appearance' })} />
+          <Segmented
+            value={theme.themeName}
+            onChange={(m) => theme.setThemeName(m)}
+            options={[['light', tt({ pt: 'Claro', en: 'Light' })], ['dark', tt({ pt: 'Escuro', en: 'Dark' })]]}
+          />
+        </Card>
 
-        {/* Paletas */}
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 4 }}>{tt({ pt: 'Paleta de cores', en: 'Color palette' })}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-          {/* Azul grátis */}
-          <Pressable onPress={() => pickPalette('blue')} style={{ alignItems: 'center', gap: 4, width: 72 }}>
-            <PaletteSwatch primary={null} selected={theme.paletteId === 'blue'} color={colors} />
-            <Text style={{ color: colors.text, fontSize: 11, textAlign: 'center' }} numberOfLines={1}>{tt({ pt: 'Azul', en: 'Blue' })}</Text>
-          </Pressable>
-          {/* Paletas pagas */}
-          {PRESETS.map((p) => (
-            <Pressable key={p.id} onPress={() => pickPalette(p.id)} style={{ alignItems: 'center', gap: 4, width: 72 }}>
-              <View>
-                <PaletteSwatch primary={p.primary} selected={theme.paletteId === p.id} color={colors} />
-                {!unlocked && (
-                  <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: colors.card, borderRadius: 9, padding: 2, borderWidth: 1, borderColor: colors.border }}>
-                    <Lock />
-                  </View>
-                )}
-              </View>
-              <Text style={{ color: colors.text, fontSize: 11, textAlign: 'center' }} numberOfLines={1}>{tt(p.name)}</Text>
+        {/* Paletas + cor personalizada */}
+        <Card style={{ gap: spacing.md }}>
+          <CardHeader icon="color-palette-outline" title={tt({ pt: 'Paleta de cores', en: 'Color palette' })} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+            {/* Azul (predefinido) */}
+            <Pressable onPress={() => pickPalette('blue')} accessibilityRole="button" accessibilityState={{ selected: theme.paletteId === 'blue' }} style={{ alignItems: 'center', gap: 4, width: 64 }}>
+              <PaletteSwatch primary={null} selected={theme.paletteId === 'blue'} color={colors} />
+              <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: 'center' }} numberOfLines={1}>{tt({ pt: 'Azul', en: 'Blue' })}</Text>
             </Pressable>
-          ))}
-        </View>
-
-        {/* Cor personalizada */}
-        <Card style={{ gap: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{tt({ pt: 'Cor personalizada', en: 'Custom color' })}</Text>
-            {!unlocked && <Lock />}
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {SWATCHES.map((hx) => (
-              <Pressable key={hx} onPress={() => { setHexInput(hx.replace('#', '')); applyHex(hx); }} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: hx, borderWidth: theme.paletteId === 'custom' && normalizeHex(theme.customHex) === hx ? 3 : 1, borderColor: theme.paletteId === 'custom' && normalizeHex(theme.customHex) === hx ? colors.text : colors.border }} />
+            {PRESETS.map((p) => (
+              <Pressable key={p.id} onPress={() => pickPalette(p.id)} accessibilityRole="button" accessibilityState={{ selected: theme.paletteId === p.id }} style={{ alignItems: 'center', gap: 4, width: 64 }}>
+                <View>
+                  <PaletteSwatch primary={p.primary} selected={theme.paletteId === p.id} color={colors} />
+                  {!unlocked && (
+                    <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: colors.card, borderRadius: 9, padding: 2, borderWidth: 1, borderColor: colors.border }}>
+                      <Lock />
+                    </View>
+                  )}
+                </View>
+                <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: 'center' }} numberOfLines={1}>{tt(p.name)}</Text>
+              </Pressable>
             ))}
+          </View>
+        </Card>
+
+        <Card style={{ gap: spacing.md }}>
+          <CardHeader icon="brush-outline" title={tt({ pt: 'Cor personalizada', en: 'Custom color' })} right={!unlocked ? <Lock /> : undefined} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {SWATCHES.map((hx) => {
+              const sel = theme.paletteId === 'custom' && normalizeHex(theme.customHex) === hx;
+              return (
+                <Pressable key={hx} onPress={() => { setHexInput(hx.replace('#', '')); applyHex(hx); }} accessibilityRole="button" accessibilityLabel={hx} accessibilityState={{ selected: sel }} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: hx, borderWidth: sel ? 3 : 1, borderColor: sel ? colors.text : colors.border }} />
+              );
+            })}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, backgroundColor: colors.cardAlt, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12 }}>
-              <Text style={{ color: colors.textMuted, fontWeight: '700' }}>#</Text>
+              <Text style={{ color: colors.textMuted }}>#</Text>
               <TextInput
                 value={hexInput}
                 onChangeText={(v) => setHexInput(v.replace('#', '').slice(0, 6))}
@@ -190,29 +171,26 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
                 <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#' + hexInput, borderWidth: 1, borderColor: colors.border }} />
               )}
             </View>
-            <Pressable onPress={() => applyHex(hexInput)} style={{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{tt({ pt: 'Aplicar', en: 'Apply' })}</Text>
+            <Pressable onPress={() => applyHex(hexInput)} accessibilityRole="button" style={{ backgroundColor: colors.primarySoft, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>{tt({ pt: 'Aplicar', en: 'Apply' })}</Text>
             </Pressable>
           </View>
         </Card>
 
-        {/* Cores do círculo (pago) */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-          <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800' }}>{tt({ pt: 'Cores do círculo', en: 'Circle colors' })}</Text>
-          {!unlocked && <Lock />}
-        </View>
-        <Card style={{ gap: 14 }}>
+        {/* Cores do círculo dos pilares */}
+        <Card style={{ gap: spacing.md }}>
+          <CardHeader icon="ellipse-outline" title={tt({ pt: 'Cores do círculo', en: 'Circle colors' })} right={!unlocked ? <Lock /> : undefined} />
           {PILLAR_NAMES.map((pname, i) => (
             <View key={i} style={{ gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: ringCols[i] }} />
-                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>{pname}</Text>
+                <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: ringCols[i] }} />
+                <Text style={{ color: colors.text, fontSize: 14 }}>{pname}</Text>
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {SWATCHES.map((hx) => {
                   const sel = normalizeHex(ringCols[i]) === hx;
                   return (
-                    <Pressable key={hx} onPress={() => pickRingColor(i, hx)} style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: hx, borderWidth: sel ? 3 : 1, borderColor: sel ? colors.text : colors.border }} />
+                    <Pressable key={hx} onPress={() => pickRingColor(i, hx)} accessibilityRole="button" accessibilityLabel={`${pname} ${hx}`} accessibilityState={{ selected: sel }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: hx, borderWidth: sel ? 3 : 1, borderColor: sel ? colors.text : colors.border }} />
                   );
                 })}
               </View>
@@ -220,32 +198,34 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
           ))}
           {theme.ringColors && (
             <Pressable onPress={theme.resetRingColors} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
-              <Text style={{ color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' }}>{tt({ pt: 'repor cores predefinidas', en: 'reset default colors' })}</Text>
+              <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{tt({ pt: 'Repor cores predefinidas', en: 'Reset default colors' })}</Text>
             </Pressable>
           )}
         </Card>
 
         {/* Tipos de letra */}
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: 4 }}>{tt({ pt: 'Tipo de letra', en: 'Font' })}</Text>
-        <View style={{ gap: spacing.sm }}>
-          {FONTS.map((f) => {
-            const active = theme.fontKey === f.key;
-            const locked = f.key !== 'system' && !unlocked;
-            return (
-              <Pressable key={f.key} onPress={() => pickFont(f.key)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: active ? colors.primarySoft : colors.card, borderRadius: radius.md, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
-                <Text style={{ color: colors.text, fontSize: 16, flex: 1, fontFamily: f.family }}>{f.label}</Text>
-                {locked && <Lock />}
-                {active && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
-              </Pressable>
-            );
-          })}
-        </View>
-        <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 18 }}>
-          {tt({
-            pt: 'Nota: alguns tipos de letra só têm o peso normal, por isso os títulos podem parecer menos "bold". A fonte do sistema mantém os pesos certos.',
-            en: 'Note: some fonts ship regular weight only, so headings may look less bold. The system font keeps exact weights.',
-          })}
-        </Text>
+        <Card style={{ gap: spacing.sm }}>
+          <CardHeader icon="text-outline" title={tt({ pt: 'Tipo de letra', en: 'Font' })} />
+          <View>
+            {FONTS.map((f, i) => {
+              const active = theme.fontKey === f.key;
+              const locked = f.key !== 'system' && !unlocked;
+              return (
+                <Pressable key={f.key} onPress={() => pickFont(f.key)} accessibilityRole="radio" accessibilityState={{ selected: active }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+                  <Text style={{ color: active ? colors.primary : colors.text, fontSize: 16, flex: 1, fontFamily: f.family }}>{f.label}</Text>
+                  {locked && <Lock />}
+                  {active && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 18 }}>
+            {tt({
+              pt: 'Nota: alguns tipos de letra só têm o peso normal, por isso os títulos podem parecer menos "bold". A fonte do sistema mantém os pesos certos.',
+              en: 'Note: some fonts ship regular weight only, so headings may look less bold. The system font keeps exact weights.',
+            })}
+          </Text>
+        </Card>
       </ScrollView>
     </View>
   );

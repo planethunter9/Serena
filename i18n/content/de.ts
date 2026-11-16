@@ -819,4 +819,5 @@ export const content: Record<string, string> = {
   "Nausea is common early on, but many people vomit little or not at all during pregnancy, and in most cases it improves by mid-pregnancy.": "Übelkeit ist am Anfang häufig, aber viele übergeben sich in der Schwangerschaft wenig oder gar nicht, und meist wird es bis zur Mitte der Schwangerschaft besser.",
   "Children can learn fears by watching adults.": "Kinder können Ängste lernen, indem sie Erwachsene beobachten.",
   "True: children learn a lot by example. Showing that you can handle discomfort teaches them that it is bearable.": "Stimmt: Kinder lernen viel am Vorbild. Zu zeigen, dass du mit Unbehagen umgehen kannst, lehrt sie, dass es auszuhalten ist.",
+  "Reset default colors": "Standardfarben wiederherstellen",
 };

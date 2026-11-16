@@ -1,7 +1,11 @@
 // Tema global: claro/escuro + personalização (paleta, cor HEX, fonte e cores do
-// círculo de pilares). Só o azul (paleta 'blue') e a fonte 'system' são grátis;
-// o resto (incluindo as cores do círculo) fica disponível quando `unlocked` for
-// verdadeiro (pack de personalização).
+// círculo de pilares).
+//
+// Na versão 1.0 a personalização é toda GRÁTIS (PERSONALIZATION_FREE = true).
+// O código do "pack de personalização" (unlocked) fica preparado para quando
+// houver compras reais (App Store / Google Play): basta pôr a constante a false
+// e ligar setUnlocked(true) à compra.
+
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -14,6 +18,9 @@ import {
   resolveColors,
   ThemeName,
 } from './theme';
+
+// Personalização grátis na 1.0 (sem compras dentro da app).
+export const PERSONALIZATION_FREE = true;
 
 const KEYS = {
   theme: 'app:theme',
@@ -54,7 +61,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [paletteId, setPaletteIdState] = useState('blue');
   const [customHex, setCustomHexState] = useState('#2f8aa8');
   const [fontKey, setFontKeyState] = useState('system');
-  const [unlocked, setUnlockedState] = useState(false);
+  const [unlockedState, setUnlockedState] = useState(false);
+  const unlocked = PERSONALIZATION_FREE || unlockedState;
   const [ringColors, setRingColorsState] = useState<string[] | null>(null);
 
   // Carrega as preferências guardadas.

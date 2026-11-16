@@ -42,14 +42,14 @@ export default function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         {summary && (
           <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 6 }}>
-            <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 15 }}>{summary.title}</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 15 }}>{summary.title}</Text>
             {body(summary.body)}
           </View>
         )}
 
         {sections.map((s) => (
           <View key={s.title} style={{ gap: 6 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>{s.title}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>{s.title}</Text>
             {body(s.body)}
           </View>
         ))}

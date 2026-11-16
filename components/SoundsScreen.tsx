@@ -172,7 +172,7 @@ export default function SoundsScreen({ onBack, category }: { onBack: () => void;
 
         {/* Os meus sons */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm }}>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{t('sounds.mine')}</Text>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{t('sounds.mine')}</Text>
           <Pressable onPress={addSound} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
             <Ionicons name="add" size={18} color={colors.primary} />
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('sounds.add')}</Text>

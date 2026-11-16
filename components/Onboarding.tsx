@@ -162,7 +162,7 @@ export default function Onboarding({ onComplete }: { onComplete: (data: Onboardi
         {step === 0 && (
           <View style={{ gap: spacing.md, paddingTop: spacing.xxl }}>
             <Animated.Text entering={enterItem(0)} style={{ color: colors.textMuted, fontSize: 17 }}>{t('onb.welcomeEyebrow')}</Animated.Text>
-            <Animated.Text entering={enterItem(1)} style={{ color: colors.text, fontSize: 34, fontWeight: '800', lineHeight: 40 }}>
+            <Animated.Text entering={enterItem(1)} style={{ color: colors.text, fontSize: 34, fontWeight: '700', lineHeight: 40 }}>
               {t('onb.welcomeTitle')}{'\n'}
               <Text style={{ color: colors.primary }}>{pick(PHOBIA.name, lang)}</Text>
             </Animated.Text>
@@ -264,7 +264,7 @@ function StepList({ title, subtitle, children }: { title: string; subtitle: stri
   const { colors } = useTheme();
   return (
     <View style={{ gap: spacing.md }}>
-      <Text style={{ color: colors.text, fontSize: 26, fontWeight: '800' }}>{title}</Text>
+      <Text style={{ color: colors.text, fontSize: 26, fontWeight: '700' }}>{title}</Text>
       <Text style={{ color: colors.textMuted, fontSize: 15, marginBottom: spacing.sm }}>{subtitle}</Text>
       <View style={{ gap: spacing.sm }}>{children}</View>
     </View>

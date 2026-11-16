@@ -819,4 +819,5 @@ export const content: Record<string, string> = {
   "Nausea is common early on, but many people vomit little or not at all during pregnancy, and in most cases it improves by mid-pregnancy.": "Тошнота часто бывает в начале, но у многих рвота во время беременности бывает редко или её нет вовсе, и в большинстве случаев к середине беременности становится легче.",
   "Children can learn fears by watching adults.": "Дети могут перенимать страхи, наблюдая за взрослыми.",
   "True: children learn a lot by example. Showing that you can handle discomfort teaches them that it is bearable.": "Правда: дети многому учатся на примере. Показывая, что ты справляешься с дискомфортом, ты учишь их, что его можно вынести.",
+  "Reset default colors": "Вернуть стандартные цвета",
 };

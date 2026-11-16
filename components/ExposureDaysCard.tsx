@@ -83,7 +83,7 @@ export default function ExposureDaysCard({ days, streak, markedToday, onToggle }
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '600' }}>{x.title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-            <Text style={{ color: colors.text, fontSize: 30, fontWeight: '800' }}>{streak}</Text>
+            <Text style={{ color: colors.text, fontSize: 30, fontWeight: '600' }}>{streak}</Text>
             <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{x.inARow(streak)}</Text>
           </View>
         </View>

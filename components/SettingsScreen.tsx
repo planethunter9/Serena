@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 import { useLang , tr2 } from '../i18n/i18n';
+import { HOME_SETTINGS_TEXT } from '../data/homeBlocks';
 import { tutorialPack } from '../data/tutorial';
 import { exportUserData, importUserData, isoLocal, loadProfile, OnboardingData, resetWalkthroughSeen } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -193,6 +194,7 @@ export default function SettingsScreen({
 
         {/* Navegação */}
         <NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />
+        <NavRow icon="home-outline" label={(HOME_SETTINGS_TEXT[lang] ?? HOME_SETTINGS_TEXT.en).title} onPress={() => router.push('/homeblocks' as any)} />
         <NavRow icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} />
         <NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />
         <NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />

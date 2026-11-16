@@ -200,7 +200,7 @@ export function CoachProvider({ children }: { children: ReactNode }) {
               style={{ position: 'absolute', left: spacing.xl, right: spacing.xl, top: tooltipTop, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, gap: 10, borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 10 }}
             >
               {!!step!.title && (
-                <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 17, fontWeight: '800' }}>{step!.title}</Text>
+                <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 17, fontWeight: '700' }}>{step!.title}</Text>
               )}
               <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21 }}>{step!.text}</Text>
 

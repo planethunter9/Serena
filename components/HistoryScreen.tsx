@@ -24,7 +24,7 @@ import { radius, spacing } from '../theme/theme';
 import { COMMITMENTS } from './AcceptanceScreen';
 import { CHALLENGES } from './ChallengesScreen';
 import EmptyState from './EmptyState';
-import { THOUGHT_TRAPS } from './ExercisesScreen';
+import { THOUGHT_TRAPS } from './exercises/ThoughtView';
 import { TopBackBar } from './ui';
 import { UNPLANNED_TRIGGERS } from './UnplannedScreen';
 
@@ -191,7 +191,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
             <View style={{ width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={KIND_ICON[kind]} size={18} color={colors.primary} />
             </View>
-            <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', flex: 1 }}>
+            <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700', flex: 1 }}>
               {subType ? practiceName(subType) : kindLabel(kind)}
             </Text>
             {items && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{shown.length}</Text>}

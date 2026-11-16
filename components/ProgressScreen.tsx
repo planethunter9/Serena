@@ -4,8 +4,8 @@
 // (ansiedade por semana, gravidade, exposições, comportamentos largados).
 
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang , tr2 } from '../i18n/i18n';
 import {
@@ -34,36 +34,7 @@ import {
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import EmptyState from './EmptyState';
-import { Card } from './ui';
-
-// Seletor pequeno dentro do cartão — o mesmo dos pilares na Visão geral.
-function Segmented<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 3 }}>
-      {options.map(([v, label]) => {
-        const active = value === v;
-        return (
-          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-            <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-// Cabeçalho de cartão — ícone azul + título, como em toda a app.
-function CardHeader({ icon, title, right }: { icon: keyof typeof Ionicons.glyphMap; title: string; right?: ReactNode }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Ionicons name={icon} size={18} color={colors.primary} />
-      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{title}</Text>
-      {right}
-    </View>
-  );
-}
+import { Card, CardHeader, Segmented } from './ui';
 
 function expStreakOf(days: string[]): number {
   const set = new Set(days);
@@ -283,7 +254,15 @@ export default function ProgressScreen() {
 
       {/* Gráficos */}
       <Card style={{ gap: spacing.md }}>
-        <CardHeader icon="analytics-outline" title={chartTitle} />
+        <CardHeader
+          icon="analytics-outline"
+          title={chartTitle}
+          right={chartView === 'dropped' && dropped.length > 0 ? (
+            <View style={{ backgroundColor: colors.successSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
+              <Text style={{ color: colors.success, fontWeight: '700', fontSize: 13 }}>{dropped.length}</Text>
+            </View>
+          ) : undefined}
+        />
         <Segmented
           value={chartView}
           onChange={setChartView}
@@ -315,7 +294,7 @@ export default function ProgressScreen() {
               <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT + 24, alignItems: 'flex-start' }}>
                 <Svg width={AX_LEFT} height={CHART_HEIGHT}>
                   {[0, 1, 2, 3, 4, 5].map((v) => (
-                    <SvgText key={'y' + v} x={AX_LEFT - 6} y={yAt(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
+                    <SvgText key={'y' + v} x={AX_LEFT - 6} y={yAt(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
                   ))}
                 </Svg>
                 {chartW > 0 && (
@@ -360,7 +339,7 @@ export default function ProgressScreen() {
                             {WEEKDAYS.map((wd, j) => {
                               const isToday = wk[j] === todayIso;
                               return (
-                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={9} fontWeight={isToday ? '600' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
+                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={11} fontWeight={isToday ? '600' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
                               );
                             })}
                             {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
@@ -385,6 +364,7 @@ export default function ProgressScreen() {
                 )}
               </View>
             )}
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Junta os registos de gravidade, o desconforto nas exposições e os ataques.', 'Combines your severity check-ins, distress in exposures and attacks.')}</Text>
           </>
         ) : chartView === 'severity' ? (
           <>
@@ -398,8 +378,9 @@ export default function ProgressScreen() {
                 {chartW > 0 && (() => {
                   const chron = [...severity].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-16);
                   const w = chartW, h = CHART_HEIGHT, nn = chron.length;
-                  const left = 22, padR = 12, padTop = 10, padBot = 10;
-                  const xA = (i: number) => (nn <= 1 ? (left + w - padR) / 2 : left + (i / (nn - 1)) * (w - left - padR));
+                  const left = 24, padR = 14, padTop = 12, padBot = 26; // em baixo: datas
+                  const gap = 12; // afasta o primeiro ponto do eixo
+                  const xA = (i: number) => (nn <= 1 ? (left + w - padR) / 2 : left + gap + (i / (nn - 1)) * (w - left - gap - padR));
                   const yA = (v: number) => (h - padBot) - (v / 5) * (h - padBot - padTop);
                   const pts = chron.map((s, i) => ({ x: xA(i), y: yA(s.value) }));
                   const last = pts[pts.length - 1];
@@ -416,14 +397,17 @@ export default function ProgressScreen() {
                         <Line key={'g' + v} x1={left} y1={yA(v)} x2={w - padR} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={v === 0 ? 0.7 : 0.4} strokeLinecap="round" />
                       ))}
                       {[0, 1, 2, 3, 4, 5].map((v) => (
-                        <SvgText key={'yl' + v} x={left - 5} y={yA(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
+                        <SvgText key={'yl' + v} x={left - 5} y={yA(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
                       ))}
                       {pts.length > 1 && <Path d={smoothArea(pts, yA(0))} fill="url(#sevGrad)" />}
                       {pts.length > 1 && <Path d={smoothLine(pts)} fill="none" stroke={colors.primary} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
                       {pts.map((p, i) => (
                         <Circle key={'p' + i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={i === pts.length - 1 ? 3 : 2} />
                       ))}
-                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={10} fontWeight="600" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
+                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={11} fontWeight="600" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
+                      {/* Datas: primeiro e último registo */}
+                      <SvgText x={pts[0].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="start">{dmShort(chron[0].date)}</SvgText>
+                      <SvgText x={last.x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="end">{dmShort(chron[chron.length - 1].date)}</SvgText>
                     </Svg>
                   );
                 })()}
@@ -433,6 +417,14 @@ export default function ProgressScreen() {
           </>
         ) : chartView === 'exposures' ? (
           <>
+            {expRel.length > 0 && (
+              // O número que importa: quanto desce o desconforto, em média, numa exposição.
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Em média', 'On average')}</Text>
+                <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600' }}>{relBefore.toFixed(1)} → {relAfter.toFixed(1)}</Text>
+                <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>−{Math.max(0, relBefore - relAfter).toFixed(1)}</Text>
+              </View>
+            )}
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('antes', 'before')}</Text></View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('depois', 'after')}</Text></View>
@@ -445,8 +437,9 @@ export default function ProgressScreen() {
                   const chrono = [...exposures].reverse().slice(-12); // mais antigas → recentes
                   const w = chartW, h = CHART_HEIGHT, pad = 10, nn = chrono.length;
                   const left = pad + 22; // espaço para a escala 0–10
+                  const bottom = 22;     // espaço para as datas
                   const xA = (i: number) => (nn <= 1 ? w / 2 : left + (i / (nn - 1)) * (w - left - pad));
-                  const yA = (v: number) => (h - pad) - (v / 10) * (h - pad * 2);
+                  const yA = (v: number) => (h - bottom) - (v / 10) * (h - bottom - pad);
                   const bPts = chrono.map((s, i) => ({ x: xA(i), y: yA(s.before) }));
                   const aPts = chrono.map((s, i) => ({ x: xA(i), y: yA(typeof s.after === 'number' ? s.after : s.before) }));
                   return (
@@ -455,12 +448,15 @@ export default function ProgressScreen() {
                         <Line key={v} x1={pad + 16} y1={yA(v)} x2={w - pad} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={0.5} />
                       ))}
                       {[0, 5, 10].map((v) => (
-                        <SvgText key={'yl' + v} x={pad + 10} y={yA(v) + 3} fontSize={9} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
+                        <SvgText key={'yl' + v} x={pad + 10} y={yA(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
                       ))}
                       <Path d={smoothLine(bPts)} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
                       <Path d={smoothLine(aPts)} fill="none" stroke={colors.success} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
                       {bPts.map((p, i) => (<Circle key={'b' + i} cx={p.x} cy={p.y} r={3} fill={colors.primary} />))}
                       {aPts.map((p, i) => (<Circle key={'a' + i} cx={p.x} cy={p.y} r={3} fill={colors.success} />))}
+                      {/* Datas: primeira e última sessão mostradas */}
+                      <SvgText x={bPts[0].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="start">{dmShort(chrono[0].date)}</SvgText>
+                      <SvgText x={bPts[bPts.length - 1].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="end">{dmShort(chrono[chrono.length - 1].date)}</SvgText>
                     </Svg>
                   );
                 })()}
@@ -470,49 +466,22 @@ export default function ProgressScreen() {
           </>
         ) : (
           <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ color: colors.success, fontSize: 30, fontWeight: '600' }}>{dropped.length}</Text>
-              <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{L('comportamentos que estás a largar', 'behaviours you are dropping')}</Text>
-            </View>
             {dropped.length === 0 ? (
               <EmptyState compact icon="leaf-outline" title={L('Marca um comportamento como "a largar" em Recursos › Comportamentos para veres aqui o teu progresso.', 'Mark a behaviour as "dropping" in Resources › Behaviours to see your progress here.')} />
             ) : (
-              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
-                {chartW > 0 && (() => {
-                  const sorted = [...dropped].sort((a, b) => (a.date < b.date ? -1 : 1));
-                  const map = new Map<string, number>();
-                  sorted.forEach((d, i) => map.set(d.date, i + 1));
-                  const dates = Array.from(map.keys());
-                  const maxC = sorted.length;
-                  const first = new Date(dates[0] + 'T00:00:00').getTime();
-                  const today = new Date(isoLocal() + 'T00:00:00').getTime();
-                  const span = Math.max(1, today - first);
-                  const w = chartW;
-                  const plotH2 = CHART_HEIGHT - 16;
-                  const xOf = (iso: string) => PAD_X + ((new Date(iso + 'T00:00:00').getTime() - first) / span) * (w - PAD_X * 2);
-                  const yOf = (c: number) => (plotH2 - PAD) - (c / maxC) * (plotH2 - PAD * 2);
-                  const pts = dates.map((iso) => ({ x: xOf(iso), y: yOf(map.get(iso)!) }));
-                  const lastPt = pts[pts.length - 1];
-                  const endPts = lastPt.x < w - PAD_X ? [...pts, { x: w - PAD_X, y: lastPt.y }] : pts;
-                  return (
-                    <Svg width={w} height={CHART_HEIGHT}>
-                      <Defs>
-                        <LinearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
-                          <Stop offset="0" stopColor={colors.success} stopOpacity={0.28} />
-                          <Stop offset="1" stopColor={colors.success} stopOpacity={0} />
-                        </LinearGradient>
-                      </Defs>
-                      {endPts.length > 1 && <Path d={smoothArea(endPts, plotH2 - PAD)} fill="url(#dropGrad)" />}
-                      {endPts.length > 1 && <Path d={smoothLine(endPts)} fill="none" stroke={colors.success} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
-                      {pts.map((p, i) => (
-                        <Circle key={i} cx={p.x} cy={p.y} r={4} fill={colors.card} stroke={colors.success} strokeWidth={2} />
-                      ))}
-                    </Svg>
-                  );
-                })()}
+              <View>
+                {[...dropped].sort((x, y) => (x.date < y.date ? 1 : -1)).slice(0, 6).map((d, i) => (
+                  <View key={d.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.successSoft, alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="leaf-outline" size={14} color={colors.success} />
+                    </View>
+                    <Text style={{ color: colors.text, fontSize: 14, flex: 1 }} numberOfLines={2}>{d.label}</Text>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>{dmShort(d.date)}</Text>
+                  </View>
+                ))}
               </View>
             )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Total de comportamentos que começaste a largar ao longo do tempo.', 'Cumulative safety behaviours you have started dropping over time.')}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Os comportamentos que começaste a largar, dos mais recentes para os mais antigos.', 'The behaviours you have started dropping, most recent first.')}</Text>
           </>
         )}
       </Card>

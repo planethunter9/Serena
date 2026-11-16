@@ -21,7 +21,7 @@ export default function DisclaimerCard({ variant = 'full', onCrisis }: { variant
       <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
         <Ionicons name={variant === 'full' ? 'medkit-outline' : 'call-outline'} size={20} color={colors.danger} style={{ marginTop: 1 }} />
         <View style={{ flex: 1, gap: 4 }}>
-          {variant === 'full' && <Text accessibilityRole="header" style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{d.title}</Text>}
+          {variant === 'full' && <Text accessibilityRole="header" style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{d.title}</Text>}
           <Text style={{ color: variant === 'full' ? colors.textMuted : colors.text, fontSize: variant === 'full' ? 13 : 14, lineHeight: variant === 'full' ? 19 : 20 }}>
             {variant === 'full' ? d.body : d.short}
           </Text>

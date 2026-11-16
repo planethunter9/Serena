@@ -30,7 +30,7 @@ function LineCard({ line }: { line: CrisisLine }) {
         <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', flex: 1 }}>{line.name}</Text>
         <Ionicons name="call-outline" size={20} color={colors.primary} />
       </View>
-      <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '800' }}>{line.number}</Text>
+      <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '700' }}>{line.number}</Text>
       <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{pick(line.desc, lang)}</Text>
     </Pressable>
   );

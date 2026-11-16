@@ -657,4 +657,7 @@ export const inline: Record<string, string> = {
   "Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.": "Kies een sjabloon voor je angst. De stappen worden aan je ladder toegevoegd – je kunt ze bewerken, verwijderen en herschikken.",
   "Summary": "Overzicht",
   "Behaviours you are dropping": "Gedrag dat je loslaat",
+  "On average": "Gemiddeld",
+  "Combines your severity check-ins, distress in exposures and attacks.": "Combineert je ernstregistraties, het ongemak bij blootstellingen en de aanvallen.",
+  "The behaviours you have started dropping, most recent first.": "Het gedrag dat je bent gaan loslaten, het meest recente eerst.",
 };

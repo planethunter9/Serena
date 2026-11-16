@@ -657,4 +657,7 @@ export const inline: Record<string, string> = {
   "Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.": "Wybierz szablon dla swojego lęku. Kroki zostaną dodane do drabiny — można je edytować, usuwać i zmieniać ich kolejność.",
   "Summary": "Podsumowanie",
   "Behaviours you are dropping": "Zachowania, które porzucasz",
+  "On average": "Średnio",
+  "Combines your severity check-ins, distress in exposures and attacks.": "Łączy oceny nasilenia, dyskomfort podczas ekspozycji i ataki.",
+  "The behaviours you have started dropping, most recent first.": "Zachowania, które zaczynasz porzucać, od najnowszych.",
 };

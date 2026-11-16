@@ -29,7 +29,7 @@ export default function ResourceDetail({ title, onBack }: { title: string; onBac
           >
             <Ionicons name="hourglass-outline" size={30} color={colors.primary} />
           </View>
-          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800' }}>{t('resource.soonTitle')}</Text>
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{t('resource.soonTitle')}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 21, textAlign: 'center' }}>
             {t('resource.soonBody')}
           </Text>

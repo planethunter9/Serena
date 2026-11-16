@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -350,6 +350,20 @@ export async function loadDashboardOrder(): Promise<string[]> {
 }
 export async function saveDashboardOrder(order: string[]) {
   await setUserItem('dashboardOrder', JSON.stringify(order));
+}
+
+// Blocos da Visão geral escondidos pela pessoa (Definições › Ecrã inicial).
+export async function loadHomeHidden(): Promise<string[]> {
+  try {
+    const raw = await AsyncStorage.getItem(k('homeHidden'));
+    const v = raw ? JSON.parse(raw) : [];
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+export async function saveHomeHidden(ids: string[]) {
+  await setUserItem('homeHidden', JSON.stringify(ids));
 }
 
 // --- Ordem dos itens do ecrã Recursos -------------------------------------

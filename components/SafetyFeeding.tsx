@@ -123,7 +123,7 @@ function SafetyBody() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Pressable onPress={() => toggleDoing(r.id, r.label, r.doing)} hitSlop={6} accessibilityRole="checkbox" accessibilityState={{ checked: r.doing }} accessibilityLabel={r.label}>
               <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: r.doing ? colors.primary : colors.border, backgroundColor: r.doing ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                {r.doing && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
+                {r.doing && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
               </View>
             </Pressable>
             <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{r.label}</Text>

@@ -23,7 +23,7 @@ export function WordGame({ footer }: { footer?: React.ReactNode } = {}) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
         <Ionicons name="checkmark-circle-outline" size={60} color={colors.success} />
-        <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800' }}>{t('word.done')}</Text>
+        <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{t('word.done')}</Text>
         <View style={{ alignSelf: 'stretch', gap: spacing.md }}>
           <PrimaryButton label={t('word.restart')} onPress={() => setI(0)} />
           {footer}
@@ -37,7 +37,7 @@ export function WordGame({ footer }: { footer?: React.ReactNode } = {}) {
       <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('word.intro')}</Text>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ color: colors.textMuted, fontSize: 13, marginBottom: 8 }}>{i + 1} / {FEAR_WORDS.length}</Text>
-        <Text style={{ color: colors.text, fontSize: 30, fontWeight: '800', textAlign: 'center' }}>{pick(FEAR_WORDS[i], lang)}</Text>
+        <Text style={{ color: colors.text, fontSize: 30, fontWeight: '600', textAlign: 'center' }}>{pick(FEAR_WORDS[i], lang)}</Text>
       </View>
       <PrimaryButton label={t('word.next')} onPress={() => setI(i + 1)} />
     </View>
@@ -57,7 +57,7 @@ export function MythGame() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
         <Ionicons name="trophy-outline" size={60} color={colors.primary} />
-        <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800' }}>{t('myth.score', { have: score, total: MYTHS.length })}</Text>
+        <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{t('myth.score', { have: score, total: MYTHS.length })}</Text>
         <View style={{ alignSelf: 'stretch' }}>
           <PrimaryButton label={t('myth.restart')} onPress={() => { setI(0); setScore(0); setAnswered(null); }} />
         </View>
@@ -84,7 +84,7 @@ export function MythGame() {
     <View style={{ flex: 1, justifyContent: 'space-between' }}>
       <Text style={{ color: colors.textMuted, fontSize: 14 }}>{i + 1} / {MYTHS.length}</Text>
       <View style={{ flex: 1, justifyContent: 'center', gap: spacing.lg }}>
-        <Text style={{ color: colors.text, fontSize: 22, fontWeight: '700', textAlign: 'center', lineHeight: 30 }}>{pick(item.text, lang)}</Text>
+        <Text style={{ color: colors.text, fontSize: 21, fontWeight: '600', textAlign: 'center', lineHeight: 29 }}>{pick(item.text, lang)}</Text>
 
         {answered === null ? (
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
