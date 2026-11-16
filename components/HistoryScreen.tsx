@@ -24,7 +24,7 @@ import { radius, spacing } from '../theme/theme';
 import { COMMITMENTS } from './AcceptanceScreen';
 import { CHALLENGES } from './ChallengesScreen';
 import EmptyState from './EmptyState';
-import { THOUGHT_TRAPS } from './ExercisesScreen';
+import { THOUGHT_TRAPS } from './exercises/ThoughtView';
 import { TopBackBar } from './ui';
 import { UNPLANNED_TRIGGERS } from './UnplannedScreen';
 
