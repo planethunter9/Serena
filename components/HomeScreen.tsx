@@ -3,13 +3,16 @@
 // O círculo pode ser diário / semanal / mensal (escolhido na Personalização).
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { Alert, Dimensions, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Reanimated, { runOnJS, useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
 import { EXPOSURE_LADDER } from '../data/exercises';
+import { HOME_BLOCK_IDS, HomeBlockId, homeEmptyText, normalizeHomeOrder } from '../data/homeBlocks';
+import EmptyState from './EmptyState';
 import PlanView, { PlanEditor } from './Plan';
 import ProgressScreen from './ProgressScreen';
 import { pick, useLang , tr2 } from '../i18n/i18n';
@@ -24,6 +27,7 @@ import {
   addSeverity,
   loadChallengesDone,
   loadDashboardOrder,
+  loadHomeHidden,
   loadDropped,
   loadExerciseLog,
   loadExperiments,
@@ -110,7 +114,10 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
   const [nsNewStep, setNsNewStep] = useState('');
   function closeNsSheet() { setNsSheetOpen(false); setNsAdding(false); setNsNewStep(''); }
 
-  const [dashOrder, setDashOrder] = useState<string[]>(['hero', 'plan']);
+  const [dashOrder, setDashOrder] = useState<HomeBlockId[]>(HOME_BLOCK_IDS);
+  // Blocos escondidos em Definições › Ecrã inicial (recarregados ao voltar ao início).
+  const [hiddenBlocks, setHiddenBlocks] = useState<string[]>([]);
+  useFocusEffect(useCallback(() => { loadHomeHidden().then(setHiddenBlocks); }, []));
   const [reordering, setReordering] = useState(false);
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
   const [planViewKey, setPlanViewKey] = useState(0);
@@ -172,11 +179,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     loadExposureHidden().then(setStepHidden);
     loadNextStep().then((s) => { setSavedNextStep(s); setNsText(s); });
     loadSeverity().then((list) => { const today = list.find((e) => e.date === isoLocal()); setSeverityToday(today ? today.value : null); });
-    loadDashboardOrder().then((o) => {
-      const valid = o.filter((k): k is 'hero' | 'plan' => k === 'hero' || k === 'plan');
-      const full = [...valid, ...(['hero', 'plan'] as const).filter((k) => !valid.includes(k))];
-      setDashOrder(full);
-    });
+    loadDashboardOrder().then((o) => setDashOrder(normalizeHomeOrder(o)));
   }, []);
 
   const expStreak = expStreakOf(expDays);
@@ -416,13 +419,27 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     );
   }
 
-  const DASH: Record<string, () => any> = { hero: heroBlock, plan: planBlock };
+  function affirmationBlock() {
+    return (
+      <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Ionicons name="sunny-outline" size={20} color={colors.primary} />
+        <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1, lineHeight: 21 }}>{pick(affirmation, lang)}</Text>
+      </View>
+    );
+  }
 
+  const DASH: Record<HomeBlockId, () => any> = { affirmation: affirmationBlock, hero: heroBlock, plan: planBlock, severity: severityBlock, nextStep: nextStepBlock };
+  // Só os blocos que a pessoa quer ver, pela ordem escolhida.
+  const visibleBlocks = dashOrder.filter((k) => !hiddenBlocks.includes(k));
+
+  // Move um bloco visível; os escondidos mantêm o lugar na ordem completa.
   function moveDash(index: number, dir: -1 | 1) {
     const j = index + dir;
-    if (j < 0 || j >= dashOrder.length) return;
-    const ids = [...dashOrder];
-    [ids[index], ids[j]] = [ids[j], ids[index]];
+    if (j < 0 || j >= visibleBlocks.length) return;
+    const vis = [...visibleBlocks];
+    [vis[index], vis[j]] = [vis[j], vis[index]];
+    let n = 0;
+    const ids = dashOrder.map((k) => (hiddenBlocks.includes(k) ? k : vis[n++]));
     setDashOrder(ids);
     saveDashboardOrder(ids);
   }
@@ -455,11 +472,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
         <ProgressScreen />
       ) : (
         <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg, paddingBottom: 120 }}>
-          <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons name="sunny-outline" size={20} color={colors.primary} />
-            <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1, lineHeight: 21 }}>{pick(affirmation, lang)}</Text>
-          </View>
-
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -spacing.sm }}>
             <Pressable onPress={toggleReorder} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name={reordering ? 'checkmark' : unlocked ? 'swap-vertical' : 'lock-closed-outline'} size={16} color={colors.primary} />
@@ -467,7 +479,11 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
             </Pressable>
           </View>
 
-          {dashOrder.map((key, i) => (
+          {visibleBlocks.length === 0 && (
+            <EmptyState icon="eye-off-outline" title={homeEmptyText(lang)} />
+          )}
+
+          {visibleBlocks.map((key, i) => (
             reordering ? (
               <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderColor: colors.border, borderStyle: 'dashed', borderRadius: radius.lg, padding: spacing.sm }}>
                 <View style={{ flex: 1 }}>{DASH[key]?.()}</View>
@@ -475,7 +491,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   <Pressable onPress={() => moveDash(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={L('Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
                     <Ionicons name="chevron-up" size={22} color={colors.primary} />
                   </Pressable>
-                  <Pressable onPress={() => moveDash(i, 1)} hitSlop={6} disabled={i === dashOrder.length - 1} accessibilityRole="button" accessibilityLabel={L('Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === dashOrder.length - 1 ? 0.3 : 1 }}>
+                  <Pressable onPress={() => moveDash(i, 1)} hitSlop={6} disabled={i === visibleBlocks.length - 1} accessibilityRole="button" accessibilityLabel={L('Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === visibleBlocks.length - 1 ? 0.3 : 1 }}>
                     <Ionicons name="chevron-down" size={22} color={colors.primary} />
                   </Pressable>
                 </View>
@@ -487,9 +503,6 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
             )
           ))}
 
-          {severityBlock()}
-
-          {nextStepBlock()}
 
         </ScrollView>
       )}
