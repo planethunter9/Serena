@@ -165,7 +165,7 @@ export default function AcceptanceView() {
                 <View key={i} style={{ width: cardW }}>
                   <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 6, minHeight: 150 }}>
                     <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{L('PRINCÍPIO', 'PRINCIPLE')} {i + 1}/{PRINCIPLES.length}</Text>
-                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{pick(p.title, lang)}</Text>
+                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700' }}>{pick(p.title, lang)}</Text>
                     <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{pick(p.body, lang)}</Text>
                   </View>
                 </View>

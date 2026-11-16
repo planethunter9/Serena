@@ -193,7 +193,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
           <Pressable onPress={() => setNowOpen((o) => !o)} accessibilityRole="button" accessibilityState={{ expanded: nowOpen }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}>
             <Ionicons name="pulse-outline" size={22} color={colors.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>{L('Estou nisto agora', "It's happening now")}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{L('Estou nisto agora', "It's happening now")}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Passos rápidos para este momento', 'Quick steps for this moment')}</Text>
             </View>
             <Ionicons name={nowOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
@@ -237,7 +237,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
         </View>
 
         {/* ---------- Registo ---------- */}
-        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', marginTop: spacing.sm }}>{L('Registar o momento', 'Log the moment')}</Text>
+        <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700', marginTop: spacing.sm }}>{L('Registar o momento', 'Log the moment')}</Text>
 
         <Card style={{ gap: 8 }}>
           {label(L('O que aconteceu?', 'What happened?'))}
@@ -272,7 +272,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
         <Card style={{ gap: 10 }}>
           <Pressable onPress={() => setStayed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: stayed ? colors.primary : colors.border, backgroundColor: stayed ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-              {stayed && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
+              {stayed && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
             </View>
             <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('unplanned.stayed')}</Text>
           </Pressable>

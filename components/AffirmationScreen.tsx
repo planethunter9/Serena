@@ -19,7 +19,7 @@ function Stepper({ value, onUp, onDown }: { value: string; onUp: () => void; onD
   return (
     <View style={{ alignItems: 'center', gap: 6 }}>
       <Pressable onPress={onUp} hitSlop={8} accessibilityRole="button" accessibilityLabel="+"><Ionicons name="chevron-up" size={28} color={colors.primary} /></Pressable>
-      <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800', width: 70, textAlign: 'center' }}>{value}</Text>
+      <Text style={{ color: colors.text, fontSize: 44, fontWeight: '600', width: 70, textAlign: 'center' }}>{value}</Text>
       <Pressable onPress={onDown} hitSlop={8} accessibilityRole="button" accessibilityLabel="−"><Ionicons name="chevron-down" size={28} color={colors.primary} /></Pressable>
     </View>
   );
@@ -81,7 +81,7 @@ export default function AffirmationScreen({ onBack }: { onBack: () => void }) {
             <Text style={{ color: colors.text, fontWeight: '600', alignSelf: 'flex-start' }}>{tt('Hora', 'Time')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Stepper value={two(state.hour)} onUp={() => bump('hour', 1)} onDown={() => bump('hour', -1)} />
-              <Text style={{ color: colors.text, fontSize: 44, fontWeight: '800' }}>:</Text>
+              <Text style={{ color: colors.text, fontSize: 44, fontWeight: '600' }}>:</Text>
               <Stepper value={two(state.minute)} onUp={() => bump('minute', 5)} onDown={() => bump('minute', -5)} />
             </View>
           </Card>

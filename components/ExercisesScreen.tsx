@@ -304,7 +304,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
           <Pressable onPress={() => setSelected(null)} hitSlop={8}>
             <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
           </Pressable>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{selected.label}</Text>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{selected.label}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exposure.sudsHint')}</Text>
 
           <Card style={{ gap: 8 }}>
@@ -348,7 +348,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
         <Pressable onPress={() => { setShowTemplates(false); setOpenTpl(null); }} hitSlop={8}>
           <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
         </Pressable>
-        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{tr2(lang, 'Escadas prontas', 'Ready-made ladders')}</Text>
+        <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{tr2(lang, 'Escadas prontas', 'Ready-made ladders')}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
           {tr2(lang, 'Escolhe um modelo do teu medo. Os degraus são acrescentados à tua escada — podes editá-los, removê-los e reordená-los.', 'Pick a template for your fear. The steps are added to your ladder — you can edit, remove and reorder them.')}
         </Text>
@@ -394,7 +394,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
         {EXPOSURE_PHASES.map((ph, i) => (
           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>{i + 1}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>{i + 1}</Text>
             </View>
             <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{pick(ph, lang)}</Text>
           </View>

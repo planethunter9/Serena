@@ -336,7 +336,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
               <View key={p.name} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: p.color }} />
                 <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{p.name}</Text>
-                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '800' }}>{p.pct}%</Text>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '700' }}>{p.pct}%</Text>
               </View>
             ))}
           </View>
@@ -505,7 +505,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border }} />
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', flex: 1 }}>{L('Editar plano', 'Edit plan')}</Text>
+                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700', flex: 1 }}>{L('Editar plano', 'Edit plan')}</Text>
                   <Pressable onPress={closePlanSheet} hitSlop={8} accessibilityRole="button" accessibilityLabel={L('Fechar', 'Close')}>
                     <Ionicons name="close" size={26} color={colors.textMuted} />
                   </Pressable>
@@ -530,7 +530,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border }} />
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: 6, paddingBottom: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', flex: 1 }}>{L('Próximo passo', 'Next step')}</Text>
+                  <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700', flex: 1 }}>{L('Próximo passo', 'Next step')}</Text>
                   <Pressable onPress={closeNsSheet} hitSlop={8} accessibilityRole="button" accessibilityLabel={L('Fechar', 'Close')}>
                     <Ionicons name="close" size={26} color={colors.textMuted} />
                   </Pressable>

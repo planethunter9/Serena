@@ -295,7 +295,7 @@ export default function ConsentScreen({ onAccepted }: { onAccepted: () => void }
         <Animated.View entering={enterItem(0)} style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="shield-checkmark-outline" size={28} color={colors.primary} />
         </Animated.View>
-        <Animated.Text entering={enterItem(1)} accessibilityRole="header" style={{ color: colors.text, fontSize: 26, fontWeight: '800' }}>{x.title}</Animated.Text>
+        <Animated.Text entering={enterItem(1)} accessibilityRole="header" style={{ color: colors.text, fontSize: 26, fontWeight: '700' }}>{x.title}</Animated.Text>
         <Animated.Text entering={enterItem(2)} style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{x.intro}</Animated.Text>
 
         <Animated.View entering={enterItem(3)} style={{ gap: 8, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg }}>

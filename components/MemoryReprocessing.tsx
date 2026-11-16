@@ -159,7 +159,7 @@ export default function MemoryView() {
 
       {step === 'calm' && (
         <>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>
             {tt({ pt: 'Primeiro, um lugar seguro', en: 'First, a safe place' })}
           </Text>
           <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
@@ -177,7 +177,7 @@ export default function MemoryView() {
 
       {step === 'setup' && (
         <>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>
             {tt({ pt: 'A memória', en: 'The memory' })}
           </Text>
           <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
@@ -250,7 +250,7 @@ export default function MemoryView() {
 
       {step === 'checkin' && (
         <>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>
             {tt({ pt: 'O que mudou?', en: 'What changed?' })}
           </Text>
           <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>
@@ -289,7 +289,7 @@ export default function MemoryView() {
 
       {step === 'done' && (
         <>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>
             {tt({ pt: 'Fechar com calma', en: 'Close with calm' })}
           </Text>
           <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>

@@ -106,7 +106,7 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
       <TopBackBar title={tt({ pt: 'Modo acompanhante', en: 'Companion mode' })} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 40 }}>
         <Card style={{ gap: 6, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>{tt({ pt: 'Para quem me acompanha', en: 'For the person supporting me' })}</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>{tt({ pt: 'Para quem me acompanha', en: 'For the person supporting me' })}</Text>
           <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21 }}>
             {tt({
               pt: 'A emetofobia é o medo de vomitar. Ajudar-me a sério é não alimentar o medo: a tranquilização e os "favores" aliviam no momento, mas reforçam a fobia a longo prazo.',
@@ -163,7 +163,7 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
 
         <Pressable onPress={share} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, borderRadius: radius.md, backgroundColor: colors.primary, marginTop: 4 }}>
           <Ionicons name="share-outline" size={20} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>{tt({ pt: 'Partilhar', en: 'Share' })}</Text>
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{tt({ pt: 'Partilhar', en: 'Share' })}</Text>
         </Pressable>
       </ScrollView>
     </View>

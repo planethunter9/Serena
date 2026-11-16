@@ -77,7 +77,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                         alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      {isDone && <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 }}>✓</Text>}
+                      {isDone && <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
                     </View>
                     <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{pick(les.title, lang)}</Text>
                     <Text style={{ color: colors.textMuted, fontSize: 20 }}>›</Text>

@@ -62,7 +62,7 @@ export default function FearProfileScreen({ onBack, data }: { onBack: () => void
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           {stats.map((s) => (
             <Card key={s.label} style={{ width: '47%', flexGrow: 1, alignItems: 'center', paddingVertical: spacing.lg, gap: 4 }}>
-              <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{s.value}</Text>
+              <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '700' }}>{s.value}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12, textAlign: 'center' }}>{s.label}</Text>
             </Card>
           ))}

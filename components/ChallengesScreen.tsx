@@ -218,7 +218,7 @@ export default function ChallengesScreen() {
             return (
               <Pressable key={m.id} onPress={() => toggle(m.id)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={labelOf(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                  {checked && <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</Text>}
+                  {checked && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>✓</Text>}
                 </View>
                 <Text style={{ color: colors.text, fontSize: 14, flex: 1, lineHeight: 20 }}>{labelOf(m)}</Text>
                 <Pressable onPress={() => remove(m)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tt({ pt: 'Remover desafio', en: 'Remove challenge' })} style={{ padding: 2 }}>

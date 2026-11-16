@@ -89,7 +89,7 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
           <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg, gap: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ color: colors.text, fontSize: 21, fontWeight: '800' }}>{p.name || user?.name || '—'}</Text>
+                <Text style={{ color: colors.text, fontSize: 21, fontWeight: '700' }}>{p.name || user?.name || '—'}</Text>
                 {!!p.username && <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}>@{p.username}</Text>}
                 {!!user?.email && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{user.email}</Text>}
               </View>

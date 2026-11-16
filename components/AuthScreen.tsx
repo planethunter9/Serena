@@ -167,7 +167,7 @@ export default function AuthScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl, paddingTop: insets.top + spacing.xl, gap: spacing.md }}>
         <Text style={{ color: colors.primary, fontSize: 34, fontWeight: '800', textAlign: 'center', marginBottom: spacing.sm }}>{APP_NAME}</Text>
-        <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800', textAlign: 'center' }}>{title}</Text>
+        <Text style={{ color: colors.text, fontSize: 24, fontWeight: '700', textAlign: 'center' }}>{title}</Text>
 
         {/* ---------- RECUPERAR PALAVRA-PASSE ---------- */}
         {isReset ? (

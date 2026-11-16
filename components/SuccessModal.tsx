@@ -32,7 +32,7 @@ export default function SuccessModal({
           <Animated.View entering={iconIn} style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={icon} size={36} color="#fff" />
           </Animated.View>
-          <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 20, fontWeight: '800', textAlign: 'center' }}>{title}</Text>
+          <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{title}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>{body}</Text>
           <View style={{ alignSelf: 'stretch', marginTop: spacing.sm }}>
             <PrimaryButton label={button} onPress={onClose} />

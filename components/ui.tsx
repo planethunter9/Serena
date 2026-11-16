@@ -35,7 +35,7 @@ export function Card({ children, style }: { children: ReactNode; style?: ViewSty
 
 export function ScreenTitle({ title }: { title: string }) {
   const { colors } = useTheme();
-  return <Text style={{ color: colors.text, fontSize: 28, fontWeight: '800' }}>{title}</Text>;
+  return <Text style={{ color: colors.text, fontSize: 28, fontWeight: '700' }}>{title}</Text>;
 }
 
 export function PrimaryButton({

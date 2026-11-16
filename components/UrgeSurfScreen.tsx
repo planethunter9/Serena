@@ -132,7 +132,7 @@ export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
 
         {step === 'done' && (
           <>
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{tt({ pt: 'Boa — ficaste com ela.', en: 'Well done — you stayed with it.' })}</Text>
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{tt({ pt: 'Boa — ficaste com ela.', en: 'Well done — you stayed with it.' })}</Text>
             <Card style={{ gap: 10 }}>
               <Text style={{ color: colors.text, fontWeight: '600' }}>{tt({ pt: 'E o impulso agora? (0–10)', en: 'And the urge now? (0–10)' })}</Text>
               <Suds value={after} onChange={setAfter} />

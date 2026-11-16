@@ -61,7 +61,7 @@ export default function FeedbackScreen({ onBack }: { onBack: () => void }) {
         <TopBackBar title={tt({ pt: 'Sugestões', en: 'Feedback' })} onBack={onBack} />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: 14 }}>
           <Ionicons name="checkmark-circle" size={64} color={colors.success} />
-          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', textAlign: 'center' }}>{tt({ pt: 'Obrigada!', en: 'Thank you!' })}</Text>
+          <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{tt({ pt: 'Obrigada!', en: 'Thank you!' })}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 22 }}>
             {tt({ pt: 'A tua mensagem foi enviada. É lida com atenção e ajuda a melhorar a app.', en: 'Your message was sent. It is read carefully and helps improve the app.' })}
           </Text>
@@ -115,7 +115,7 @@ export default function FeedbackScreen({ onBack }: { onBack: () => void }) {
           )}
 
           <Pressable onPress={send} disabled={!message.trim() || sending} style={{ paddingVertical: 15, borderRadius: radius.md, alignItems: 'center', backgroundColor: !message.trim() || sending ? colors.border : colors.primary }}>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
               {sending ? tt({ pt: 'A enviar…', en: 'Sending…' }) : tt({ pt: 'Enviar', en: 'Send' })}
             </Text>
           </Pressable>
