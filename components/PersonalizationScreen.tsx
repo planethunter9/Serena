@@ -1,7 +1,7 @@
-  // Ecrã "Personalização": escolher paleta de cores, cor personalizada (HEX) e
-// tipo de letra. Só o azul e a fonte do sistema são grátis; o resto fica atrás
-// de uma paywall (o pack de personalização). Enquanto não há compras reais,
-// o botão "Desbloquear" ativa o estado localmente para teste.
+  // Ecrã "Personalização": aspeto (claro/escuro), paleta de cores, cor
+// personalizada (HEX), tipo de letra e cores do círculo dos pilares.
+// Na 1.0 é tudo grátis (PERSONALIZATION_FREE em ThemeContext); o "pack" pago
+// fica preparado para quando houver compras reais.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -63,7 +63,6 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
       }),
       [
         { text: tt({ pt: 'Agora não', en: 'Not now' }), style: 'cancel' },
-        { text: tt({ pt: 'Desbloquear (teste)', en: 'Unlock (test)' }), onPress: () => theme.setUnlocked(true) },
       ],
     );
     return false;
@@ -94,12 +93,12 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
       <TopBackBar title={tt({ pt: 'Personalização', en: 'Personalization' })} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 60 }}>
 
-        {/* Paywall / estado */}
-        {!unlocked ? (
+        {/* Pack de personalização (só quando houver compras reais; na 1.0 é grátis) */}
+        {!unlocked && (
           <Card style={{ gap: 10, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="color-palette-outline" size={20} color={colors.primary} />
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>{tt({ pt: 'Deixa a Serena com a tua cara', en: 'Make Serena yours' })}</Text>
+              <Ionicons name="color-palette-outline" size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{tt({ pt: 'Deixa a Serena com a tua cara', en: 'Make Serena yours' })}</Text>
             </View>
             <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21 }}>
               {tt({
@@ -107,21 +106,7 @@ export default function PersonalizationScreen({ onBack }: { onBack: () => void }
                 en: 'Unlock every palette, your own color and 20 fonts — one purchase, forever.',
               })}
             </Text>
-            <Pressable onPress={() => theme.setUnlocked(true)} style={{ backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center', marginTop: 4 }}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>{tt({ pt: 'Desbloquear (teste)', en: 'Unlock (test)' })}</Text>
-            </Pressable>
-            <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: 'center' }}>
-              {tt({ pt: 'Botão temporário — será ligado à compra na App Store/Play.', en: 'Temporary button — will be wired to the App Store/Play purchase.' })}
-            </Text>
           </Card>
-        ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="checkmark-circle" size={18} color={colors.success} />
-            <Text style={{ color: colors.textMuted, fontSize: 13, flex: 1 }}>{tt({ pt: 'Personalização desbloqueada.', en: 'Personalization unlocked.' })}</Text>
-            <Pressable onPress={() => theme.setUnlocked(false)} hitSlop={6}>
-              <Text style={{ color: colors.textMuted, fontSize: 12, textDecorationLine: 'underline' }}>{tt({ pt: 'repor', en: 'reset' })}</Text>
-            </Pressable>
-          </View>
         )}
 
         {/* Modo claro/escuro */}

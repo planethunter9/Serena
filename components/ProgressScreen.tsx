@@ -4,8 +4,8 @@
 // (ansiedade por semana, gravidade, exposições, comportamentos largados).
 
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang , tr2 } from '../i18n/i18n';
 import {
@@ -34,36 +34,7 @@ import {
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import EmptyState from './EmptyState';
-import { Card } from './ui';
-
-// Seletor pequeno dentro do cartão — o mesmo dos pilares na Visão geral.
-function Segmented<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 999, padding: 3 }}>
-      {options.map(([v, label]) => {
-        const active = value === v;
-        return (
-          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-            <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-// Cabeçalho de cartão — ícone azul + título, como em toda a app.
-function CardHeader({ icon, title, right }: { icon: keyof typeof Ionicons.glyphMap; title: string; right?: ReactNode }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Ionicons name={icon} size={18} color={colors.primary} />
-      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{title}</Text>
-      {right}
-    </View>
-  );
-}
+import { Card, CardHeader, Segmented } from './ui';
 
 function expStreakOf(days: string[]): number {
   const set = new Set(days);
