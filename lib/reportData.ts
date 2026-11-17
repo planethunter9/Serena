@@ -2,7 +2,6 @@
 // Nada sai do telemóvel aqui: o PDF só é partilhado se a pessoa quiser.
 // O diário nunca entra; os textos escritos só entram se a pessoa escolher.
 
-import { SAFETY_BEHAVIORS } from '../data/safety';
 import { reportText } from '../data/reportText';
 import { Lang, tr2 } from '../i18n/i18n';
 import {
@@ -24,6 +23,7 @@ import {
   loadUnplanned,
 } from '../storage/storage';
 import { UNPLANNED_TRIGGERS } from '../components/UnplannedScreen';
+import { behaviorLabel } from './behaviorLabel';
 import type { ReportData } from './reportHtml';
 
 export type ReportPeriod = '30' | '90' | 'all';
@@ -84,7 +84,6 @@ export async function collectReportData(opts: {
     : null;
 
   const unplannedTrigger = (id: string) => { const f = UNPLANNED_TRIGGERS.find((t) => t.id === id); return f ? L(f.label) : id; };
-  const safetyLabel = (id: string) => { const f = SAFETY_BEHAVIORS.find((s) => s.id === id); return f ? L(f.label) : id; };
 
   const today = isoLocal(new Date());
   const periodLabel = start ? `${fmtDate(start, lang)} – ${fmtDate(today, lang)}` : x.allTime;
@@ -116,9 +115,9 @@ export async function collectReportData(opts: {
     })),
     hard: hard.map((h) => ({ date: fmtDate(h.date, lang), type: h.type, reason: h.reason, vomited: h.vomited })),
     safety: {
-      inUse: arr(safety).filter((s) => s.doing && !s.dropping).map((s) => s.label || safetyLabel(s.id)),
-      dropping: arr(safety).filter((s) => s.dropping).map((s) => s.label || safetyLabel(s.id)),
-      dropped: arr(dropped).filter((d) => inPeriod(d.date)).map((d) => ({ label: d.label, date: fmtDate(d.date, lang) })),
+      inUse: arr(safety).filter((s) => s.doing && !s.dropping).map((s) => behaviorLabel(s.id, s.label, lang)),
+      dropping: arr(safety).filter((s) => s.dropping).map((s) => behaviorLabel(s.id, s.label, lang)),
+      dropped: arr(dropped).filter((d) => inPeriod(d.date)).map((d) => ({ label: behaviorLabel(d.id, d.label, lang), date: fmtDate(d.date, lang) })),
     },
     thoughts: includeNotes
       ? thoughts.map((t) => ({ date: fmtDate(t.date, lang), thought: t.thought || t.situation, balanced: t.balanced, before: t.before, after: t.after }))
