@@ -631,7 +631,7 @@ export const GENERAL_TRIGGER_PHRASES: L[] = [
 export const FEEDING_BEHAVIORS: { id: string; label: L; why: L; alternative: L }[] = [
   { id: 'avoid', label: { pt: 'Evitar situações ou lugares temidos', en: 'Avoiding feared situations or places' },
     why: { pt: 'A evitação dá alívio imediato, mas ensina o cérebro que aquilo era mesmo perigoso — por isso o medo cresce.', en: 'Avoidance brings instant relief, but it teaches the brain the situation really was dangerous — so the fear grows.' },
-    alternative: { pt: 'Aproxima-te aos poucos, por degraus, ficando até a ansiedade descer (exposição gradual).', en: 'Approach it gradually, step by step, staying until anxiety comes down (gradual exposure).' } },
+    alternative: { pt: 'Aproxima-te aos poucos, por degraus, e fica sem fugir — mesmo que a ansiedade não desça. Depois vê se o que temias aconteceu mesmo (exposição gradual).', en: "Approach it gradually, step by step, and stay without fleeing \u2014 even if the anxiety doesn't drop. Then check whether what you feared actually happened (gradual exposure)." } },
   { id: 'reassurance', label: { pt: 'Procurar que te tranquilizem', en: 'Seeking reassurance' },
     why: { pt: 'A dúvida volta sempre. Cada pedido de tranquilização alivia por minutos, mas reforça que precisas de certeza para estar bem.', en: 'Doubt always returns. Each reassurance soothes for minutes but reinforces that you need certainty to be okay.' },
     alternative: { pt: 'Resiste a perguntar. Tolera a dúvida e usa uma frase de coping ("consigo lidar com a incerteza").', en: 'Resist asking. Tolerate the doubt and use a coping phrase ("I can handle uncertainty").' } },

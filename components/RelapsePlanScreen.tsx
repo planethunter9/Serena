@@ -4,9 +4,10 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLang , tr2 } from '../i18n/i18n';
-import { loadRelapsePlan, RelapsePlan, saveRelapsePlan } from '../storage/storage';
+import { plansText } from '../data/plansText';
+import { loadExperiments, loadExposureSessions, loadRelapsePlan, loadUnplanned, RelapsePlan, saveRelapsePlan } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -16,8 +17,22 @@ export function RelapseBody() {
   const { lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const [p, setP] = useState<RelapsePlan | null>(null);
+  const px = plansText(lang);
+  // Aprendizagens escritas nas sessões (exposição, não planeada, experiências).
+  const [learnings, setLearnings] = useState<string[]>([]);
 
-  useEffect(() => { loadRelapsePlan().then(setP); }, []);
+  useEffect(() => {
+    loadRelapsePlan().then(setP);
+    Promise.all([loadExposureSessions(), loadUnplanned(), loadExperiments()]).then(([exp, unp, xp]) => {
+      const all = [
+        ...(Array.isArray(exp) ? exp : []).map((e) => ({ ts: e.ts || e.date, t: e.learned })),
+        ...(Array.isArray(unp) ? unp : []).map((u) => ({ ts: u.ts || u.date, t: u.learned })),
+        ...(Array.isArray(xp) ? xp : []).map((x) => ({ ts: x.ts || x.date, t: x.learned })),
+      ].filter((x) => typeof x.t === 'string' && x.t.trim()) as { ts: string; t: string }[];
+      all.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+      setLearnings(Array.from(new Set(all.map((x) => x.t.trim()))).slice(0, 8));
+    });
+  }, []);
 
   if (!p) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
@@ -27,6 +42,12 @@ export function RelapseBody() {
       saveRelapsePlan(next);
       return next;
     });
+  }
+
+  const suggestions = learnings.filter((x) => !p.learned.includes(x));
+  function addLearning(txt: string) {
+    const cur = p!.learned.trim();
+    set('learned', cur ? `${cur}\n• ${txt}` : `• ${txt}`);
   }
 
   const field = (label: string, hint: string, value: string, onChange: (v: string) => void) => (
@@ -57,6 +78,20 @@ export function RelapseBody() {
             L('O que aprendi', 'What I learned'),
             L('O que te ajudou mesmo? O que percebeste sobre o medo e sobre ti?', 'What really helped? What did you realise about the fear and about yourself?'),
             p.learned, (v) => set('learned', v),
+          )}
+          {suggestions.length > 0 && (
+            <View style={{ gap: 6, marginTop: -4 }}>
+              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{px.fromSessions}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>{px.fromHint}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {suggestions.map((txt) => (
+                  <Pressable key={txt} onPress={() => addLearning(txt)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: '100%', backgroundColor: colors.primarySoft, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 }}>
+                    <Ionicons name="add" size={14} color={colors.primary} />
+                    <Text numberOfLines={2} style={{ color: colors.text, fontSize: 13, flexShrink: 1 }}>{txt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           )}
           {field(
             L('Os meus sinais de alerta', 'My warning signs'),

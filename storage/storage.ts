@@ -162,7 +162,7 @@ export async function toggleLessonDone(id: string): Promise<string[]> {
 
 // --- Objetivos ------------------------------------------------------------
 
-export type Goal = { id: string; text: string; done: boolean };
+export type Goal = { id: string; text: string; done: boolean; target?: string; stepId?: string; stepLabel?: string; doneAt?: string };
 
 export async function loadGoals(): Promise<Goal[]> {
   const raw = await AsyncStorage.getItem(k('goals'));
@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -420,10 +420,17 @@ export async function saveRecapDismissed(weekStart: string) {
 }
 
 // --- Plano para dias difíceis (prevenção de recaída) ----------------------
-export type HardDayPlan = { signs: string; helps: string; reminders: string; contacts: string };
+export type PlanPerson = { id: string; name: string; phone: string };
+export type HardDayPlan = { signs: string; helps: string; reminders: string; contacts: string; people?: PlanPerson[] };
 export async function loadHardDayPlan(): Promise<HardDayPlan> {
   const raw = await AsyncStorage.getItem(k('hardDayPlan'));
-  return raw ? JSON.parse(raw) : { signs: '', helps: '', reminders: '', contacts: '' };
+  const base: HardDayPlan = { signs: '', helps: '', reminders: '', contacts: '', people: [] };
+  try {
+    const v = raw ? JSON.parse(raw) : null;
+    return v && typeof v === 'object' ? { ...base, ...v, people: Array.isArray(v.people) ? v.people : [] } : base;
+  } catch {
+    return base;
+  }
 }
 export async function saveHardDayPlan(p: HardDayPlan) {
   await setUserItem('hardDayPlan', JSON.stringify(p));
@@ -478,6 +485,20 @@ export async function saveMemorySessions(list: MemorySession[]) {
 // --- Comportamentos de segurança & exposição não planeada -----------------
 
 export type SafetyItem = { id: string; label: string; doing: boolean; dropping: boolean };
+// Dias em que a pessoa marcou "hoje não fiz isto" num comportamento a largar.
+export type SafetyFreeDays = Record<string, string[]>;
+export async function loadSafetyFree(): Promise<SafetyFreeDays> {
+  try {
+    const raw = await AsyncStorage.getItem(k('safetyFree'));
+    const v = raw ? JSON.parse(raw) : {};
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+}
+export async function saveSafetyFree(v: SafetyFreeDays) {
+  await setUserItem('safetyFree', JSON.stringify(v));
+}
 export type UnplannedLog = {
   id: string; date: string; ts: string; before: number; after: number; stayed: boolean; note: string;
   // Campos acrescentados depois (opcionais, para registos antigos continuarem válidos).

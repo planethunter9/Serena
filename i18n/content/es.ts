@@ -577,7 +577,7 @@ export const content: Record<string, string> = {
   "I have been through this before and it was okay.": "Ya he pasado por esto antes y salió bien.",
   "Avoiding feared situations or places": "Evitar situaciones o lugares temidos",
   "Avoidance brings instant relief, but it teaches the brain the situation really was dangerous — so the fear grows.": "La evitación da un alivio inmediato, pero le enseña al cerebro que aquello era de verdad peligroso — por eso el miedo crece.",
-  "Approach it gradually, step by step, staying until anxiety comes down (gradual exposure).": "Acércate poco a poco, por escalones, quedándote hasta que la ansiedad baje (exposición gradual).",
+  "Approach it gradually, step by step, and stay without fleeing — even if the anxiety doesn't drop. Then check whether what you feared actually happened (gradual exposure).": "Acércate poco a poco, por escalones, y quédate sin huir, aunque la ansiedad no baje. Después comprueba si lo que temías pasó de verdad (exposición gradual).",
   "Doubt always returns. Each reassurance soothes for minutes but reinforces that you need certainty to be okay.": "La duda siempre vuelve. Cada petición de tranquilización alivia unos minutos, pero refuerza que necesitas certeza para estar bien.",
   "Resist asking. Tolerate the doubt and use a coping phrase (\"I can handle uncertainty\").": "Resiste a preguntar. Tolera la duda y usa una frase de afrontamiento (\"puedo con la incertidumbre\").",
   "Checking your body and symptoms": "Revisar el cuerpo y los síntomas",

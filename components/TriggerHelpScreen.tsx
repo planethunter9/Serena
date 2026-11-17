@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { AFFIRMATIONS, GENERAL_TRIGGER_PHRASES, TRIGGER_PHRASES } from '../data/content';
 import { phrasesText } from '../data/phrasesText';
+import { plansText } from '../data/plansText';
 import { pick, useLang } from '../i18n/i18n';
 import { loadMyPhrases, loadPhraseFavs, OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
@@ -23,6 +24,7 @@ export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void
   const { t, lang } = useLang();
   const router = useRouter();
   const x = phrasesText(lang);
+  const px = plansText(lang);
   const [selected, setSelected] = useState<ProfileItem | null>(null);
   // Frases favoritas e escritas pela pessoa (no ecrã "Frases positivas").
   const [own, setOwn] = useState<string[]>([]);
@@ -80,6 +82,15 @@ export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void
       <TopBackBar title={t('triggerhelp.title')} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
         <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('triggerhelp.intro')}</Text>
+
+        <Pressable onPress={() => router.push('/myplan' as any)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.lg }}>
+          <Ionicons name="reader-outline" size={22} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{px.viewPlan}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{px.viewHint}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+        </Pressable>
 
         {triggers.length === 0 ? (
           <Card>
