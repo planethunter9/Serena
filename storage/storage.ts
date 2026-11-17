@@ -174,7 +174,7 @@ export async function saveGoals(goals: Goal[]) {
 
 // --- Diário ---------------------------------------------------------------
 
-export type JournalEntry = { id: string; date: string; ts: string; text: string; prompt?: string };
+export type JournalEntry = { id: string; date: string; ts: string; text: string; prompt?: string; mood?: number; tags?: string[] };
 
 export async function loadJournal(): Promise<JournalEntry[]> {
   const raw = await AsyncStorage.getItem(k('journal'));
