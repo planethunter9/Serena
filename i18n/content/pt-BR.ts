@@ -128,7 +128,7 @@ export const content: Record<string, string> = {
   "I can do this.": "Eu consigo.",
   "It is worth it, for me.": "Vale a pena, por mim.",
   "I am holding on — and that is enough.": "Estou aguentando — e isso basta.",
-  "I do not have to be perfect, I just have to keep going.": "Não preciso ser perfeito/a, só preciso continuar.",
+  "I do not have to be perfect, I just have to keep going.": "Não preciso de perfeição — só preciso continuar.",
   "I have come this far; I can take one more step.": "Já cheguei até aqui; consigo dar mais um passo.",
   "This is hard, but it is not impossible.": "Isto é difícil, mas não é impossível.",
   "Every time I stay, I get stronger.": "Cada vez que eu fico, fico mais forte.",

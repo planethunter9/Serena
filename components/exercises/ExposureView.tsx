@@ -34,9 +34,10 @@ import {
 } from '../../storage/storage';
 import { useTheme } from '../../theme/ThemeContext';
 import { radius, spacing } from '../../theme/theme';
-import { PrimaryButton } from '../ui';
+import { Card, CardHeader, PrimaryButton, Segmented } from '../ui';
 import { ExposureSessionFlow } from './ExposureSessionFlow';
-import { Collapsible, consecutiveDays, L, Step, ymd } from './shared';
+import { consecutiveDays, L, Step, ymd } from './shared';
+import { exposureText } from '../../data/exposureText';
 
 const EXPOSURE_PHASES: L[] = [
   { pt: 'Dizer palavras ou frases', en: 'Say words or phrases' },
@@ -62,7 +63,7 @@ const EXPOSURE_PHRASE_GROUPS: { title: L; phrases: L[] }[] = [
       { pt: 'Eu consigo.', en: 'I can do this.' },
       { pt: 'Vale a pena, por mim.', en: 'It is worth it, for me.' },
       { pt: 'Estou a aguentar — e isso é suficiente.', en: 'I am holding on — and that is enough.' },
-      { pt: 'Não tenho de ser perfeito/a, só tenho de continuar.', en: 'I do not have to be perfect, I just have to keep going.' },
+      { pt: 'Não preciso de perfeição — só de continuar.', en: 'I do not have to be perfect, I just have to keep going.' },
       { pt: 'Já cheguei até aqui; consigo dar mais um passo.', en: 'I have come this far; I can take one more step.' },
       { pt: 'Isto é difícil, mas não é impossível.', en: 'This is hard, but it is not impossible.' },
       { pt: 'Cada vez que fico, fico mais forte.', en: 'Every time I stay, I get stronger.' },
@@ -95,6 +96,7 @@ const EXPOSURE_PHRASE_GROUPS: { title: L; phrases: L[] }[] = [
 export function ExposureView({ selected, setSelected }: { selected: Step | null; setSelected: (s: Step | null) => void }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
+  const ex = exposureText(lang);
   const [custom, setCustom] = useState<ProfileItem[]>([]);
   const [order, setOrder] = useState<string[]>([]);
   const [hidden, setHidden] = useState<string[]>([]);
@@ -103,7 +105,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   const [newStep, setNewStep] = useState('');
   const [adding, setAdding] = useState(false);
   const [reordering, setReordering] = useState(false);
-  const [openPhrase, setOpenPhrase] = useState<number | null>(null);
+  const [tab, setTab] = useState<'steps' | 'guide'>('steps');
   const [showTemplates, setShowTemplates] = useState(false);
   const [subtypeIds, setSubtypeIds] = useState<string[]>([]);
   const [openTpl, setOpenTpl] = useState<string | null>(null);
@@ -273,125 +275,151 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
     );
   }
 
-  // Lista da escada (visual limpo).
+  // Ecrã principal: dois separadores — "Degraus" (o que se faz) e "Guia"
+  // (o que se lê). Tudo visível, sem secções recolhíveis.
+  const ladderActions: [string, keyof typeof Ionicons.glyphMap, () => void, boolean][] = [
+    [ex.add, 'add-circle-outline', () => setAdding(true), false],
+    [ex.ready, 'library-outline', () => setShowTemplates(true), false],
+    [t('exposure.reorder'), 'swap-vertical', () => setReordering(true), steps.length < 2],
+  ];
+
   return (
-    <ScrollView contentContainerStyle={{ gap: spacing.md }}>
-      {/* Dias de exposição: série, últimos 7 dias e registar hoje */}
-      <ExposureDaysCard days={expDays} streak={streak} markedToday={markedToday} onToggle={toggleToday} />
+    <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.xl }} keyboardShouldPersistTaps="handled">
+      <Segmented value={tab} onChange={(v) => { setTab(v); setReordering(false); setAdding(false); }} options={[['steps', ex.tabSteps], ['guide', ex.tabGuide]]} />
 
-      {/* Referência recolhível (fechada por defeito) */}
-      <Collapsible title={t('exposure.phasesTitle')} icon="list-outline">
-        {EXPOSURE_PHASES.map((ph, i) => (
-          <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>{i + 1}</Text>
-            </View>
-            <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{pick(ph, lang)}</Text>
+      {tab === 'steps' && (
+        <>
+          {/* Dias de exposição: série, últimos 7 dias e registar hoje */}
+          <ExposureDaysCard days={expDays} streak={streak} markedToday={markedToday} onToggle={toggleToday} />
+
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 4 }}>
+            <Text accessibilityRole="header" style={{ color: colors.text, fontWeight: '700', fontSize: 17, flex: 1 }}>{t('exposure.ladderTitle')}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>{steps.length}</Text>
           </View>
-        ))}
-      </Collapsible>
 
-      <Collapsible title={t('exposure.phrasesTitle')} icon="chatbox-ellipses-outline">
-        {EXPOSURE_PHRASE_GROUPS.map((g, gi) => {
-          const open = openPhrase === gi;
-          return (
-            <View key={gi} style={{ gap: 6 }}>
-              <Pressable onPress={() => setOpenPhrase(open ? null : gi)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 }}>
-                <Ionicons name={open ? 'remove' : 'add'} size={16} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '600', flex: 1 }}>{pick(g.title, lang)}</Text>
+          {/* Ações da escada: adicionar, escada pronta, reordenar */}
+          {adding ? (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TextInput value={newStep} onChangeText={setNewStep} onSubmitEditing={addStep} autoFocus placeholder={t('exposure.addStep')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
+              <Pressable onPress={addStep} accessibilityRole="button" style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
               </Pressable>
-              {open && g.phrases.map((ph, pi) => (
-                <View key={pi} style={{ backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: 10, marginLeft: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>“{pick(ph, lang)}”</Text>
-                </View>
+              <Pressable onPress={() => { setAdding(false); setNewStep(''); }} accessibilityRole="button" accessibilityLabel={t('common.cancel')} style={{ width: 44, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="close" size={20} color={colors.textMuted} />
+              </Pressable>
+            </View>
+          ) : reordering ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.primarySoft, borderRadius: radius.lg, paddingVertical: 10, paddingLeft: spacing.md, paddingRight: 10 }}>
+              <Ionicons name="swap-vertical" size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{ex.reorderHint}</Text>
+              <Pressable onPress={() => setReordering(false)} accessibilityRole="button" style={{ backgroundColor: colors.primary, paddingHorizontal: 14, height: 34, borderRadius: 999, justifyContent: 'center' }}>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('common.done')}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              {ladderActions.map(([label, icon, onPress, disabled]) => (
+                <Pressable
+                  key={label}
+                  onPress={onPress}
+                  disabled={disabled}
+                  accessibilityRole="button"
+                  style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 12, paddingHorizontal: 4, borderRadius: radius.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, opacity: disabled ? 0.4 : 1 }}
+                >
+                  <Ionicons name={icon} size={22} color={colors.primary} />
+                  <Text numberOfLines={2} style={{ color: colors.text, fontSize: 12, fontWeight: '600', textAlign: 'center' }}>{label}</Text>
+                </Pressable>
               ))}
             </View>
-          );
-        })}
-      </Collapsible>
+          )}
 
-      <Collapsible title={t('exposure.reminderTitle')} icon="alert-circle-outline" danger>
-        {EXPOSURE_REMINDERS.map((r, i) => (
-          <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
-            <Text style={{ color: colors.danger }}>•</Text>
-            <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 }}>{pick(r, lang)}</Text>
+          {/* Degraus numerados, num único cartão */}
+          <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: reordering ? colors.primary : colors.border, overflow: 'hidden' }}>
+            {steps.map((s, i) => (
+              <View
+                key={s.id}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}
+              >
+                <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>{i + 1}</Text>
+                </View>
+                {reordering ? (
+                  <>
+                    <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
+                    <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
+                      <Ionicons name="chevron-up" size={20} color={colors.primary} />
+                    </Pressable>
+                    <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
+                      <Ionicons name="chevron-down" size={20} color={colors.primary} />
+                    </Pressable>
+                    <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, `Remover ${s.label}`, `Remove ${s.label}`)} style={{ padding: 4, marginLeft: 2 }}>
+                      <Ionicons name="trash-outline" size={19} color={colors.danger} />
+                    </Pressable>
+                  </>
+                ) : (
+                  <Pressable onPress={() => openStep(s)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                    <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                  </Pressable>
+                )}
+              </View>
+            ))}
           </View>
-        ))}
-      </Collapsible>
 
-      {/* A escada — cabeçalho + botão de reordenar */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{t('exposure.ladderTitle')}</Text>
-        {steps.length > 1 && (
-          <Pressable onPress={() => setReordering((r) => !r)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Ionicons name={reordering ? 'checkmark' : 'swap-vertical'} size={16} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{reordering ? t('common.done') : t('exposure.reorder')}</Text>
-          </Pressable>
-        )}
-      </View>
-      <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: -4 }}>{t('exposure.guide')}</Text>
-
-      {/* Escada pronta (modelos por subtipo) */}
-      <Pressable onPress={() => setShowTemplates(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: spacing.md }}>
-        <Ionicons name="library-outline" size={20} color={colors.primary} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>{tr2(lang, 'Usar uma escada pronta', 'Use a ready-made ladder')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{tr2(lang, 'Degraus sugeridos para o teu medo', 'Suggested steps for your fear')}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-      </Pressable>
-
-      {/* Adicionar degrau — no topo (não no fundo) */}
-      {adding ? (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TextInput value={newStep} onChangeText={setNewStep} onSubmitEditing={addStep} autoFocus placeholder={t('exposure.addStep')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
-          <Pressable onPress={addStep} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
-          </Pressable>
-        </View>
-      ) : (
-        !reordering && (
-          <Pressable onPress={() => setAdding(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.primarySoft, paddingHorizontal: 14, height: 38, borderRadius: 999 }}>
-            <Ionicons name="add" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('exposure.addStep')}</Text>
-          </Pressable>
-        )
+          <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{t('exposure.safety')}</Text>
+        </>
       )}
 
-      {/* Degraus leves e numerados, num único cartão */}
-      <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
-        {steps.map((s, i) => (
-          <View
-            key={s.id}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}
-          >
-            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: colors.textMuted, fontWeight: '700', fontSize: 12 }}>{i + 1}</Text>
-            </View>
-            {reordering ? (
-              <>
-                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
-                <Pressable onPress={() => move(i, -1)} hitSlop={6} disabled={i === 0} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para cima', 'Move up')} style={{ padding: 4, opacity: i === 0 ? 0.3 : 1 }}>
-                  <Ionicons name="chevron-up" size={20} color={colors.primary} />
-                </Pressable>
-                <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
-                  <Ionicons name="chevron-down" size={20} color={colors.primary} />
-                </Pressable>
-                <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, `Remover ${s.label}`, `Remove ${s.label}`)} style={{ padding: 4, marginLeft: 2 }}>
-                  <Ionicons name="trash-outline" size={19} color={colors.danger} />
-                </Pressable>
-              </>
-            ) : (
-              <Pressable onPress={() => openStep(s)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
-                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-              </Pressable>
-            )}
-          </View>
-        ))}
-      </View>
+      {tab === 'guide' && (
+        <>
+          <Card style={{ gap: spacing.sm }}>
+            <CardHeader icon="information-circle-outline" title={t('exposure.guideTitle')} />
+            <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21 }}>{t('exposure.guide')}</Text>
+          </Card>
 
-      <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{t('exposure.safety')}</Text>
+          <Card style={{ gap: spacing.sm }}>
+            <CardHeader icon="list-outline" title={t('exposure.phasesTitle')} />
+            {EXPOSURE_PHASES.map((ph, i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12 }}>{i + 1}</Text>
+                </View>
+                <Text style={{ color: colors.text, fontSize: 14, flex: 1 }}>{pick(ph, lang)}</Text>
+              </View>
+            ))}
+          </Card>
+
+          <Card style={{ gap: spacing.md }}>
+            <CardHeader icon="chatbox-ellipses-outline" title={t('exposure.phrasesTitle')} />
+            <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: -4 }}>{t('exposure.phrasesHint')}</Text>
+            {EXPOSURE_PHRASE_GROUPS.map((g, gi) => (
+              <View key={gi} style={{ gap: 6 }}>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '700' }}>{pick(g.title, lang)}</Text>
+                {g.phrases.map((ph, pi) => (
+                  <View key={pi} style={{ backgroundColor: colors.primarySoft, borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12 }}>
+                    <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>“{pick(ph, lang)}”</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </Card>
+
+          <Card style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="alert-circle-outline" size={18} color={colors.danger} />
+              <Text accessibilityRole="header" style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{t('exposure.reminderTitle')}</Text>
+            </View>
+            {EXPOSURE_REMINDERS.map((r, i) => (
+              <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+                <Text style={{ color: colors.danger }}>•</Text>
+                <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 }}>{pick(r, lang)}</Text>
+              </View>
+            ))}
+          </Card>
+
+          <Text style={{ color: colors.danger, fontSize: 12, textAlign: 'center' }}>{t('exposure.safety')}</Text>
+        </>
+      )}
     </ScrollView>
   );
 }

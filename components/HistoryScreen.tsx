@@ -5,8 +5,10 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useA11y } from '../lib/a11y';
 import { exposureText } from '../data/exposureText';
+import { journalText } from '../data/journalPrompts';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { tr2, useLang } from '../i18n/i18n';
 import {
@@ -16,6 +18,8 @@ import {
   loadExerciseLog,
   loadExperiments,
   loadExposureSessions,
+  loadJournal,
+  saveJournal,
   loadMemorySessions,
   loadThoughtRecords,
   loadUnplanned,
@@ -29,11 +33,12 @@ import { THOUGHT_TRAPS } from './exercises/ThoughtView';
 import { TopBackBar } from './ui';
 import { UNPLANNED_TRIGGERS } from './UnplannedScreen';
 
-type Kind = 'exposure' | 'thought' | 'experiments' | 'memory' | 'unplanned' | 'challenges' | 'acceptance' | 'practice';
+type Kind = 'journal' | 'exposure' | 'thought' | 'experiments' | 'memory' | 'unplanned' | 'challenges' | 'acceptance' | 'practice';
 type Item = { id: string; kind: Kind; sub?: string; ts: string; date: string; title: string; summary?: string; details: [string, string][] };
 
 const KIND_ORDER: Kind[] = ['exposure', 'unplanned', 'thought', 'experiments', 'memory', 'challenges', 'acceptance', 'practice'];
 const KIND_ICON: Record<Kind, keyof typeof Ionicons.glyphMap> = {
+  journal: 'book-outline',
   exposure: 'trending-up-outline',
   unplanned: 'footsteps-outline',
   thought: 'bulb-outline',
@@ -47,7 +52,7 @@ const KIND_ICON: Record<Kind, keyof typeof Ionicons.glyphMap> = {
 // Os ecrãs de exercício usam outros nomes no parâmetro "type" — traduz para o filtro.
 function toKind(v?: string): Kind | 'all' {
   if (!v) return 'all';
-  if ((KIND_ORDER as string[]).includes(v)) return v as Kind;
+  if ((KIND_ORDER as string[]).includes(v) || v === 'journal') return v as Kind;
   if (v === 'words' || v === 'myth') return 'practice';
   return 'all';
 }
@@ -55,6 +60,7 @@ function toKind(v?: string): Kind | 'all' {
 export default function HistoryScreen({ onBack, initialKind }: { onBack: () => void; initialKind?: string }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
+  const a11y = useA11y();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const lx = (o: { pt: string; en: string }) => tr2(lang, o.pt, o.en);
 
@@ -66,6 +72,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
   const [open, setOpen] = useState<string | null>(null);
 
   const kindLabel = (k: Kind) => ({
+    journal: t('journal.title'),
     exposure: t('exposure.title'),
     unplanned: t('unplanned.title'),
     thought: t('thought.title'),
@@ -85,6 +92,8 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
         loadExposureSessions(), loadThoughtRecords(), loadExperiments(), loadMemorySessions(), loadUnplanned(),
         loadChallengesDone(), loadCustomChallenges(), loadActCommitments(), loadExerciseLog(),
       ]);
+      // O diário é privado: só aparece no histórico do próprio diário.
+      const jr = kind === 'journal' ? await loadJournal() : [];
       const arr = <T,>(x: T[] | null | undefined) => (Array.isArray(x) ? x : []);
       const noon = (d: string) => `${d}T12:00:00`;
       const yesNo = (b: boolean) => (b ? L('Sim', 'Yes') : L('Não', 'No'));
@@ -92,6 +101,11 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
       const out: Item[] = [];
       const push = (it: Item) => out.push({ ...it, details: it.details.filter(([, v]) => v != null && String(v).trim() !== '') });
 
+      for (const j of arr(jr)) push({
+        id: 'jr:' + j.id, kind: 'journal', ts: j.ts || noon(j.date), date: j.date,
+        title: j.text,
+        details: [[journalText(lang).question, j.prompt ?? '']],
+      });
       for (const s of arr(exp)) push({
         id: 'exp:' + s.id, kind: 'exposure', ts: s.ts || noon(s.date), date: s.date,
         title: s.stepLabel, summary: `${s.before} → ${s.peak} → ${s.after}`,
@@ -177,6 +191,21 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
+  // Só as entradas do diário se podem apagar daqui (o resto é só consulta).
+  function removeJournal(it: Item) {
+    Alert.alert(a11y.delete, it.title.slice(0, 80), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.remove'), style: 'destructive', onPress: async () => {
+          const id = it.id.slice(3);
+          const list = await loadJournal();
+          await saveJournal((Array.isArray(list) ? list : []).filter((e) => e.id !== id));
+          setItems((prev) => (prev ?? []).filter((x) => x.id !== it.id));
+        },
+      },
+    ]);
+  }
+
   const shown = (items ?? []).filter((it) => (kind === 'all' || it.kind === kind) && (!subType || it.sub === subType));
 
   // Agrupa por dia.
@@ -219,7 +248,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
             <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmtDate(g.date)}</Text>
             {g.list.map((it) => {
               const isOpen = open === it.id;
-              const canOpen = it.details.length > 0;
+              const canOpen = it.details.length > 0 || it.kind === 'journal';
               const time = fmtTime(it.ts);
               return (
                 <View key={it.id} style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
@@ -243,6 +272,12 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
                           <Text style={{ color: colors.textMuted }}>{k}: </Text>{v}
                         </Text>
                       ))}
+                      {it.kind === 'journal' && (
+                        <Pressable onPress={() => removeJournal(it)} hitSlop={8} accessibilityRole="button" accessibilityLabel={a11y.delete} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4 }}>
+                          <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                          <Text style={{ color: colors.danger, fontSize: 13, fontWeight: '600' }}>{a11y.delete}</Text>
+                        </Pressable>
+                      )}
                     </View>
                   )}
                 </View>
