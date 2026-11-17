@@ -8,10 +8,11 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useA11y } from '../lib/a11y';
 import { exposureText } from '../data/exposureText';
-import { journalText } from '../data/journalPrompts';
+import { JOURNAL_TAGS, JournalTag, journalText, MOOD_EMOJI } from '../data/journalPrompts';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { tr2, useLang } from '../i18n/i18n';
 import {
+  isoLocal,
   loadActCommitments,
   loadChallengesDone,
   loadCustomChallenges,
@@ -34,7 +35,7 @@ import { TopBackBar } from './ui';
 import { UNPLANNED_TRIGGERS } from './UnplannedScreen';
 
 type Kind = 'journal' | 'exposure' | 'thought' | 'experiments' | 'memory' | 'unplanned' | 'challenges' | 'acceptance' | 'practice';
-type Item = { id: string; kind: Kind; sub?: string; ts: string; date: string; title: string; summary?: string; details: [string, string][] };
+type Item = { id: string; kind: Kind; sub?: string; tags?: string[]; mood?: number; ts: string; date: string; title: string; summary?: string; details: [string, string][] };
 
 const KIND_ORDER: Kind[] = ['exposure', 'unplanned', 'thought', 'experiments', 'memory', 'challenges', 'acceptance', 'practice'];
 const KIND_ICON: Record<Kind, keyof typeof Ionicons.glyphMap> = {
@@ -101,10 +102,17 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
       const out: Item[] = [];
       const push = (it: Item) => out.push({ ...it, details: it.details.filter(([, v]) => v != null && String(v).trim() !== '') });
 
+      const jx = journalText(lang);
       for (const j of arr(jr)) push({
         id: 'jr:' + j.id, kind: 'journal', ts: j.ts || noon(j.date), date: j.date,
-        title: j.text,
-        details: [[journalText(lang).question, j.prompt ?? '']],
+        title: j.text || (j.mood ? jx.moods[j.mood - 1] : ''),
+        summary: j.mood ? MOOD_EMOJI[j.mood - 1] : undefined,
+        tags: j.tags, mood: j.mood,
+        details: [
+          [jx.question, j.prompt ?? ''],
+          [jx.moodLabel, j.mood ? jx.moods[j.mood - 1] : ''],
+          [jx.tagsLabel, (j.tags ?? []).map((tg) => jx.tags[tg as JournalTag] ?? tg).join(', ')],
+        ],
       });
       for (const s of arr(exp)) push({
         id: 'exp:' + s.id, kind: 'exposure', ts: s.ts || noon(s.date), date: s.date,
@@ -206,7 +214,27 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
     ]);
   }
 
-  const shown = (items ?? []).filter((it) => (kind === 'all' || it.kind === kind) && (!subType || it.sub === subType));
+  const [tagFilter, setTagFilter] = useState<JournalTag | null>(null);
+  const jx = journalText(lang);
+  const shown = (items ?? []).filter((it) =>
+    (kind === 'all' || it.kind === kind) && (!subType || it.sub === subType) && (!tagFilter || (it.tags ?? []).includes(tagFilter)));
+
+  // Diário: humor médio por dia nos últimos 14 dias (null = sem registo).
+  const moodDays: { date: string; v: number | null }[] = [];
+  if (kind === 'journal') {
+    const byDay = new Map<string, number[]>();
+    for (const it of items ?? []) if (it.mood) byDay.set(it.date, [...(byDay.get(it.date) ?? []), it.mood]);
+    const d = new Date();
+    d.setDate(d.getDate() - 13);
+    for (let i = 0; i < 14; i++) {
+      const iso = isoLocal(d);
+      const vs = byDay.get(iso);
+      moodDays.push({ date: iso, v: vs ? vs.reduce((a, b) => a + b, 0) / vs.length : null });
+      d.setDate(d.getDate() + 1);
+    }
+  }
+  const hasMood = moodDays.some((m) => m.v !== null);
+  const moodColor = (v: number) => (v < 2.5 ? colors.chartHigh : v < 3.5 ? colors.chartMid : colors.chartLow);
 
   // Agrupa por dia.
   const groups: { date: string; list: Item[] }[] = [];
@@ -237,7 +265,42 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
             )}
           </View>
         )}
-        <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Só para consulta. Toca num registo para ver o detalhe.', 'View only. Tap an entry to see the details.')}</Text>
+        {kind === 'journal' ? (
+          <>
+            {hasMood && (
+              <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{jx.moodTrend}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: 64 }}>
+                  {moodDays.map((m) => (
+                    <View key={m.date} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
+                      {m.v === null ? (
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.track }} />
+                      ) : (
+                        <View style={{ width: '100%', maxWidth: 16, height: 8 + (m.v - 1) * 14, borderRadius: 4, backgroundColor: moodColor(m.v) }} />
+                      )}
+                    </View>
+                  ))}
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: colors.textMuted, fontSize: 11 }}>{moodDays[0].date.slice(8, 10)}/{moodDays[0].date.slice(5, 7)}</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 11 }}>{moodDays[13].date.slice(8, 10)}/{moodDays[13].date.slice(5, 7)}</Text>
+                </View>
+              </View>
+            )}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -spacing.xl }} contentContainerStyle={{ gap: 8, paddingHorizontal: spacing.xl }}>
+              {([null, ...JOURNAL_TAGS] as (JournalTag | null)[]).map((tg) => {
+                const on = tagFilter === tg;
+                return (
+                  <Pressable key={tg ?? 'all'} onPress={() => setTagFilter(tg)} accessibilityRole="button" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : colors.card }}>
+                    <Text style={{ color: on ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>{tg ? jx.tags[tg] : jx.all}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </>
+        ) : (
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Só para consulta. Toca num registo para ver o detalhe.', 'View only. Tap an entry to see the details.')}</Text>
+        )}
 
         {items && shown.length === 0 && (
           <EmptyState
