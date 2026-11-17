@@ -162,7 +162,7 @@ export async function toggleLessonDone(id: string): Promise<string[]> {
 
 // --- Objetivos ------------------------------------------------------------
 
-export type Goal = { id: string; text: string; done: boolean };
+export type Goal = { id: string; text: string; done: boolean; target?: string; stepId?: string; stepLabel?: string; doneAt?: string };
 
 export async function loadGoals(): Promise<Goal[]> {
   const raw = await AsyncStorage.getItem(k('goals'));
@@ -420,10 +420,17 @@ export async function saveRecapDismissed(weekStart: string) {
 }
 
 // --- Plano para dias difíceis (prevenção de recaída) ----------------------
-export type HardDayPlan = { signs: string; helps: string; reminders: string; contacts: string };
+export type PlanPerson = { id: string; name: string; phone: string };
+export type HardDayPlan = { signs: string; helps: string; reminders: string; contacts: string; people?: PlanPerson[] };
 export async function loadHardDayPlan(): Promise<HardDayPlan> {
   const raw = await AsyncStorage.getItem(k('hardDayPlan'));
-  return raw ? JSON.parse(raw) : { signs: '', helps: '', reminders: '', contacts: '' };
+  const base: HardDayPlan = { signs: '', helps: '', reminders: '', contacts: '', people: [] };
+  try {
+    const v = raw ? JSON.parse(raw) : null;
+    return v && typeof v === 'object' ? { ...base, ...v, people: Array.isArray(v.people) ? v.people : [] } : base;
+  } catch {
+    return base;
+  }
 }
 export async function saveHardDayPlan(p: HardDayPlan) {
   await setUserItem('hardDayPlan', JSON.stringify(p));

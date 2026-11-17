@@ -4,19 +4,24 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { plansText } from '../data/plansText';
+import { PeopleList } from './PeopleList';
 import { useLang , tr2 } from '../i18n/i18n';
-import { HardDayPlan, loadHardDayPlan, saveHardDayPlan } from '../storage/storage';
+import { HardDayPlan, loadHardDayPlan, PlanPerson, saveHardDayPlan } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
 
-type Field = keyof HardDayPlan;
+type Field = 'signs' | 'helps' | 'reminders' | 'contacts';
 
 export function HardDayBody() {
   const { colors } = useTheme();
   const { lang } = useLang();
   const tt = (pt: string, en: string) => tr2(lang, pt, en);
+  const px = plansText(lang);
+  const router = useRouter();
 
   const [plan, setPlan] = useState<HardDayPlan | null>(null);
 
@@ -24,6 +29,13 @@ export function HardDayBody() {
     loadHardDayPlan().then(setPlan);
   }, []);
 
+  function setPeople(people: PlanPerson[]) {
+    setPlan((p) => {
+      const next = { ...(p as HardDayPlan), people };
+      saveHardDayPlan(next);
+      return next;
+    });
+  }
   function update(field: Field, value: string) {
     setPlan((p) => {
       const next = { ...(p as HardDayPlan), [field]: value };
@@ -69,6 +81,16 @@ export function HardDayBody() {
               'Prepare this now, calmly. On a bad day it\'s hard to think — having the plan written and ready makes all the difference. It saves itself.')}
         </Text>
 
+        {/* Modo de leitura para os momentos difíceis */}
+        <Pressable onPress={() => router.push('/myplan' as any)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg }}>
+          <Ionicons name="reader-outline" size={24} color="#fff" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{px.viewPlan}</Text>
+            <Text style={{ color: '#fff', opacity: 0.85, fontSize: 12 }}>{px.viewHint}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#fff" />
+        </Pressable>
+
         {fields.map((f) => (
           <Card key={f.key} style={{ gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -76,6 +98,8 @@ export function HardDayBody() {
               <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{f.label}</Text>
             </View>
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>{f.hint}</Text>
+            {f.key === 'contacts' && <PeopleList people={plan.people ?? []} onChange={setPeople} editable />}
+            {f.key === 'contacts' && <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>{px.notes}</Text>}
             <TextInput
               value={plan[f.key]}
               onChangeText={(v) => update(f.key, v)}
