@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -350,6 +350,31 @@ export async function loadDashboardOrder(): Promise<string[]> {
 }
 export async function saveDashboardOrder(order: string[]) {
   await setUserItem('dashboardOrder', JSON.stringify(order));
+}
+
+// Frases positivas: favoritas (id = texto em inglês da frase do catálogo, que é
+// estável) e frases escritas pela pessoa.
+export type MyPhrase = { id: string; text: string };
+async function loadJsonArray<T>(name: string): Promise<T[]> {
+  try {
+    const raw = await AsyncStorage.getItem(k(name));
+    const v = raw ? JSON.parse(raw) : [];
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+export async function loadPhraseFavs(): Promise<string[]> {
+  return (await loadJsonArray<unknown>('phraseFavs')).filter((x): x is string => typeof x === 'string');
+}
+export async function savePhraseFavs(ids: string[]) {
+  await setUserItem('phraseFavs', JSON.stringify(ids));
+}
+export async function loadMyPhrases(): Promise<MyPhrase[]> {
+  return (await loadJsonArray<MyPhrase>('myPhrases')).filter((p) => p && typeof p.id === 'string' && typeof p.text === 'string');
+}
+export async function saveMyPhrases(list: MyPhrase[]) {
+  await setUserItem('myPhrases', JSON.stringify(list));
 }
 
 // Blocos da Visão geral escondidos pela pessoa (Definições › Ecrã inicial).
