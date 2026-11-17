@@ -2,11 +2,13 @@
 // específicas para cada gatilho que o utilizador escolheu.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { GENERAL_TRIGGER_PHRASES, TRIGGER_PHRASES } from '../data/content';
+import { AFFIRMATIONS, GENERAL_TRIGGER_PHRASES, TRIGGER_PHRASES } from '../data/content';
+import { phrasesText } from '../data/phrasesText';
 import { pick, useLang } from '../i18n/i18n';
-import { OnboardingData, ProfileItem } from '../storage/storage';
+import { loadMyPhrases, loadPhraseFavs, OnboardingData, ProfileItem } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
@@ -19,7 +21,17 @@ function asItems(arr: any[]): ProfileItem[] {
 export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void; data: OnboardingData }) {
   const { colors } = useTheme();
   const { t, lang } = useLang();
+  const router = useRouter();
+  const x = phrasesText(lang);
   const [selected, setSelected] = useState<ProfileItem | null>(null);
+  // Frases favoritas e escritas pela pessoa (no ecrã "Frases positivas").
+  const [own, setOwn] = useState<string[]>([]);
+  useEffect(() => {
+    Promise.all([loadPhraseFavs(), loadMyPhrases()]).then(([favs, mine]) => {
+      const favTexts = AFFIRMATIONS.filter((a) => favs.includes(a.en)).map((a) => pick(a, lang));
+      setOwn([...mine.map((m) => m.text), ...favTexts]);
+    });
+  }, [lang]);
 
   const triggers = asItems(data.triggers);
 
@@ -42,6 +54,20 @@ export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void
               <Text style={{ color: colors.text, fontSize: 18, fontWeight: '600', lineHeight: 26 }}>“{phrase}”</Text>
             </Card>
           ))}
+          {own.length > 0 && (
+            <>
+              <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 16, fontWeight: '700', marginTop: spacing.md }}>{x.yours}</Text>
+              {own.map((phrase, i) => (
+                <Card key={'o' + i} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <Ionicons name="heart" size={18} color={colors.primary} />
+                  <Text style={{ flex: 1, color: colors.text, fontSize: 17, fontWeight: '600', lineHeight: 25 }}>“{phrase}”</Text>
+                </Card>
+              ))}
+            </>
+          )}
+          <Pressable onPress={() => router.push('/positive')} accessibilityRole="button" style={{ alignItems: 'center', padding: 12 }}>
+            <Text style={{ color: colors.primary, fontSize: 15, fontWeight: '700' }}>{x.morePhrases}</Text>
+          </Pressable>
           <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: spacing.sm }}>{t('triggerhelp.breathe')}</Text>
         </ScrollView>
       </View>

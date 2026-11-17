@@ -205,7 +205,7 @@ export const dict: Record<string, string> = {
   'exposure.reorder': 'Réorganiser',
   'settings.personalization': 'Personnalisation',
   'exposure.guideTitle': 'Comment ça marche',
-  'exposure.guide': "Choisis une étape difficile mais faisable (~3-5). Reste avec l'inconfort jusqu'à ce qu'il baisse d'environ la moitié, sans fuir. Répète jusqu'à ce que ce soit facile, puis monte.",
+  'exposure.guide': 'Choisis une étape difficile mais faisable (~3-5). Avant, écris ce que tu crains qu\'il arrive ; puis reste dans la situation sans fuir — pas besoin d\'attendre que l\'inconfort baisse. À la fin, vérifie si ta prédiction s\'est réalisée. Varie les étapes et recommence.',
   'exposure.safety': 'Ne te force jamais à vomir. Va à ton propre rythme.',
   'exposure.addStep': 'Ajoute ta propre étape...',
   'exposure.sudsHint': 'Échelle de 0 à 10 (10 = la pire panique possible).',

@@ -33,6 +33,7 @@ import {
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
+import { behaviorLabel } from '../lib/behaviorLabel';
 import EmptyState from './EmptyState';
 import { Card, CardHeader, Segmented } from './ui';
 
@@ -475,7 +476,7 @@ export default function ProgressScreen() {
                     <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.successSoft, alignItems: 'center', justifyContent: 'center' }}>
                       <Ionicons name="leaf-outline" size={14} color={colors.success} />
                     </View>
-                    <Text style={{ color: colors.text, fontSize: 14, flex: 1 }} numberOfLines={2}>{d.label}</Text>
+                    <Text style={{ color: colors.text, fontSize: 14, flex: 1 }} numberOfLines={2}>{behaviorLabel(d.id, d.label, lang)}</Text>
                     <Text style={{ color: colors.textMuted, fontSize: 12 }}>{dmShort(d.date)}</Text>
                   </View>
                 ))}

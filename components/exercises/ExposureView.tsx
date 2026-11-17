@@ -5,8 +5,6 @@ import { newId } from '../../lib/id';
 import { useEffect, useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -36,8 +34,9 @@ import {
 } from '../../storage/storage';
 import { useTheme } from '../../theme/ThemeContext';
 import { radius, spacing } from '../../theme/theme';
-import { Card, PrimaryButton } from '../ui';
-import { Collapsible, consecutiveDays, L, Step, Suds, ymd } from './shared';
+import { PrimaryButton } from '../ui';
+import { ExposureSessionFlow } from './ExposureSessionFlow';
+import { Collapsible, consecutiveDays, L, Step, ymd } from './shared';
 
 const EXPOSURE_PHASES: L[] = [
   { pt: 'Dizer palavras ou frases', en: 'Say words or phrases' },
@@ -108,10 +107,6 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   const [showTemplates, setShowTemplates] = useState(false);
   const [subtypeIds, setSubtypeIds] = useState<string[]>([]);
   const [openTpl, setOpenTpl] = useState<string | null>(null);
-  const [before, setBefore] = useState<number | null>(null);
-  const [peak, setPeak] = useState<number | null>(null);
-  const [after, setAfter] = useState<number | null>(null);
-  const [note, setNote] = useState('');
 
   useEffect(() => {
     loadExposureSteps().then(setCustom);
@@ -215,66 +210,24 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
 
   function openStep(s: Step) {
     setSelected(s);
-    setBefore(null); setPeak(null); setAfter(null); setNote('');
   }
 
-  function saveSession() {
-    if (!selected || before === null || after === null) return;
-    const now = new Date();
-    const entry: ExposureSession = {
-      id: 'e' + now.getTime(), stepId: selected.id, stepLabel: selected.label,
-      date: ymd(now), ts: now.toISOString(),
-      before, peak: peak ?? before, after, note: note.trim(),
-    };
+  function saveSession(entry: ExposureSession) {
     const next = [entry, ...sessions];
     setSessions(next);
     saveExposureSessions(next);
-    setSelected(null);
   }
 
-  // Vista de uma sessão para um degrau.
+  // Sessão para um degrau: Antes → Durante → Depois.
   if (selected) {
-    const history = sessions.filter((s) => s.stepId === selected.id);
     return (
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ gap: spacing.md }}>
-          <Pressable onPress={() => setSelected(null)} hitSlop={8}>
-            <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
-          </Pressable>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{selected.label}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{t('exposure.sudsHint')}</Text>
-
-          <Card style={{ gap: 8 }}>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{t('exposure.before')}</Text>
-            <Suds value={before} onChange={setBefore} />
-          </Card>
-          <Card style={{ gap: 8 }}>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{t('exposure.peak')}</Text>
-            <Suds value={peak} onChange={setPeak} />
-          </Card>
-          <Card style={{ gap: 8 }}>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>{t('exposure.after')}</Text>
-            <Suds value={after} onChange={setAfter} />
-          </Card>
-          <TextInput
-            value={note} onChangeText={setNote} placeholder={t('exposure.note')} placeholderTextColor={colors.textMuted} multiline
-            style={{ minHeight: 60, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15, textAlignVertical: 'top' }}
-          />
-          <PrimaryButton label={t('exposure.save')} onPress={saveSession} disabled={before === null || after === null} />
-
-          {history.length > 0 && (
-            <View style={{ gap: 8, marginTop: 4 }}>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>{t('exposure.history')}</Text>
-              {history.map((h) => (
-                <View key={h.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                  <Text style={{ color: colors.textMuted, fontSize: 13 }}>{h.date.split('-').reverse().join('/')}</Text>
-                  <Text style={{ color: colors.text, fontWeight: '600' }}>{h.before} → {h.after}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <ExposureSessionFlow
+        key={selected.id}
+        step={selected}
+        history={sessions.filter((s) => s.stepId === selected.id)}
+        onSave={saveSession}
+        onClose={() => setSelected(null)}
+      />
     );
   }
 
