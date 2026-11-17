@@ -67,7 +67,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'lessonsAll',
     icon: 'library',
-    title: { pt: 'Estudioso', en: 'Scholar' },
+    title: { pt: 'Mente estudiosa', en: 'Scholar' },
     desc: { pt: 'Leste todas as lições.', en: 'You read every lesson.' },
     check: (s) => ({ unlocked: s.lessonsTotal > 0 && s.lessonsDone >= s.lessonsTotal, have: s.lessonsDone, need: s.lessonsTotal }),
   },

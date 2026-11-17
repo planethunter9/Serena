@@ -577,7 +577,7 @@ export const content: Record<string, string> = {
   "I have been through this before and it was okay.": "Ik heb dit eerder meegemaakt en het liep goed af.",
   "Avoiding feared situations or places": "Gevreesde situaties of plekken vermijden",
   "Avoidance brings instant relief, but it teaches the brain the situation really was dangerous — so the fear grows.": "Vermijden geeft meteen opluchting, maar leert je brein dat het echt gevaarlijk was — daarom groeit de angst.",
-  "Approach it gradually, step by step, staying until anxiety comes down (gradual exposure).": "Kom stap voor stap dichterbij, in treden, en blijf tot de angst zakt (geleidelijke blootstelling).",
+  "Approach it gradually, step by step, and stay without fleeing — even if the anxiety doesn't drop. Then check whether what you feared actually happened (gradual exposure).": "Kom stap voor stap dichterbij en blijf zonder te vluchten – ook als de angst niet zakt. Kijk daarna of wat je vreesde echt gebeurde (geleidelijke blootstelling).",
   "Doubt always returns. Each reassurance soothes for minutes but reinforces that you need certainty to be okay.": "De twijfel komt altijd terug. Elke vraag om geruststelling geeft een paar minuten lucht, maar versterkt dat je zekerheid nodig hebt om oké te zijn.",
   "Resist asking. Tolerate the doubt and use a coping phrase (\"I can handle uncertainty\").": "Weersta het vragen. Verdraag de twijfel en gebruik een helpende zin (\"ik kan met onzekerheid omgaan\").",
   "Checking your body and symptoms": "Lichaam en symptomen controleren",

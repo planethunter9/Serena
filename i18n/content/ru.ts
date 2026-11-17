@@ -577,7 +577,7 @@ export const content: Record<string, string> = {
   "I have been through this before and it was okay.": "Такое уже было, и всё закончилось хорошо.",
   "Avoiding feared situations or places": "Избегать пугающих ситуаций или мест",
   "Avoidance brings instant relief, but it teaches the brain the situation really was dangerous — so the fear grows.": "Избегание даёт мгновенное облегчение, но учит мозг, что это действительно было опасно, — поэтому страх растёт.",
-  "Approach it gradually, step by step, staying until anxiety comes down (gradual exposure).": "Приближайся постепенно, по ступеням, оставаясь, пока тревога не спадёт (постепенная экспозиция).",
+  "Approach it gradually, step by step, and stay without fleeing — even if the anxiety doesn't drop. Then check whether what you feared actually happened (gradual exposure).": "Приближайся постепенно, по ступеням, и оставайся, не убегая, — даже если тревога не спадает. Потом проверь, случилось ли на самом деле то, чего ты опасаешься (постепенная экспозиция).",
   "Doubt always returns. Each reassurance soothes for minutes but reinforces that you need certainty to be okay.": "Сомнение всегда возвращается. Каждая просьба успокоить даёт облегчение на несколько минут, но укрепляет мысль, что для хорошего самочувствия нужна уверенность.",
   "Resist asking. Tolerate the doubt and use a coping phrase (\"I can handle uncertainty\").": "Удержись от вопроса. Терпи сомнение и используй поддерживающую фразу (\"я могу жить с неопределённостью\").",
   "Checking your body and symptoms": "Проверять тело и симптомы",
