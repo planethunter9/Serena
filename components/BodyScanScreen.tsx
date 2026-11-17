@@ -6,7 +6,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
+import KeepAwake from './KeepAwake';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BODYSCAN_SECONDS, scanText } from '../data/techniques';
@@ -14,11 +14,6 @@ import { useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, CardHeader, PrimaryButton, TopBackBar } from './ui';
-
-function KeepAwake() {
-  useKeepAwake();
-  return null;
-}
 
 export default function BodyScanScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();

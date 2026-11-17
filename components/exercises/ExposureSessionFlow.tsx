@@ -8,7 +8,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
+import KeepAwake from '../KeepAwake';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { CHECKIN_EVERY_SEC, exposureText, PROB_STEPS } from '../../data/exposureText';
@@ -21,11 +21,6 @@ import { Step, Suds, ymd } from './shared';
 
 type Stage = 'before' | 'during' | 'after' | 'done';
 type Happened = 'yes' | 'partly' | 'no';
-
-function KeepAwake() {
-  useKeepAwake();
-  return null;
-}
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 

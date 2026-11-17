@@ -7,7 +7,7 @@
 //   ecrã não se apaga durante o exercício.
 
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
+import KeepAwake from './KeepAwake';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { BREATH_MINUTES, BREATH_PATTERNS, BreathPatternId, breathText } from '../data/techniques';
@@ -25,11 +25,6 @@ function phasesOf(id: BreathPatternId): Phase[] {
   out.push({ kind: 'out', sec: p.exhale });
   if (p.hold2) out.push({ kind: 'hold', sec: p.hold2 });
   return out;
-}
-
-function KeepAwake() {
-  useKeepAwake();
-  return null;
 }
 
 export default function BreathingScreen({ onBack }: { onBack: () => void }) {
