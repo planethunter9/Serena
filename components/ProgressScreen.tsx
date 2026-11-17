@@ -1,12 +1,12 @@
-// "Estatísticas" (segundo separador do Início): no mesmo estilo da Visão geral —
-// cartões com cabeçalho (ícone + título) e seletores pequenos lá dentro.
-// Cartão "Resumo" (Geral/Semana + 4 indicadores) e cartão dos gráficos
-// (ansiedade por semana, gravidade, exposições, comportamentos largados).
+// "Estatísticas" (segundo separador do Início): cartão "Resumo" (Geral/Semana
+// + 4 indicadores) e cartão dos gráficos — o título é um seletor com 8
+// gráficos (ansiedade, previsão vs. realidade, exposições, gravidade, humor,
+// mapa de prática, dias sem comportamentos, comportamentos a largar) e um
+// período (semana, mês, 3 meses). Toque nos gráficos mostra cada valor.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { useLang , tr2 } from '../i18n/i18n';
 import {
   ActCommitment,
@@ -16,7 +16,11 @@ import {
   ExperimentEntry,
   ExposureSession,
   isoLocal,
+  JournalEntry,
   loadActCommitments,
+  loadJournal,
+  loadSafetyFree,
+  SafetyFreeDays,
   loadAttacks,
   loadChallengesDone,
   loadDropped,
@@ -36,6 +40,14 @@ import { radius, spacing } from '../theme/theme';
 import { behaviorLabel } from '../lib/behaviorLabel';
 import EmptyState from './EmptyState';
 import { Card, CardHeader, Segmented } from './ui';
+import { statsText } from '../data/statsText';
+import { changePct, countBy, fmtNum, heatmapGrid, lastDays, mean, Period, PERIOD_DAYS } from '../lib/statsData';
+import LineChart, { LinePoint } from './stats/LineChart';
+import BarChart from './stats/BarChart';
+import Heatmap from './stats/Heatmap';
+import ChartPicker, { ChartOption } from './stats/ChartPicker';
+
+type ChartId = 'anxiety' | 'severity' | 'exposures' | 'prediction' | 'mood' | 'heatmap' | 'freeDays' | 'dropped';
 
 function expStreakOf(days: string[]): number {
   const set = new Set(days);
@@ -62,7 +74,7 @@ const WEEKDAYS_BY_LANG: Record<string, string[]> = {
 
 export default function ProgressScreen() {
   const { colors } = useTheme();
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   // Cor por nível (0–5): verde baixo, amarelo médio, vermelho alto — do tema.
   const valueColor = (v: number) => (v >= 3.5 ? colors.chartHigh : v >= 2 ? colors.chartMid : colors.chartLow);
@@ -79,9 +91,10 @@ export default function ProgressScreen() {
   const [commitments, setCommitments] = useState<ActCommitment[]>([]);
   const [exerciseLog, setExerciseLog] = useState<ExerciseLogEntry[]>([]);
   const [statScope, setStatScope] = useState<'all' | 'week'>('all');
-  const [chartView, setChartView] = useState<'anxiety' | 'severity' | 'exposures' | 'dropped'>('anxiety');
-  const [chartW, setChartW] = useState(0);
-  const fearScrollRef = useRef<any>(null); // ScrollView; tipado como any p/ aceder a scrollToEnd (tipos do SDK 58)
+  const [chartView, setChartView] = useState<ChartId>('anxiety');
+  const [period, setPeriod] = useState<Period>('week');
+  const [journal, setJournal] = useState<JournalEntry[]>([]);
+  const [safetyFree, setSafetyFree] = useState<SafetyFreeDays>({});
 
   useEffect(() => {
     loadSeverity().then(setSeverity);
@@ -95,6 +108,8 @@ export default function ProgressScreen() {
     loadChallengesDone().then(setChallenges);
     loadActCommitments().then(setCommitments);
     loadExerciseLog().then(setExerciseLog);
+    loadJournal().then((j) => setJournal(Array.isArray(j) ? j : []));
+    loadSafetyFree().then(setSafetyFree);
   }, []);
 
   // Todas as datas de exercícios feitos (para contar "exercícios no geral").
@@ -140,13 +155,13 @@ export default function ProgressScreen() {
 
   // 4 cartões — mesmos indicadores, mudam conforme o âmbito escolhido (Geral / Semana).
   const statsAll = [
-    { icon: 'trending-down-outline' as const, value: expRel.length ? `${reliefPct}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRel.length ? `${relBefore.toFixed(1)} → ${relAfter.toFixed(1)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
+    { icon: 'trending-down-outline' as const, value: expRel.length ? `${reliefPct}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRel.length ? `${fmtNum(relBefore, 1, lang)} → ${fmtNum(relAfter, 1, lang)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
     { icon: 'flame-outline' as const, value: `${expStreak}`, label: L('dias seguidos', 'days in a row'), sub: L(`${totalExpDays} no total`, `${totalExpDays} total`), color: colors.primary, highlight: true },
     { icon: 'barbell-outline' as const, value: `${exercisesTotal}`, label: L('exercícios feitos', 'exercises done'), sub: L(`${exposures.length} de exposição`, `${exposures.length} exposure`), color: colors.primary },
     { icon: 'leaf-outline' as const, value: `${dropped.length}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('que já não alimentam o medo', 'no longer feeding the fear'), color: colors.success },
   ];
   const statsWeek = [
-    { icon: 'trending-down-outline' as const, value: expRelWeek.length ? `${reliefPctWeek}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRelWeek.length ? `${relBeforeWeek.toFixed(1)} → ${relAfterWeek.toFixed(1)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
+    { icon: 'trending-down-outline' as const, value: expRelWeek.length ? `${reliefPctWeek}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRelWeek.length ? `${fmtNum(relBeforeWeek, 1, lang)} → ${fmtNum(relAfterWeek, 1, lang)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
     { icon: 'flame-outline' as const, value: `${practiceDaysWeek}`, label: L('dias de prática', 'practice days'), sub: L('esta semana', 'this week'), color: colors.primary, highlight: true },
     { icon: 'barbell-outline' as const, value: `${exercisesWeek}`, label: L('exercícios feitos', 'exercises done'), sub: L('esta semana', 'this week'), color: colors.primary },
     { icon: 'leaf-outline' as const, value: `${droppedWeek}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('esta semana', 'this week'), color: colors.success },
@@ -154,16 +169,12 @@ export default function ProgressScreen() {
   const stats = statScope === 'week' ? statsWeek : statsAll;
 
   // --- Gráficos ---
-  const CHART_HEIGHT = 156;
-  const AX_LEFT = 26;
-  const AX_BOTTOM = 24;
-  const PAD = 12;
-  const PAD_X = 14;
-  const WEEKS = 12;
-  const plotH = CHART_HEIGHT - AX_BOTTOM;
-  const yAt = (v: number) => plotH - PAD - (v / 5) * (plotH - PAD * 2);
-  const dmShort = (iso: string) => { const p = iso.split('-'); return `${p[2]}/${p[1]}`; };
+  const sx = statsText(lang);
   const WEEKDAYS = WEEKDAYS_BY_LANG[lang] ?? WEEKDAYS_BY_LANG.en;
+  const nf = (v: number, dg = 1) => fmtNum(v, dg, lang);
+  const dm = (iso: string) => { const p = iso.split('-'); return `${p[2]}/${p[1]}`; };
+  const wdOf = (iso: string) => WEEKDAYS[(new Date(`${iso}T12:00:00`).getDay() + 6) % 7];
+  const todayIso = isoLocal();
 
   // Intensidade por dia (0–5): registos de medo, desconforto da exposição (SUDS 0–10 → 0–5)
   // e ataques (puxam para cima). Dia sem dados = sem ponto.
@@ -173,62 +184,194 @@ export default function ProgressScreen() {
     if (attacks.some((a) => a.date === d)) cands.push(4);
     return cands.length ? Math.min(5, Math.max(...cands)) : null;
   };
+  const sevFor = (d: string): number | null => {
+    const v = severity.filter((e) => e.date === d);
+    return v.length ? v[v.length - 1].value : null;
+  };
+  const moodFor = (d: string): number | null => mean(journal.filter((j) => j.date === d && typeof j.mood === 'number').map((j) => j.mood as number));
 
-  const nowD = new Date();
-  const dow = (nowD.getDay() + 6) % 7;
-  const monday = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - dow);
-  const weeks: string[][] = [];
-  for (let w = WEEKS - 1; w >= 0; w--) {
-    const wk: string[] = [];
-    for (let d = 0; d < 7; d++) {
-      const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - w * 7 + d);
-      wk.push(isoLocal(dt));
+  const nDays = PERIOD_DAYS[period];
+  const days = lastDays(nDays);
+  const prevDays = lastDays(nDays * 2).slice(0, nDays);
+  const inPeriod = (d: string) => d >= days[0];
+  const step = nDays === 7 ? 1 : nDays === 30 ? 7 : 21;
+  const dayLabels = days
+    .map((d, i) => ({ i, d }))
+    .filter(({ i }) => (nDays - 1 - i) % step === 0)
+    .map(({ i, d }) => ({ i, text: nDays === 7 ? wdOf(d) : dm(d), strong: d === todayIso }));
+  const daySlot = (i: number) => `${wdOf(days[i])}, ${dm(days[i])}`;
+
+  // Em 3 meses agrupa por semana (média), para a linha ficar legível.
+  const weekly = period === 'months3';
+  const buckets: string[][] = weekly
+    ? Array.from({ length: Math.ceil(nDays / 7) }, (_, k) => days.slice(Math.max(0, nDays - (Math.ceil(nDays / 7) - k) * 7), nDays - (Math.ceil(nDays / 7) - k - 1) * 7))
+    : days.map((d) => [d]);
+  const nSlots = buckets.length;
+  const dailySeries = (fn: (d: string) => number | null) =>
+    buckets.map((b, i) => ({ i, v: mean(b.map(fn).filter((v): v is number => v !== null)) })).filter((p): p is LinePoint => p.v !== null);
+  const bucketSlot = (i: number) => (weekly ? `${dm(buckets[i][0])} – ${dm(buckets[i][buckets[i].length - 1])}` : daySlot(i));
+  const bucketLabels = weekly
+    ? buckets.map((b, i) => ({ i, text: dm(b[0]), strong: false })).filter(({ i }) => (nSlots - 1 - i) % 4 === 0)
+    : dayLabels;
+  const avgOver = (fn: (d: string) => number | null, ds: string[]) => mean(ds.map(fn).filter((v): v is number => v !== null));
+
+  const moodColor = (v: number) => (v >= 3.5 ? colors.chartLow : v >= 2.5 ? colors.chartMid : colors.chartHigh);
+  const periodOpts: [Period, string][] = [['week', sx.week], ['month', sx.month], ['months3', sx.months3]];
+
+  const chartOptions: ChartOption<ChartId>[] = [
+    { id: 'anxiety', icon: 'pulse-outline', name: sx.n_anxiety, desc: sx.d_anxiety },
+    { id: 'prediction', icon: 'flask-outline', name: sx.n_prediction, desc: sx.d_prediction },
+    { id: 'exposures', icon: 'trending-up-outline', name: sx.n_exposures, desc: sx.d_exposures },
+    { id: 'severity', icon: 'speedometer-outline', name: sx.n_severity, desc: sx.d_severity },
+    { id: 'mood', icon: 'happy-outline', name: sx.n_mood, desc: sx.d_mood },
+    { id: 'heatmap', icon: 'grid-outline', name: sx.n_heatmap, desc: sx.d_heatmap },
+    { id: 'freeDays', icon: 'checkmark-done-outline', name: sx.n_freeDays, desc: sx.d_freeDays },
+    { id: 'dropped', icon: 'leaf-outline', name: sx.n_dropped, desc: sx.d_dropped },
+  ];
+  const usesPeriod = chartView !== 'heatmap' && chartView !== 'dropped';
+
+  // Variação face ao período anterior (para os gráficos diários).
+  const change = (fn: (d: string) => number | null, goodWhenUp = false) => {
+    const pct = changePct(avgOver(fn, days), avgOver(fn, prevDays));
+    if (pct === null) return null;
+    const good = goodWhenUp ? pct > 0 : pct < 0;
+    const c = pct === 0 ? colors.textMuted : good ? colors.success : colors.danger;
+    const icon = pct < 0 ? 'arrow-down' : pct > 0 ? 'arrow-up' : 'remove';
+    return (
+      <View style={{ alignItems: 'flex-end', gap: 2 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.cardAlt, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 }}>
+          <Ionicons name={icon as any} size={13} color={c} />
+          <Text style={{ color: c, fontWeight: '600', fontSize: 13 }}>{Math.abs(pct)}%</Text>
+        </View>
+        <Text style={{ color: colors.textMuted, fontSize: 10 }}>{sx.vsPrev}</Text>
+      </View>
+    );
+  };
+  const legend = (items: [string, string][]) => (
+    <View style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap' }}>
+      {items.map(([c, l]) => (
+        <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <View style={{ width: 12, height: 3, borderRadius: 2, backgroundColor: c }} />
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{l}</Text>
+        </View>
+      ))}
+    </View>
+  );
+  const avgLegend = (avgV: number | null, scale: string) => avgV === null ? null : (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <View style={{ width: 14, height: 0, borderTopWidth: 1.5, borderStyle: 'dashed', borderColor: colors.textMuted }} />
+      <Text style={{ color: colors.textMuted, fontSize: 12 }}>{sx.avg} {nf(avgV)}{scale}</Text>
+    </View>
+  );
+  const empty = (title: string, icon: keyof typeof Ionicons.glyphMap = 'analytics-outline') => <EmptyState compact icon={icon} title={title} />;
+
+  function renderChart() {
+    if (chartView === 'anxiety' || chartView === 'severity' || chartView === 'mood') {
+      const fn = chartView === 'anxiety' ? fearFor : chartView === 'severity' ? sevFor : moodFor;
+      const pts = dailySeries(fn);
+      const avgV = mean(pts.map((p) => p.v));
+      const isMood = chartView === 'mood';
+      if (!pts.length) return empty(isMood ? sx.emptyMood : sx.empty, isMood ? 'happy-outline' : 'pulse-outline');
+      return (
+        <>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            {avgLegend(avgV, isMood ? '/5' : '/5')}
+            {change(fn, isMood)}
+          </View>
+          <LineChart
+            series={[{ color: colors.primary, points: pts, fill: true, dotColor: isMood ? moodColor : valueColor }]}
+            n={nSlots}
+            yMin={isMood ? 1 : 0}
+            yMax={5}
+            yTicks={isMood ? [1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5]}
+            xLabels={bucketLabels}
+            avg={avgV}
+            format={(v) => nf(v)}
+            slotLabel={bucketSlot}
+          />
+        </>
+      );
     }
-    weeks.push(wk);
+    if (chartView === 'exposures' || chartView === 'prediction') {
+      const isPred = chartView === 'prediction';
+      const list = [...exposures]
+        .filter((e) => inPeriod(e.date) && (isPred ? typeof e.prob === 'number' : typeof e.before === 'number'))
+        .sort((x, y) => ((x.ts || x.date) < (y.ts || y.date) ? -1 : 1));
+      if (!list.length) return empty(isPred ? sx.emptyPrediction : sx.empty, isPred ? 'flask-outline' : 'trending-up-outline');
+      const aVal = (e: ExposureSession) => (isPred ? e.prob! : e.before);
+      const bVal = (e: ExposureSession) => (isPred ? e.probAfter : e.after);
+      const aPts = list.map((e, i) => ({ i, v: aVal(e) }));
+      const bPts = list.map((e, i) => ({ i, v: bVal(e) })).filter((p): p is LinePoint => typeof p.v === 'number');
+      const mA = mean(aPts.map((p) => p.v)), mB = mean(bPts.map((p) => p.v));
+      const fmt = (v: number) => (isPred ? `${Math.round(v)}%` : nf(v));
+      const xl = list.length === 1 ? [{ i: 0, text: dm(list[0].date) }] : [{ i: 0, text: dm(list[0].date) }, { i: list.length - 1, text: dm(list[list.length - 1].date) }];
+      return (
+        <>
+          {mA !== null && mB !== null && (
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{sx.onAverage}</Text>
+              <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600' }}>{fmt(mA)} → {fmt(mB)}</Text>
+              {mB < mA && <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>−{isPred ? `${Math.round(mA - mB)}%` : nf(mA - mB)}</Text>}
+            </View>
+          )}
+          {legend([[colors.primary, sx.before], [colors.success, sx.after]])}
+          <LineChart
+            series={[
+              { color: colors.primary, points: aPts, label: sx.before },
+              { color: colors.success, points: bPts, label: sx.after },
+            ]}
+            n={list.length}
+            yMin={0}
+            yMax={isPred ? 100 : 10}
+            yTicks={isPred ? [0, 50, 100] : [0, 5, 10]}
+            tickFormat={isPred ? (v) => `${v}%` : undefined}
+            leftW={isPred ? 42 : 30}
+            xLabels={xl}
+            format={fmt}
+            slotLabel={(i) => `${dm(list[i].date)} · ${list[i].stepLabel}`}
+          />
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{isPred ? sx.predHint : sx.expHint}</Text>
+        </>
+      );
+    }
+    if (chartView === 'freeDays') {
+      const values = days.map((d) => Object.values(safetyFree).filter((l) => Array.isArray(l) && l.includes(d)).length);
+      const total = values.reduce((a, b) => a + b, 0);
+      if (!total) return empty(sx.emptyFree, 'checkmark-done-outline');
+      return (
+        <>
+          <Text style={{ color: colors.text, fontSize: 15 }}>{sx.total}: <Text style={{ fontWeight: '700', color: colors.success }}>{total}</Text></Text>
+          <BarChart values={values} xLabels={dayLabels} slotLabel={daySlot} color={colors.success} />
+        </>
+      );
+    }
+    if (chartView === 'heatmap') {
+      const grid = heatmapGrid(countBy([...allExerciseDates, ...expDays]), 13);
+      const daysWith = grid.flat().filter((c) => c && c.n > 0).length;
+      return (
+        <>
+          <Text style={{ color: colors.text, fontSize: 15 }}>{sx.daysPractice}: <Text style={{ fontWeight: '700', color: colors.primary }}>{daysWith}</Text></Text>
+          <Heatmap grid={grid} weekdays={WEEKDAYS} less={sx.less} more={sx.more} dayLabel={(iso, k) => `${wdOf(iso)}, ${dm(iso)} · ${k}`} />
+        </>
+      );
+    }
+    // Comportamentos a largar
+    if (dropped.length === 0) return empty(sx.emptyDropped, 'leaf-outline');
+    return (
+      <View>
+        {[...dropped].sort((x, y) => (x.date < y.date ? 1 : -1)).slice(0, 8).map((d, i) => (
+          <View key={d.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
+            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.successSoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="leaf-outline" size={14} color={colors.success} />
+            </View>
+            <Text style={{ color: colors.text, fontSize: 14, flex: 1 }} numberOfLines={2}>{behaviorLabel(d.id, d.label, lang)}</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{dm(d.date)}</Text>
+          </View>
+        ))}
+      </View>
+    );
   }
-  const allFearVals = weeks.flat().map(fearFor).filter((v): v is number => v !== null);
-  const avg = allFearVals.length ? allFearVals.reduce((s, v) => s + v, 0) / allFearVals.length : 0;
-
-  // Variação da ansiedade desta semana face à anterior (negativo = desceu = bom).
-  const weekAvg = (wk: string[]): number | null => {
-    const vals = wk.map(fearFor).filter((v): v is number => v !== null);
-    return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
-  };
-  const thisWeekAvg = weeks.length ? weekAvg(weeks[weeks.length - 1]) : null;
-  const lastWeekAvg = weeks.length > 1 ? weekAvg(weeks[weeks.length - 2]) : null;
-  const weekPct =
-    thisWeekAvg !== null && lastWeekAvg !== null && lastWeekAvg > 0
-      ? Math.round(((thisWeekAvg - lastWeekAvg) / lastWeekAvg) * 100)
-      : null;
-
-  const visibleW = Math.max(0, chartW - AX_LEFT);
-  const innerW = Math.max(0, visibleW - PAD_X * 2);
-  const xAt = (j: number) => PAD_X + (innerW / 6) * j;
-
-  const smoothLine = (ps: { x: number; y: number }[]) => {
-    if (ps.length < 2) return '';
-    let d = `M ${ps[0].x},${ps[0].y}`;
-    for (let i = 0; i < ps.length - 1; i++) {
-      const p0 = ps[i - 1] || ps[i];
-      const p1 = ps[i];
-      const p2 = ps[i + 1];
-      const p3 = ps[i + 2] || p2;
-      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
-      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
-      d += ` C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
-    }
-    return d;
-  };
-  const smoothArea = (ps: { x: number; y: number }[], baseY: number) => {
-    if (ps.length < 2) return '';
-    return `${smoothLine(ps)} L ${ps[ps.length - 1].x},${baseY} L ${ps[0].x},${baseY} Z`;
-  };
-
-
-  const chartTitle = chartView === 'anxiety' ? L('Ansiedade ao longo do tempo', 'Anxiety over time')
-    : chartView === 'severity' ? L('Gravidade da fobia ao longo do tempo', 'Phobia severity over time')
-    : chartView === 'exposures' ? L('Exposições: desconforto antes vs depois', 'Exposures: distress before vs after')
-    : L('Comportamentos que estás a largar', 'Behaviours you are dropping');
+  const curOpt = chartOptions.find((o) => o.id === chartView) ?? chartOptions[0];
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.lg, gap: spacing.lg, paddingBottom: 120 }}>
@@ -241,7 +384,7 @@ export default function ProgressScreen() {
             <View key={s.label} style={{ width: '48.5%', backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.md, gap: 2 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Ionicons name={s.icon} size={15} color={s.color} />
-                <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>{s.value}</Text>
+                <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600' }}>{s.value}</Text>
               </View>
               <Text style={{ color: colors.text, fontSize: 13 }}>{s.label}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>{s.sub}</Text>
@@ -253,237 +396,14 @@ export default function ProgressScreen() {
         </Text>
       </Card>
 
-      {/* Gráficos */}
+      {/* Gráficos: o título é um seletor; período por baixo */}
       <Card style={{ gap: spacing.md }}>
-        <CardHeader
-          icon="analytics-outline"
-          title={chartTitle}
-          right={chartView === 'dropped' && dropped.length > 0 ? (
-            <View style={{ backgroundColor: colors.successSoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
-              <Text style={{ color: colors.success, fontWeight: '700', fontSize: 13 }}>{dropped.length}</Text>
-            </View>
-          ) : undefined}
-        />
-        <Segmented
-          value={chartView}
-          onChange={setChartView}
-          options={[['anxiety', L('Ansiedade', 'Anxiety')], ['severity', L('Gravidade', 'Severity')], ['exposures', L('Exposições', 'Exposures')], ['dropped', L('Largados', 'Dropped')]]}
-        />
-        {chartView === 'anxiety' ? (
-          <>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Intensidade diária (0–5) · média', 'Daily intensity (0–5) · average')} {avg.toFixed(1)}/5</Text>
-              </View>
-              {weekPct !== null && (() => {
-                const c = weekPct < 0 ? colors.success : weekPct > 0 ? colors.danger : colors.textMuted;
-                const icon = weekPct < 0 ? 'arrow-down' : weekPct > 0 ? 'arrow-up' : 'remove';
-                return (
-                  <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.cardAlt, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 }}>
-                      <Ionicons name={icon as any} size={13} color={c} />
-                      <Text style={{ color: c, fontWeight: '600', fontSize: 13 }}>{Math.abs(weekPct)}%</Text>
-                    </View>
-                    <Text style={{ color: colors.textMuted, fontSize: 10 }}>{L('vs. semana passada', 'vs. last week')}</Text>
-                  </View>
-                );
-              })()}
-            </View>
-            {allFearVals.length === 0 ? (
-              <EmptyState compact icon="pulse-outline" title={t('progress.chartEmpty')} />
-            ) : (
-              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', height: CHART_HEIGHT + 24, alignItems: 'flex-start' }}>
-                <Svg width={AX_LEFT} height={CHART_HEIGHT}>
-                  {[0, 1, 2, 3, 4, 5].map((v) => (
-                    <SvgText key={'y' + v} x={AX_LEFT - 6} y={yAt(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
-                  ))}
-                </Svg>
-                {chartW > 0 && (
-                  <ScrollView
-                    ref={fearScrollRef}
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    style={{ width: visibleW, height: CHART_HEIGHT + 24 }}
-                    onContentSizeChange={() => fearScrollRef.current?.scrollToEnd({ animated: false })}
-                  >
-                    {weeks.map((wk, wi) => {
-                      const pts = wk
-                        .map((d, j) => { const v = fearFor(d); return v === null ? null : { x: xAt(j), y: yAt(v), v }; })
-                        .filter((p): p is { x: number; y: number; v: number } => p !== null);
-                      const baseY = yAt(0);
-                      const line = smoothLine(pts);
-                      const area = smoothArea(pts, baseY);
-                      const last = pts[pts.length - 1];
-                      const gid = `fearGrad${wi}`;
-                      const lineGid = `fearLine${wi}`;
-                      const todayIso = isoLocal();
-                      const range = `${dmShort(wk[0])} – ${dmShort(wk[6])}`;
-                      return (
-                        <View key={wi} style={{ width: visibleW }}>
-                          <Svg width={visibleW} height={CHART_HEIGHT}>
-                            <Defs>
-                              <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-                                <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
-                                <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
-                              </LinearGradient>
-                              {/* Cor da linha pela intensidade: vermelho em cima → amarelo → verde em baixo */}
-                              <LinearGradient id={lineGid} x1="0" y1={yAt(5)} x2="0" y2={yAt(0)} gradientUnits="userSpaceOnUse">
-                                <Stop offset="0" stopColor={colors.chartHigh} />
-                                <Stop offset="0.5" stopColor={colors.chartMid} />
-                                <Stop offset="1" stopColor={colors.chartLow} />
-                              </LinearGradient>
-                            </Defs>
-                            {[0, 1, 2, 3, 4, 5].map((v) => (
-                              <Line key={'g' + v} x1={PAD_X} y1={yAt(v)} x2={visibleW - PAD_X} y2={yAt(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={v === 0 ? 0.7 : 0.45} strokeLinecap="round" />
-                            ))}
-                            {WEEKDAYS.map((wd, j) => {
-                              const isToday = wk[j] === todayIso;
-                              return (
-                                <SvgText key={'wd' + j} x={xAt(j)} y={CHART_HEIGHT - 7} fontSize={11} fontWeight={isToday ? '600' : '400'} fill={isToday ? colors.primary : colors.textMuted} textAnchor="middle">{wd}</SvgText>
-                              );
-                            })}
-                            {pts.length > 1 && <Path d={area} fill={`url(#${gid})`} />}
-                            {pts.length > 1 && <Path d={line} fill="none" stroke={`url(#${lineGid})`} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
-                            {pts.length === 1 && <Circle cx={pts[0].x} cy={pts[0].y} r={5} fill={colors.card} stroke={valueColor(pts[0].v)} strokeWidth={3} />}
-                            {last && <Circle cx={last.x} cy={last.y} r={9} fill={valueColor(last.v)} opacity={0.14} />}
-                            {pts.map((p, i) => {
-                              const isLast = i === pts.length - 1;
-                              return (
-                                <Circle key={'p' + i} cx={p.x} cy={p.y} r={isLast ? 5 : 4} fill={colors.card} stroke={valueColor(p.v)} strokeWidth={isLast ? 3 : 2} />
-                              );
-                            })}
-                            {last && (
-                              <SvgText x={last.x} y={Math.max(18, last.y - 12)} fontSize={10} fontWeight="600" fill={valueColor(last.v)} textAnchor="middle">{last.v.toFixed(1)}</SvgText>
-                            )}
-                          </Svg>
-                          <Text style={{ textAlign: 'center', marginTop: 4, fontSize: 11, color: colors.textMuted }}>{range}</Text>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                )}
-              </View>
-            )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Junta os registos de gravidade, o desconforto nas exposições e os ataques.', 'Combines your severity check-ins, distress in exposures and attacks.')}</Text>
-          </>
-        ) : chartView === 'severity' ? (
-          <>
-            <View style={{ gap: 2 }}>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Os teus check-ins de gravidade (0–5)', 'Your severity check-ins (0–5)')}</Text>
-            </View>
-            {severity.length < 2 ? (
-              <EmptyState compact icon="trending-down-outline" title={L('Regista a gravidade algumas vezes para veres a tendência aqui.', 'Log your severity a few times to see the trend here.')} />
-            ) : (
-              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
-                {chartW > 0 && (() => {
-                  const chron = [...severity].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-16);
-                  const w = chartW, h = CHART_HEIGHT, nn = chron.length;
-                  const left = 24, padR = 14, padTop = 12, padBot = 26; // em baixo: datas
-                  const gap = 12; // afasta o primeiro ponto do eixo
-                  const xA = (i: number) => (nn <= 1 ? (left + w - padR) / 2 : left + gap + (i / (nn - 1)) * (w - left - gap - padR));
-                  const yA = (v: number) => (h - padBot) - (v / 5) * (h - padBot - padTop);
-                  const pts = chron.map((s, i) => ({ x: xA(i), y: yA(s.value) }));
-                  const last = pts[pts.length - 1];
-                  const lastVal = chron[chron.length - 1].value;
-                  return (
-                    <Svg width={w} height={h}>
-                      <Defs>
-                        <LinearGradient id="sevGrad" x1="0" y1="0" x2="0" y2="1">
-                          <Stop offset="0" stopColor={colors.primary} stopOpacity={0.26} />
-                          <Stop offset="1" stopColor={colors.primary} stopOpacity={0} />
-                        </LinearGradient>
-                      </Defs>
-                      {[0, 1, 2, 3, 4, 5].map((v) => (
-                        <Line key={'g' + v} x1={left} y1={yA(v)} x2={w - padR} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={v === 0 ? 0.7 : 0.4} strokeLinecap="round" />
-                      ))}
-                      {[0, 1, 2, 3, 4, 5].map((v) => (
-                        <SvgText key={'yl' + v} x={left - 5} y={yA(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
-                      ))}
-                      {pts.length > 1 && <Path d={smoothArea(pts, yA(0))} fill="url(#sevGrad)" />}
-                      {pts.length > 1 && <Path d={smoothLine(pts)} fill="none" stroke={colors.primary} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />}
-                      {pts.map((p, i) => (
-                        <Circle key={'p' + i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 4} fill={colors.card} stroke={colors.primary} strokeWidth={i === pts.length - 1 ? 3 : 2} />
-                      ))}
-                      {last && <SvgText x={last.x} y={Math.max(16, last.y - 12)} fontSize={11} fontWeight="600" fill={colors.primary} textAnchor="middle">{lastVal.toFixed(0)}</SvgText>}
-                      {/* Datas: primeiro e último registo */}
-                      <SvgText x={pts[0].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="start">{dmShort(chron[0].date)}</SvgText>
-                      <SvgText x={last.x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="end">{dmShort(chron[chron.length - 1].date)}</SvgText>
-                    </Svg>
-                  );
-                })()}
-              </View>
-            )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Uma linha a descer mostra que a fobia está a pesar menos.', 'A downward line means the phobia is weighing on you less.')}</Text>
-          </>
-        ) : chartView === 'exposures' ? (
-          <>
-            {expRel.length > 0 && (
-              // O número que importa: quanto desce o desconforto, em média, numa exposição.
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Em média', 'On average')}</Text>
-                <Text style={{ color: colors.text, fontSize: 20, fontWeight: '600' }}>{relBefore.toFixed(1)} → {relAfter.toFixed(1)}</Text>
-                <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>−{Math.max(0, relBefore - relAfter).toFixed(1)}</Text>
-              </View>
-            )}
-            <View style={{ flexDirection: 'row', gap: 14 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('antes', 'before')}</Text></View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><View style={{ width: 10, height: 3, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('depois', 'after')}</Text></View>
-            </View>
-            {exposures.length < 2 ? (
-              <EmptyState compact icon="barbell-outline" title={L('Regista sessões de exposição para veres a evolução aqui.', 'Log exposure sessions to see the trend here.')} />
-            ) : (
-              <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)} style={{ height: CHART_HEIGHT }}>
-                {chartW > 0 && (() => {
-                  const chrono = [...exposures].reverse().slice(-12); // mais antigas → recentes
-                  const w = chartW, h = CHART_HEIGHT, pad = 10, nn = chrono.length;
-                  const left = pad + 22; // espaço para a escala 0–10
-                  const bottom = 22;     // espaço para as datas
-                  const xA = (i: number) => (nn <= 1 ? w / 2 : left + (i / (nn - 1)) * (w - left - pad));
-                  const yA = (v: number) => (h - bottom) - (v / 10) * (h - bottom - pad);
-                  const bPts = chrono.map((s, i) => ({ x: xA(i), y: yA(s.before) }));
-                  const aPts = chrono.map((s, i) => ({ x: xA(i), y: yA(typeof s.after === 'number' ? s.after : s.before) }));
-                  return (
-                    <Svg width={w} height={h}>
-                      {[0, 5, 10].map((v) => (
-                        <Line key={v} x1={pad + 16} y1={yA(v)} x2={w - pad} y2={yA(v)} stroke={colors.border} strokeWidth={1} strokeDasharray={v === 0 ? undefined : '2 5'} opacity={0.5} />
-                      ))}
-                      {[0, 5, 10].map((v) => (
-                        <SvgText key={'yl' + v} x={pad + 10} y={yA(v) + 3} fontSize={11} fill={colors.textMuted} textAnchor="end">{String(v)}</SvgText>
-                      ))}
-                      <Path d={smoothLine(bPts)} fill="none" stroke={colors.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-                      <Path d={smoothLine(aPts)} fill="none" stroke={colors.success} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-                      {bPts.map((p, i) => (<Circle key={'b' + i} cx={p.x} cy={p.y} r={3} fill={colors.primary} />))}
-                      {aPts.map((p, i) => (<Circle key={'a' + i} cx={p.x} cy={p.y} r={3} fill={colors.success} />))}
-                      {/* Datas: primeira e última sessão mostradas */}
-                      <SvgText x={bPts[0].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="start">{dmShort(chrono[0].date)}</SvgText>
-                      <SvgText x={bPts[bPts.length - 1].x} y={h - 6} fontSize={11} fill={colors.textMuted} textAnchor="end">{dmShort(chrono[chrono.length - 1].date)}</SvgText>
-                    </Svg>
-                  );
-                })()}
-              </View>
-            )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('A distância entre as linhas costuma encolher com a prática.', 'The gap between the lines tends to shrink with practice.')}</Text>
-          </>
-        ) : (
-          <>
-            {dropped.length === 0 ? (
-              <EmptyState compact icon="leaf-outline" title={L('Marca um comportamento como "a largar" em Recursos › Comportamentos para veres aqui o teu progresso.', 'Mark a behaviour as "dropping" in Resources › Behaviours to see your progress here.')} />
-            ) : (
-              <View>
-                {[...dropped].sort((x, y) => (x.date < y.date ? 1 : -1)).slice(0, 6).map((d, i) => (
-                  <View key={d.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.successSoft, alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name="leaf-outline" size={14} color={colors.success} />
-                    </View>
-                    <Text style={{ color: colors.text, fontSize: 14, flex: 1 }} numberOfLines={2}>{behaviorLabel(d.id, d.label, lang)}</Text>
-                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>{dmShort(d.date)}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('Os comportamentos que começaste a largar, dos mais recentes para os mais antigos.', 'The behaviours you have started dropping, most recent first.')}</Text>
-          </>
+        <ChartPicker value={chartView} onChange={setChartView} options={chartOptions} title={sx.choose} />
+        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18, marginTop: -6 }}>{curOpt.desc}</Text>
+        {usesPeriod && <Segmented value={period} onChange={setPeriod} options={periodOpts} />}
+        {renderChart()}
+        {(chartView === 'anxiety' || chartView === 'severity' || chartView === 'mood' || chartView === 'exposures' || chartView === 'prediction' || chartView === 'freeDays') && (
+          <Text style={{ color: colors.textMuted, fontSize: 11 }}>{sx.tapHint}</Text>
         )}
       </Card>
     </ScrollView>
