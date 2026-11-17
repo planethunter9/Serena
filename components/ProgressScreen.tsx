@@ -219,14 +219,14 @@ export default function ProgressScreen() {
   const periodOpts: [Period, string][] = [['week', sx.week], ['month', sx.month], ['months3', sx.months3]];
 
   const chartOptions: ChartOption<ChartId>[] = [
-    { id: 'anxiety', icon: 'pulse-outline', name: sx.n_anxiety, desc: sx.d_anxiety },
-    { id: 'prediction', icon: 'flask-outline', name: sx.n_prediction, desc: sx.d_prediction },
-    { id: 'exposures', icon: 'trending-up-outline', name: sx.n_exposures, desc: sx.d_exposures },
-    { id: 'severity', icon: 'speedometer-outline', name: sx.n_severity, desc: sx.d_severity },
-    { id: 'mood', icon: 'happy-outline', name: sx.n_mood, desc: sx.d_mood },
-    { id: 'heatmap', icon: 'grid-outline', name: sx.n_heatmap, desc: sx.d_heatmap },
-    { id: 'freeDays', icon: 'checkmark-done-outline', name: sx.n_freeDays, desc: sx.d_freeDays },
-    { id: 'dropped', icon: 'leaf-outline', name: sx.n_dropped, desc: sx.d_dropped },
+    { id: 'anxiety', icon: 'pulse-outline', sf: 'waveform.path.ecg', name: sx.n_anxiety, desc: sx.d_anxiety },
+    { id: 'prediction', icon: 'flask-outline', sf: 'flask', name: sx.n_prediction, desc: sx.d_prediction },
+    { id: 'exposures', icon: 'trending-up-outline', sf: 'chart.line.uptrend.xyaxis', name: sx.n_exposures, desc: sx.d_exposures },
+    { id: 'severity', icon: 'speedometer-outline', sf: 'gauge.with.needle', name: sx.n_severity, desc: sx.d_severity },
+    { id: 'mood', icon: 'happy-outline', sf: 'face.smiling', name: sx.n_mood, desc: sx.d_mood },
+    { id: 'heatmap', icon: 'grid-outline', sf: 'square.grid.3x3', name: sx.n_heatmap, desc: sx.d_heatmap },
+    { id: 'freeDays', icon: 'checkmark-done-outline', sf: 'checkmark.circle', name: sx.n_freeDays, desc: sx.d_freeDays },
+    { id: 'dropped', icon: 'leaf-outline', sf: 'leaf', name: sx.n_dropped, desc: sx.d_dropped },
   ];
   const usesPeriod = chartView !== 'heatmap' && chartView !== 'dropped';
 
