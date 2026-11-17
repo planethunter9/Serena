@@ -175,16 +175,7 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
         </Card>
 
         {/* Hoje */}
-        {todays.length === 0 ? (
-          <View style={{ alignItems: 'center', gap: 6, paddingVertical: spacing.lg, paddingHorizontal: spacing.lg }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-              <Ionicons name="book-outline" size={26} color={colors.primary} />
-            </View>
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>{jx.emptyTitle}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20, textAlign: 'center' }}>{jx.emptyBody}</Text>
-          </View>
-        ) : (
-          todays.map((e) => (
+        {todays.map((e) => (
             <Card key={e.id} style={{ gap: 6 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 {e.mood ? <Text style={{ fontSize: 18 }} accessibilityLabel={jx.moods[e.mood - 1]}>{MOOD_EMOJI[e.mood - 1]}</Text> : null}
@@ -205,8 +196,7 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
                 </View>
               ) : null}
             </Card>
-          ))
-        )}
+          ))}
       </ScrollView>
     </KeyboardAvoidingView>
   );
