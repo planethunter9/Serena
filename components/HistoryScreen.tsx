@@ -6,6 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { exposureText } from '../data/exposureText';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { tr2, useLang } from '../i18n/i18n';
 import {
@@ -87,6 +88,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
       const arr = <T,>(x: T[] | null | undefined) => (Array.isArray(x) ? x : []);
       const noon = (d: string) => `${d}T12:00:00`;
       const yesNo = (b: boolean) => (b ? L('Sim', 'Yes') : L('Não', 'No'));
+      const ex = exposureText(lang);
       const out: Item[] = [];
       const push = (it: Item) => out.push({ ...it, details: it.details.filter(([, v]) => v != null && String(v).trim() !== '') });
 
@@ -94,7 +96,12 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
         id: 'exp:' + s.id, kind: 'exposure', ts: s.ts || noon(s.date), date: s.date,
         title: s.stepLabel, summary: `${s.before} → ${s.peak} → ${s.after}`,
         details: [
+          [ex.fear, s.fear ?? ''],
+          [ex.probQ, typeof s.prob === 'number' ? `${s.prob}%${typeof s.probAfter === 'number' ? ` → ${s.probAfter}%` : ''}` : ''],
+          [ex.happened, s.happened ? (s.happened === 'yes' ? ex.yes : s.happened === 'partly' ? ex.partly : ex.no) : ''],
           [L('Antes / pico / depois', 'Before / peak / after'), `${s.before} / ${s.peak} / ${s.after}`],
+          [ex.duration, s.minutes ? `${s.minutes} ${ex.min}` : ''],
+          [ex.learnedQ, s.learned ?? ''],
           [L('Nota', 'Note'), s.note],
         ],
       });

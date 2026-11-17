@@ -205,7 +205,7 @@ export const dict: Record<string, string> = {
   'exposure.reorder': 'Herschikken',
   'settings.personalization': 'Personalisatie',
   'exposure.guideTitle': 'Hoe het werkt',
-  'exposure.guide': 'Kies een stap die uitdagend maar haalbaar is (~3-5). Blijf bij het ongemak tot het ongeveer de helft zakt, zonder te vluchten. Herhaal tot het makkelijk is en ga dan omhoog.',
+  'exposure.guide': 'Kies een stap die uitdagend maar haalbaar is (~3-5). Schrijf eerst op wat je vreest dat er gebeurt; blijf daarna in de situatie zonder te vluchten – je hoeft niet te wachten tot het ongemak zakt. Kijk aan het eind of je voorspelling uitkwam. Wissel de stappen af en herhaal.',
   'exposure.safety': 'Dwing jezelf nooit tot braken. Ga in je eigen tempo.',
   'exposure.addStep': 'Voeg je eigen stap toe...',
   'exposure.sudsHint': 'Schaal 0 tot 10 (10 = de ergst mogelijke paniek).',

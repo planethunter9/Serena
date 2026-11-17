@@ -205,7 +205,7 @@ export const dict: Record<string, string> = {
   'exposure.reorder': 'Reordenar',
   'settings.personalization': 'Personalização',
   'exposure.guideTitle': 'Como funciona',
-  'exposure.guide': 'Escolha um degrau que seja desafiador mas possível (~3-5). Fique com o desconforto até baixar cerca de metade, sem fugir. Repita até ficar fácil e só depois suba.',
+  'exposure.guide': 'Escolha um degrau desafiador mas possível (~3-5). Antes, escreva o que você teme que aconteça; depois, fique na situação sem fugir — não precisa esperar o desconforto baixar. No fim, veja se a previsão se cumpriu. Varie os degraus e repita.',
   'exposure.safety': 'Nunca se force a vomitar. Vá no seu ritmo.',
   'exposure.addStep': 'Adicione o seu degrau...',
   'exposure.sudsHint': 'Escala de 0 a 10 (10 = o pior pânico possível).',

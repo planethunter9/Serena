@@ -284,7 +284,17 @@ export async function mergeUserData(cloud: Record<string, string>): Promise<bool
 
 // --- Exercícios: exposição e reestruturação cognitiva --------------------
 
-export type ExposureSession = { id: string; stepId: string; stepLabel: string; date: string; ts: string; before: number; peak: number; after: number; note: string };
+export type ExposureSession = {
+  id: string; stepId: string; stepLabel: string; date: string; ts: string; before: number; peak: number; after: number; note: string;
+  // Aprendizagem inibitória (opcionais: sessões antigas não os têm).
+  fear?: string;            // o que temia que acontecesse
+  prob?: number;            // quão provável parecia antes (0–100)
+  happened?: 'yes' | 'partly' | 'no';
+  probAfter?: number;       // quão provável parece depois (0–100)
+  learned?: string;
+  minutes?: number;         // duração, se usou o modo "Estou a fazer agora"
+  checkins?: number[];      // desconforto a cada 2 min durante a sessão
+};
 export type ThoughtRecord = { id: string; date: string; ts: string; situation: string; thought: string; before: number; traps?: string[]; evidenceFor: string; evidenceAgainst: string; balanced: string; after: number };
 
 export async function loadExposureSteps(): Promise<ProfileItem[]> {

@@ -107,7 +107,11 @@ export async function collectReportData(opts: {
       triggers: arr(onb?.triggers).map(labelOf).filter(Boolean),
       symptoms: arr(onb?.symptoms).map(labelOf).filter(Boolean),
     },
-    exposures: exposures.map((e) => ({ date: fmtDate(e.date, lang), step: e.stepLabel, before: e.before, peak: e.peak, after: e.after, note: e.note })),
+    exposures: exposures.map((e) => ({
+      date: fmtDate(e.date, lang), step: e.stepLabel, before: e.before, peak: e.peak, after: e.after,
+      note: [e.learned, e.note].filter(Boolean).join(' · '),
+      feared: e.fear, prob: e.prob, probAfter: e.probAfter, happened: e.happened,
+    })),
     unplanned: unplanned.map((u) => ({
       date: fmtDate(u.date, lang),
       what: [...arr(u.triggers).map(unplannedTrigger), includeNotes ? u.where : ''].filter(Boolean).join(' · ') || '–',

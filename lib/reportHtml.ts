@@ -13,7 +13,7 @@ export type ReportData = {
   avgDiscomfort?: { before: number; after: number } | null;
   severity?: { first: number; last: number } | null;
   profile: { triggers: string[]; symptoms: string[] };
-  exposures: { date: string; step: string; before: number; peak: number; after: number; note?: string }[];
+  exposures: { date: string; step: string; before: number; peak: number; after: number; note?: string; feared?: string; prob?: number; probAfter?: number; happened?: 'yes' | 'partly' | 'no' }[];
   unplanned: { date: string; what: string; before: number; peak?: number; after: number; stayed: boolean; feared?: string; happened?: 'yes' | 'partly' | 'no' }[];
   hard: { date: string; type: 'anxiety' | 'panic' | 'behavior'; reason?: string; vomited?: boolean }[];
   safety: { inUse: string[]; dropping: string[]; dropped: { label: string; date: string }[] };
@@ -58,8 +58,16 @@ export function buildReportHtml(d: ReportData, x: ReportText, lang: string): str
     d.profile.symptoms.length ? `<p><b>${esc(x.symptoms)}:</b> ${esc(d.profile.symptoms.join(', '))}</p>` : '',
   ].join('');
 
-  const expHead = [x.date, x.step, x.bpa, ...(d.includeNotes ? [x.note] : [])];
-  const expRows = d.exposures.map((e) => [e.date, e.step, `${e.before} / ${e.peak} / ${e.after}`, ...(d.includeNotes ? [e.note ?? ''] : [])]);
+  // Colunas da previsão só aparecem se alguma sessão a tiver (sessões antigas não têm).
+  const expPred = d.exposures.some((e) => typeof e.prob === 'number' || e.happened);
+  const pct = (e: { prob?: number; probAfter?: number }) =>
+    typeof e.prob === 'number' ? `${e.prob}%${typeof e.probAfter === 'number' ? ` → ${e.probAfter}%` : ''}` : '–';
+  const expHead = [x.date, x.step, x.bpa, ...(expPred ? ['%', x.happened] : []), ...(d.includeNotes ? [x.feared, x.note] : [])];
+  const expRows = d.exposures.map((e) => [
+    e.date, e.step, `${e.before} / ${e.peak} / ${e.after}`,
+    ...(expPred ? [pct(e), happened(e.happened)] : []),
+    ...(d.includeNotes ? [e.feared ?? '', e.note ?? ''] : []),
+  ]);
 
   const unpHead = [x.date, x.what, x.bpa, x.stayed, ...(d.includeNotes ? [x.feared, x.happened] : [])];
   const unpRows = d.unplanned.map((u) => [
