@@ -49,8 +49,6 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
     persist(entries.filter((e) => e.id !== id));
   }
 
-  // Dias distintos em que escreveu.
-  const days = Array.from(new Set(entries.map((e) => e.date)));
   const todayIso = isoLocal(new Date());
   const todays = entries.filter((e) => e.date === todayIso);
 
@@ -59,20 +57,6 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
       <TopBackBar title={t('journal.title')} onBack={onBack} right={<HistoryButton kind="journal" />} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
         <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('journal.subtitle')}</Text>
-
-        {/* Resumo dos dias com registo */}
-        <Card style={{ gap: spacing.sm }}>
-          <Text style={{ color: colors.text, fontWeight: '700' }}>{t('journal.daysWritten', { n: days.length })}</Text>
-          {days.length > 0 && (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-              {days.slice(0, 14).map((d) => (
-                <View key={d} style={{ backgroundColor: colors.primarySoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 }}>
-                  <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '600' }}>{shortDate(d)}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </Card>
 
         {/* Perguntas opcionais para inspirar */}
         <View style={{ gap: 6 }}>

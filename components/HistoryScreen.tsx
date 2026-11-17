@@ -230,7 +230,11 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
             <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700', flex: 1 }}>
               {subType ? practiceName(subType) : kindLabel(kind)}
             </Text>
-            {items && <Text style={{ color: colors.textMuted, fontSize: 13 }}>{shown.length}</Text>}
+            {items && (
+              <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+                {kind === 'journal' ? t('journal.daysWritten', { n: new Set(shown.map((it) => it.date)).size }) : shown.length}
+              </Text>
+            )}
           </View>
         )}
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{L('Só para consulta. Toca num registo para ver o detalhe.', 'View only. Tap an entry to see the details.')}</Text>
