@@ -2,6 +2,8 @@
 // a escala de desconforto (SUDS 0–10).
 
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { PROB_STEPS } from '../../data/exposureText';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -68,3 +70,63 @@ export function Suds({ value, onChange }: { value: number | null; onChange: (v: 
 // ---- Exercício de exposição gradual ----
 // `selected` está no componente pai (ExercisesScreen) para que o botão de voltar
 // de cima regresse à escada e não ao menu dos exercícios.
+
+// Passos numerados no topo (1 — 2 — 3 …), usados na Exposição, nas
+// Experiências e no Desconstruir pensamentos.
+export function Stepper({ labels, current, done }: { labels: string[]; current: number; done?: boolean }) {
+  const { colors } = useTheme();
+  const last = labels.length - 1;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }} accessible accessibilityLabel={`${Math.min(current, last) + 1}/${labels.length} · ${labels[Math.min(current, last)]}`}>
+      {labels.map((l, i) => {
+        const isDone = i < current || !!done;
+        const on = i === current && !done;
+        return (
+          <View key={i} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+              <View style={{ flex: 1, height: 2, backgroundColor: i === 0 ? 'transparent' : i <= current || done ? colors.primary : colors.border }} />
+              <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: isDone || on ? colors.primary : colors.card, borderWidth: 2, borderColor: isDone || on ? colors.primary : colors.border }}>
+                {isDone ? <Ionicons name="checkmark" size={16} color="#fff" /> : <Text style={{ color: on ? '#fff' : colors.textMuted, fontSize: 13, fontWeight: '700' }}>{i + 1}</Text>}
+              </View>
+              <View style={{ flex: 1, height: 2, backgroundColor: i === last ? 'transparent' : i < current || done ? colors.primary : colors.border }} />
+            </View>
+            <Text numberOfLines={1} style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: on ? '700' : '500' }}>{l}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// Medidor de probabilidade 0–100%: barra de segmentos tocáveis + número grande.
+export function ProbMeter({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={{ color: value === null ? colors.textMuted : colors.text, fontSize: 32, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
+        {value === null ? '–' : `${value}%`}
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 3, height: 34 }}>
+        {PROB_STEPS.map((v) => {
+          const filled = value !== null && v <= value;
+          return (
+            <Pressable
+              key={v}
+              onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange(v); }}
+              accessibilityRole="adjustable"
+              accessibilityLabel={`${v}%`}
+              accessibilityState={{ selected: value === v }}
+              hitSlop={{ top: 8, bottom: 8 }}
+              style={{ flex: 1, borderRadius: 4, backgroundColor: filled ? colors.primary : colors.track, opacity: filled ? 0.35 + (0.65 * v) / 100 : 1 }}
+            />
+          );
+        })}
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ color: colors.textMuted, fontSize: 11 }}>0%</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 11 }}>50%</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 11 }}>100%</Text>
+      </View>
+    </View>
+  );
+}
