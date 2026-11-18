@@ -306,7 +306,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                 accessibilityLabel={L(`Gravidade ${v} de 5`, `Severity ${v} of 5`)}
                 style={{ flex: 1, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: sel ? colors.primary : colors.border }}
               >
-                <Text style={{ color: sel ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
+                <Text style={{ color: sel ? colors.onPrimary : colors.text, fontWeight: '700' }}>{v}</Text>
               </Pressable>
             );
           })}
@@ -421,8 +421,8 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                   </Pressable>
                 </View>
               </View>
-            ) : key === 'hero' || key === 'plan' ? (
-              <CoachTarget key={key} name={key === 'hero' ? 'pillars' : 'home-plan'}>{DASH[key]?.()}</CoachTarget>
+            ) : key === 'hero' || key === 'plan' || key === 'severity' ? (
+              <CoachTarget key={key} name={key === 'hero' ? 'pillars' : key === 'plan' ? 'home-plan' : 'home-severity'}>{DASH[key]?.()}</CoachTarget>
             ) : (
               <View key={key}>{DASH[key]?.()}</View>
             )

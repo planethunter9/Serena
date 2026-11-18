@@ -47,16 +47,16 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
             style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg }}
           >
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="play" size={20} color="#fff" />
+              <Ionicons name="play" size={20} color={colors.onPrimary} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ color: '#fff', opacity: 0.85, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{px.l_continue}</Text>
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{pick(nextL.l.title, lang)}</Text>
-              <Text style={{ color: '#fff', opacity: 0.85, fontSize: 12 }}>
+              <Text style={{ color: colors.onPrimary, opacity: 0.85, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{px.l_continue}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 16, fontWeight: '700' }}>{pick(nextL.l.title, lang)}</Text>
+              <Text style={{ color: colors.onPrimary, opacity: 0.85, fontSize: 12 }}>
                 {pick(nextL.ch.title, lang)} · {px.l_lessonOf.replace('{a}', String(nextL.li + 1)).replace('{b}', String(nextL.ch.lessons.length))}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#fff" />
+            <Ionicons name="chevron-forward" size={20} color={colors.onPrimary} />
           </Pressable>
         ) : (
           <View style={{ backgroundColor: colors.successSoft, borderRadius: radius.lg, padding: spacing.lg, gap: 4 }}>
@@ -112,7 +112,7 @@ export default function LessonsScreen({ onBack }: { onBack: () => void }) {
                         alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      {isDone && <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
+                      {isDone && <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>✓</Text>}
                     </View>
                     <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{pick(les.title, lang)}</Text>
                     <Text style={{ color: colors.textMuted, fontSize: 20 }}>›</Text>

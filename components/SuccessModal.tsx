@@ -30,7 +30,7 @@ export default function SuccessModal({
           style={{ width: '100%', maxWidth: 420, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.md, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 12 }}
         >
           <Animated.View entering={iconIn} style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.success, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={icon} size={36} color="#fff" />
+            <Ionicons name={icon} size={36} color={colors.onPrimary} />
           </Animated.View>
           <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{title}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>{body}</Text>

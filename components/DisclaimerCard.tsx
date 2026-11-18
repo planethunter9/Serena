@@ -32,8 +32,8 @@ export default function DisclaimerCard({ variant = 'full', onCrisis }: { variant
         accessibilityRole="button"
         style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.danger, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 }}
       >
-        <Ionicons name="call" size={14} color="#fff" />
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{d.crisis}</Text>
+        <Ionicons name="call" size={14} color={colors.onPrimary} />
+        <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>{d.crisis}</Text>
       </Pressable>
     </View>
   );

@@ -164,10 +164,10 @@ export default function LessonDetailScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg }}
           >
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ color: '#fff', opacity: 0.85, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{next ? px.l_nextLesson : px.l_allDone}</Text>
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{next ? pick(next.title, lang) : px.l_backToList}</Text>
+              <Text style={{ color: colors.onPrimary, opacity: 0.85, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{next ? px.l_nextLesson : px.l_allDone}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 16, fontWeight: '700' }}>{next ? pick(next.title, lang) : px.l_backToList}</Text>
             </View>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
+            <Ionicons name="arrow-forward" size={20} color={colors.onPrimary} />
           </Pressable>
         </View>
       </ScrollView>

@@ -235,7 +235,7 @@ export function ExposureSessionFlow({
                   const on = happened === h;
                   return (
                     <Pressable key={h} onPress={() => setHappened(on ? null : h)} accessibilityRole="radio" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: radius.md, borderWidth: 2, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' }}>
-                      <Text style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 15 }}>{happenedLabel(h)}</Text>
+                      <Text style={{ color: on ? colors.onPrimary : colors.text, fontWeight: '700', fontSize: 15 }}>{happenedLabel(h)}</Text>
                     </Pressable>
                   );
                 })}

@@ -156,8 +156,8 @@ export function AchievementUnlockModal({ achievement, onClose, onSeeAll }: { ach
           <View style={{ backgroundColor: colors.card, borderRadius: radius.lg * 1.4, overflow: 'hidden' }}>
             {/* Faixa com o nome da conquista */}
             <View style={{ backgroundColor: colors.primary, paddingVertical: spacing.lg, paddingHorizontal: spacing.lg, alignItems: 'center', gap: 2 }}>
-              <Text accessibilityRole="header" style={{ color: '#fff', fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{pick(achievement.title, lang)}</Text>
-              <Text style={{ color: '#fff', opacity: 0.9, fontSize: 14, textAlign: 'center' }}>{pick(achievement.desc, lang)}</Text>
+              <Text accessibilityRole="header" style={{ color: colors.onPrimary, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{pick(achievement.title, lang)}</Text>
+              <Text style={{ color: colors.onPrimary, opacity: 0.9, fontSize: 14, textAlign: 'center' }}>{pick(achievement.desc, lang)}</Text>
             </View>
 
             <View style={{ backgroundColor: colors.cardAlt, alignItems: 'center', paddingTop: spacing.md, paddingBottom: spacing.lg, gap: 6 }}>

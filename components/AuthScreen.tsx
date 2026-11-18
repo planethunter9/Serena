@@ -220,7 +220,7 @@ export default function AuthScreen() {
             {isSignup && (
               <Pressable onPress={() => setConsent((c) => !c)} accessibilityRole="checkbox" accessibilityState={{ checked: consent }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: spacing.sm }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: consent ? colors.primary : colors.border, backgroundColor: consent ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                  {consent && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
+                  {consent && <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>✓</Text>}
                 </View>
                 <Text style={{ color: colors.textMuted, fontSize: 13, flex: 1 }}>
                   {t('auth.consentPrefix')}{' '}

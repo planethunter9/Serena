@@ -243,7 +243,7 @@ function Check({ checked, label, onToggle, stateLabel }: { checked: boolean; lab
       <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.primary : colors.border, backgroundColor: checked ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
         {checked && (
           <Animated.View entering={checkPop}>
-            <Ionicons name="checkmark" size={16} color="#fff" />
+            <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
           </Animated.View>
         )}
       </View>

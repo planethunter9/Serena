@@ -68,7 +68,7 @@ function Suds({ value, onChange }: { value: number | null; onChange: (v: number)
         const active = value === v;
         return (
           <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
-            <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
+            <Text style={{ color: active ? colors.onPrimary : colors.text, fontWeight: '700' }}>{v}</Text>
           </Pressable>
         );
       })}
@@ -273,7 +273,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
             <Card style={{ gap: 10 }}>
               <Pressable onPress={() => setStayed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: stayed ? colors.primary : colors.border, backgroundColor: stayed ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                  {stayed && <Ionicons name="checkmark" size={15} color="#fff" />}
+                  {stayed && <Ionicons name="checkmark" size={15} color={colors.onPrimary} />}
                 </View>
                 <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('unplanned.stayed')}</Text>
               </Pressable>
@@ -297,7 +297,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
                 const on = happened === h;
                 return (
                   <Pressable key={h} onPress={() => setHappened(on ? null : h)} accessibilityRole="radio" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: radius.md, borderWidth: 2, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' }}>
-                    <Text style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 15 }}>{happenedLabel(h)}</Text>
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontWeight: '700', fontSize: 15 }}>{happenedLabel(h)}</Text>
                   </Pressable>
                 );
               })}

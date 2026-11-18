@@ -107,7 +107,7 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
                   <View style={{ width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? colors.primarySoft : colors.cardAlt, borderWidth: 2, borderColor: on ? colors.primary : 'transparent', opacity: mood === null || on ? 1 : 0.5 }}>
                     <Text style={{ fontSize: 26 }}>{em}</Text>
                   </View>
-                  <Text numberOfLines={2} style={{ color: on ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: on ? '700' : '500', textAlign: 'center' }}>{jx.moods[i]}</Text>
+                  <Text numberOfLines={2} maxFontSizeMultiplier={1.3} style={{ color: on ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: on ? '700' : '500', textAlign: 'center' }}>{jx.moods[i]}</Text>
                 </Pressable>
               );
             })}
@@ -165,7 +165,7 @@ export default function JournalScreen({ onBack }: { onBack: () => void }) {
                   accessibilityState={{ checked: on }}
                   style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' }}
                 >
-                  <Text style={{ color: on ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>{jx.tags[tg]}</Text>
+                  <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 13, fontWeight: '600' }}>{jx.tags[tg]}</Text>
                 </Pressable>
               );
             })}

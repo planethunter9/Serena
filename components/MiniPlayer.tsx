@@ -66,7 +66,7 @@ export default function MiniPlayer() {
           </View>
         </Pressable>
         <Pressable onPress={snd.toggle} hitSlop={8} accessibilityRole="button" accessibilityLabel={snd.playing ? tr2(lang, 'Pausa', 'Pause') : tr2(lang, 'Tocar', 'Play')} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name={snd.playing ? 'pause' : 'play'} size={20} color="#fff" />
+          <Ionicons name={snd.playing ? 'pause' : 'play'} size={20} color={colors.onPrimary} />
         </Pressable>
         <Pressable onPress={snd.stop} hitSlop={8} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Parar', 'Stop')} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="close" size={22} color={colors.textMuted} />

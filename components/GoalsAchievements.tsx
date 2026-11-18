@@ -174,7 +174,7 @@ function GoalsBody() {
   const done = goals.filter((g) => g.done).sort((a, b) => ((a.doneAt ?? '') < (b.doneAt ?? '') ? 1 : -1));
   const today = isoLocal();
   const chip = (on: boolean) => ({ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' });
-  const chipText = (on: boolean) => ({ color: on ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' as const });
+  const chipText = (on: boolean) => ({ color: on ? colors.onPrimary : colors.text, fontSize: 13, fontWeight: '600' as const });
 
   const goalCard = (g: Goal) => {
     const late = !g.done && g.target && g.target < today;
@@ -183,7 +183,7 @@ function GoalsBody() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Pressable onPress={() => toggle(g)} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: g.done }} accessibilityLabel={g.text}>
             <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: g.done ? colors.success : 'transparent', borderWidth: 2, borderColor: g.done ? colors.success : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-              {g.done && <Ionicons name="checkmark" size={16} color="#fff" />}
+              {g.done && <Ionicons name="checkmark" size={16} color={colors.onPrimary} />}
             </View>
           </Pressable>
           <Text style={{ color: g.done ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: g.done ? 'line-through' : 'none' }}>{g.text}</Text>

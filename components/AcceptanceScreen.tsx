@@ -225,7 +225,7 @@ export default function AcceptanceView() {
                 placeholder={L('O teu compromisso…', 'Your commitment…')} placeholderTextColor={colors.textMuted}
                 style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
               <Pressable onPress={addCommitment} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{L('Adicionar', 'Add')}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{L('Adicionar', 'Add')}</Text>
               </Pressable>
             </View>
           ) : (
@@ -247,8 +247,8 @@ export default function AcceptanceView() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Pressable onPress={() => logDone(it.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.md, backgroundColor: colors.primary }}>
-                  <Ionicons name="checkmark" size={16} color="#fff" />
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{L('Fiz isto', 'I did this')}</Text>
+                  <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
+                  <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>{L('Fiz isto', 'I did this')}</Text>
                 </Pressable>
                 {it.logs.length > 0 && (
                   <>

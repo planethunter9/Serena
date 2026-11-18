@@ -149,8 +149,8 @@ export default function BreathingScreen({ onBack }: { onBack: () => void }) {
               style={{ position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: colors.primary, opacity: 0.85, transform: [{ scale: size }] }}
             />
             <View accessible accessibilityLiveRegion="polite" accessibilityLabel={`${phaseLabel} ${secLeft}`} style={{ alignItems: 'center' }}>
-              <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700' }}>{phaseLabel}</Text>
-              <Text style={{ color: '#fff', fontSize: 34, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{secLeft}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 22, fontWeight: '700' }}>{phaseLabel}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 34, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{secLeft}</Text>
             </View>
           </View>
           <Text style={{ color: colors.textMuted, fontSize: 15, fontVariant: ['tabular-nums'] }}>{mmss} {x.left}</Text>

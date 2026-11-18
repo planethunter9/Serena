@@ -292,7 +292,7 @@ export default function HistoryScreen({ onBack, initialKind }: { onBack: () => v
                 const on = tagFilter === tg;
                 return (
                   <Pressable key={tg ?? 'all'} onPress={() => setTagFilter(tg)} accessibilityRole="button" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : colors.card }}>
-                    <Text style={{ color: on ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' }}>{tg ? jx.tags[tg] : jx.all}</Text>
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 13, fontWeight: '600' }}>{tg ? jx.tags[tg] : jx.all}</Text>
                   </Pressable>
                 );
               })}

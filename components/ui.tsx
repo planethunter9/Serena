@@ -63,7 +63,7 @@ export function PrimaryButton({
         alignItems: 'center',
       }}
     >
-      <Text style={{ color: disabled ? colors.textMuted : '#ffffff', fontSize: 17, fontWeight: '600' }}>
+      <Text style={{ color: disabled ? colors.textMuted : colors.onPrimary, fontSize: 17, fontWeight: '600' }}>
         {label}
       </Text>
     </PressableScale>
@@ -112,7 +112,7 @@ export function OptionRow({
         }}
       >
         {selected && (
-          <Animated.Text entering={checkPop} style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>✓</Animated.Text>
+          <Animated.Text entering={checkPop} style={{ color: colors.onPrimary, fontSize: 14, fontWeight: '700' }}>✓</Animated.Text>
         )}
       </View>
       <Text style={{ color: colors.text, fontSize: 16, flex: 1 }}>{label}</Text>
@@ -152,7 +152,7 @@ export function Segmented<T extends string>({ value, options, onChange }: { valu
         const active = value === v;
         return (
           <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center', backgroundColor: active ? colors.card : 'transparent' }}>
-            <Text numberOfLines={1} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+            <Text numberOfLines={1} maxFontSizeMultiplier={1.4} style={{ color: active ? colors.primary : colors.textMuted, fontWeight: '700', fontSize: 12 }}>{label}</Text>
           </Pressable>
         );
       })}

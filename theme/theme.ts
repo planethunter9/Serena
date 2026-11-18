@@ -11,6 +11,8 @@ export const lightColors = {
   cardAlt: '#eaf3f7',
   primary: '#2f8aa8',
   primarySoft: '#e3f0f5',
+  // Cor do texto/ícones por cima de primary/success/danger (contraste garantido).
+  onPrimary: '#ffffff',
   text: '#123039',
   textMuted: '#5a7580',
   border: '#c2dbe4',
@@ -31,6 +33,7 @@ export const darkColors: typeof lightColors = {
   cardAlt: '#1b2831',
   primary: '#63c1de',
   primarySoft: '#14323d',
+  onPrimary: '#0e1519',
   text: '#eaf3f7',
   textMuted: '#93a7b0',
   border: '#243440',
@@ -99,17 +102,29 @@ function toRgb(h: string) { const x = h.replace('#', ''); return [0, 2, 4].map((
 function toHex(rgb: number[]) { return '#' + rgb.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
 function mix(a: string, b: string, t: number) { const A = toRgb(a), B = toRgb(b); return toHex(A.map((v, i) => v + (B[i] - v) * t)); }
 
+// Luminância relativa (WCAG) de uma cor #rrggbb.
+function luminance(hex: string): number {
+  const h = hex.replace('#', '');
+  const c = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+// Texto escuro sobre cores claras e branco sobre cores escuras.
+export const onColor = (hex: string) => (luminance(hex) > 0.4 ? '#0e1519' : '#ffffff');
+
 // Deriva o conjunto completo de cores a partir de uma cor principal.
 export function deriveColors(primary: string, isDark: boolean): typeof lightColors {
   if (isDark) {
+    const p = mix(primary, '#ffffff', 0.22);
     return {
       ...darkColors,
-      primary: mix(primary, '#ffffff', 0.22),
+      primary: p,
       primarySoft: mix(primary, '#0e1519', 0.72),
+      onPrimary: onColor(p),
     };
   }
   return {
     ...lightColors,
+    onPrimary: onColor(primary),
     primary,
     primarySoft: mix(primary, '#ffffff', 0.86),
     background: mix(primary, '#ffffff', 0.80),

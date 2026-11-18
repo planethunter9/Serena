@@ -31,8 +31,8 @@ export function ExerciseLogBar({ type }: { type: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <Pressable onPress={add} accessibilityRole="button" accessibilityLabel={Lx('Guardar registo', 'Save entry')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 16 }}>
-        <Ionicons name="checkmark" size={16} color="#fff" />
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Guardar registo', 'Save entry')}</Text>
+        <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
+        <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 14 }}>{Lx('Guardar registo', 'Save entry')}</Text>
       </Pressable>
       {todayCount > 0 && (
         <>
