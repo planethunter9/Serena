@@ -106,7 +106,6 @@ function SafetyBody() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-      <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('safety.intro')}</Text>
 
       {/* Progresso */}
       <Card style={{ gap: spacing.md }}>
@@ -233,10 +232,6 @@ function FeedingBody() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }}>
-      <Card style={{ backgroundColor: colors.primarySoft, borderColor: colors.primarySoft, gap: 6 }}>
-        <Text style={{ color: colors.text, fontWeight: '700' }}>{t('feeding.introTitle')}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>{t('feeding.intro')}</Text>
-      </Card>
 
       {working.length > 0 && (
         <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{t('feeding.count', { n: working.length })}</Text>
@@ -277,7 +272,7 @@ export default function SafetyFeeding({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('safetyFeeding.title')} onBack={onBack} />
+      <TopBackBar title={t('safetyFeeding.title')} onBack={onBack} info={tab === 'feeding' ? `${t('feeding.introTitle')}\n\n${t('feeding.intro')}` : t('safety.intro')} />
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm }}>
         <Segmented value={tab} onChange={setTab} options={[['feeding', tabLabel('feeding')], ['safety', tabLabel('safety')]]} />
       </View>

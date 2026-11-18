@@ -165,12 +165,6 @@ export function ExperimentsView() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.xl }} keyboardShouldPersistTaps="handled">
-        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-          {tt({
-            pt: 'Uma experiência comportamental é como um mini-teste à fobia: antes de fazeres algo que evitas, escreves o que achas que vai acontecer. Depois comparas com o que aconteceu mesmo. Quase sempre a catástrofe prevista não acontece — e é esse contraste que reescreve o medo.',
-            en: 'A behavioural experiment is a mini-test of the phobia: before doing something you avoid, you write down what you think will happen. Then you compare it with what actually happened. Almost always the predicted catastrophe does not happen — and that contrast is what rewrites the fear.',
-          })}
-        </Text>
 
         {finished && resultCard(finished)}
 

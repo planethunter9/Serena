@@ -103,11 +103,10 @@ export default function BreathingScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('tech.breathing')} onBack={onBack} />
+      <TopBackBar title={t('tech.breathing')} onBack={onBack} info={x.intro} />
 
       {stage === 'setup' && (
         <View style={{ flex: 1, padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg }}>
-          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{x.intro}</Text>
           <Card style={{ gap: spacing.md }}>
             <CardHeader icon="pulse-outline" title={x.pattern} />
             {(['calm', 'even', 'box'] as BreathPatternId[]).map((id) => {

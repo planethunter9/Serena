@@ -68,10 +68,6 @@ export function RelapseBody() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-          {L('Recuperar não é apagar o medo para sempre — é saber o que fazer quando ele tenta voltar. Escreve o teu plano; fica guardado para quando precisares. Vai atualizando à medida que aprendes mais sobre ti.',
-             'Recovery is not erasing fear forever — it is knowing what to do when it tries to come back. Write your plan; it is saved for when you need it. Update it as you learn more about yourself.')}
-        </Text>
 
         <Card style={{ gap: spacing.md }}>
           {field(

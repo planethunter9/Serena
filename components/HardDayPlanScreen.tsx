@@ -76,10 +76,6 @@ export function HardDayBody() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-          {tt('Prepara isto agora, com calma. Num dia mau é difícil pensar — ter o plano escrito e à mão faz toda a diferença. Guarda-se sozinho.',
-              'Prepare this now, calmly. On a bad day it\'s hard to think — having the plan written and ready makes all the difference. It saves itself.')}
-        </Text>
 
         {/* Modo de leitura para os momentos difíceis */}
         <Pressable onPress={() => router.push('/myplan' as any)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg }}>

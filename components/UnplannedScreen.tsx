@@ -181,12 +181,8 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('unplanned.title')} onBack={onBack} right={<HistoryButton kind="unplanned" />} />
+      <TopBackBar title={t('unplanned.title')} onBack={onBack} info={`${t('unplanned.guideTitle')}\n\n${t('unplanned.guide')}`} right={<HistoryButton kind="unplanned" />} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-        <Card style={{ backgroundColor: colors.primarySoft, borderColor: colors.primarySoft, gap: 6 }}>
-          <Text style={{ color: colors.text, fontWeight: '700' }}>{t('unplanned.guideTitle')}</Text>
-          <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>{t('unplanned.guide')}</Text>
-        </Card>
 
         {/* ---------- Estou nisto agora ---------- */}
         <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.primary, overflow: 'hidden' }}>

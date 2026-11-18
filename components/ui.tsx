@@ -1,5 +1,6 @@
 // Peças de interface reutilizadas em vários ecrãs.
 
+import InfoButton from './InfoButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useA11y } from '../lib/a11y';
 import { ReactNode } from 'react';
@@ -121,7 +122,8 @@ export function OptionRow({
 
 // Cabeçalho com botão "Voltar", usado nos ecrãs que abrem por cima
 // (Definições e detalhe de cada Recurso).
-export function TopBackBar({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode }) {
+// `info`: texto explicativo mostrado num balão ao tocar no "i" junto ao título.
+export function TopBackBar({ title, onBack, right, info }: { title: string; onBack: () => void; right?: ReactNode; info?: string }) {
   const { colors } = useTheme();
   const a11y = useA11y();
   const insets = useSafeAreaInsets();
@@ -131,7 +133,9 @@ export function TopBackBar({ title, onBack, right }: { title: string; onBack: ()
         <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel={a11y.back} style={{ padding: 8 }}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
-        <Text numberOfLines={1} accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '700', flex: 1 }}>{title}</Text>
+        <Text numberOfLines={1} accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '700', flexShrink: 1 }}>{title}</Text>
+        {info ? <InfoButton text={info} title={title} /> : null}
+        <View style={{ flex: 1 }} />
         {right ? <View style={{ paddingRight: 8 }}>{right}</View> : null}
       </View>
     </View>
