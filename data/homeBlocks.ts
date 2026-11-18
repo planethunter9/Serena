@@ -4,7 +4,7 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { Lang } from '../i18n/i18n';
 
-export type HomeBlockId = 'affirmation' | 'hero' | 'plan' | 'severity' | 'nextStep';
+export type HomeBlockId = 'affirmation' | 'hero' | 'plan' | 'severity';
 type T = Record<Lang, string>;
 
 export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMap; title: T; desc: T }[] = [
@@ -27,11 +27,6 @@ export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMa
     id: 'severity', icon: 'pulse-outline',
     title: { pt: 'Como está a fobia hoje?', 'pt-BR': 'Como está a fobia hoje?', en: 'How is the phobia today?', es: '¿Cómo está la fobia hoy?', fr: "Comment va la phobie aujourd'hui ?", de: 'Wie ist die Phobie heute?', it: 'Come va la fobia oggi?', nl: 'Hoe is de fobie vandaag?', pl: 'Jak dziś z fobią?', ru: 'Как фобия сегодня?' },
     desc: { pt: 'Um registo rápido de 0 a 5 (alimenta as Estatísticas).', 'pt-BR': 'Um registro rápido de 0 a 5 (alimenta as Estatísticas).', en: 'A quick 0–5 check-in (feeds your Statistics).', es: 'Un registro rápido de 0 a 5 (alimenta las Estadísticas).', fr: 'Un relevé rapide de 0 à 5 (alimente les Statistiques).', de: 'Ein kurzer Check-in von 0 bis 5 (für die Statistiken).', it: 'Un rapido check-in da 0 a 5 (alimenta le Statistiche).', nl: 'Een snelle check-in van 0 tot 5 (voor je statistieken).', pl: 'Szybka ocena od 0 do 5 (zasila Statystyki).', ru: 'Быстрая отметка от 0 до 5 (для статистики).' },
-  },
-  {
-    id: 'nextStep', icon: 'footsteps-outline',
-    title: { pt: 'O teu próximo passo', 'pt-BR': 'Seu próximo passo', en: 'Your next step', es: 'Tu próximo paso', fr: 'Ta prochaine étape', de: 'Dein nächster Schritt', it: 'Il tuo prossimo passo', nl: 'Je volgende stap', pl: 'Twój następny krok', ru: 'Твой следующий шаг' },
-    desc: { pt: 'Um objetivo pequeno para te lembrares do que vem a seguir.', 'pt-BR': 'Um objetivo pequeno para lembrar o que vem depois.', en: 'A small goal to remind you what comes next.', es: 'Un objetivo pequeño para recordar lo que viene después.', fr: 'Un petit objectif pour te rappeler la suite.', de: 'Ein kleines Ziel, das dich an den nächsten Schritt erinnert.', it: 'Un piccolo obiettivo per ricordarti cosa viene dopo.', nl: 'Een klein doel om je te herinneren aan wat komt.', pl: 'Mały cel, który przypomina, co dalej.', ru: 'Небольшая цель, чтобы помнить, что дальше.' },
   },
 ];
 

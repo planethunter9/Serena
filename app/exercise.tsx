@@ -22,8 +22,9 @@ export default function ExerciseRoute() {
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const router = useRouter();
-  const { type } = useLocalSearchParams<{ type: string }>();
-  const [expSelected, setExpSelected] = useState<Step | null>(null);
+  const { type, step, label } = useLocalSearchParams<{ type: string; step?: string; label?: string }>();
+  // ?step=…&label=… abre logo a sessão desse degrau (ex.: a partir do plano).
+  const [expSelected, setExpSelected] = useState<Step | null>(() => (type === 'exposure' && step && label ? { id: step, label } : null));
 
   const title = type === 'exposure' ? t('exposure.title')
     : type === 'thought' ? t('thought.title')
