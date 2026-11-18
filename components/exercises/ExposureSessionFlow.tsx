@@ -11,77 +11,18 @@ import * as Haptics from 'expo-haptics';
 import KeepAwake from '../KeepAwake';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { CHECKIN_EVERY_SEC, exposureText, PROB_STEPS } from '../../data/exposureText';
+import { CHECKIN_EVERY_SEC, exposureText } from '../../data/exposureText';
 import { useLang } from '../../i18n/i18n';
 import { ExposureSession } from '../../storage/storage';
 import { useTheme } from '../../theme/ThemeContext';
 import { radius, spacing } from '../../theme/theme';
 import { Card, CardHeader, PrimaryButton } from '../ui';
-import { Step, Suds, ymd } from './shared';
+import { ProbMeter, Step, Stepper, Suds, ymd } from './shared';
 
 type Stage = 'before' | 'during' | 'after' | 'done';
 type Happened = 'yes' | 'partly' | 'no';
 
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
-
-// Passos numerados no topo: 1 Antes — 2 Durante — 3 Depois.
-function Stepper({ stage, labels }: { stage: Stage; labels: [string, string, string] }) {
-  const { colors } = useTheme();
-  const cur = stage === 'before' ? 0 : stage === 'during' ? 1 : 2;
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-      {labels.map((l, i) => {
-        const done = i < cur || stage === 'done';
-        const on = i === cur && stage !== 'done';
-        return (
-          <View key={i} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-              <View style={{ flex: 1, height: 2, backgroundColor: i === 0 ? 'transparent' : i <= cur ? colors.primary : colors.border }} />
-              <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: done || on ? colors.primary : colors.card, borderWidth: 2, borderColor: done || on ? colors.primary : colors.border }}>
-                {done ? <Ionicons name="checkmark" size={16} color="#fff" /> : <Text style={{ color: on ? '#fff' : colors.textMuted, fontSize: 13, fontWeight: '700' }}>{i + 1}</Text>}
-              </View>
-              <View style={{ flex: 1, height: 2, backgroundColor: i === 2 ? 'transparent' : i < cur ? colors.primary : colors.border }} />
-            </View>
-            <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: on ? '700' : '500' }}>{l}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-// Medidor de probabilidade 0–100%: barra de segmentos tocáveis + número grande.
-function ProbMeter({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ gap: 8 }}>
-      <Text style={{ color: value === null ? colors.textMuted : colors.text, fontSize: 32, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
-        {value === null ? '–' : `${value}%`}
-      </Text>
-      <View style={{ flexDirection: 'row', gap: 3, height: 34 }}>
-        {PROB_STEPS.map((v) => {
-          const filled = value !== null && v <= value;
-          return (
-            <Pressable
-              key={v}
-              onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange(v); }}
-              accessibilityRole="adjustable"
-              accessibilityLabel={`${v}%`}
-              accessibilityState={{ selected: value === v }}
-              hitSlop={{ top: 8, bottom: 8 }}
-              style={{ flex: 1, borderRadius: 4, backgroundColor: filled ? colors.primary : colors.track, opacity: filled ? 0.35 + (0.65 * v) / 100 : 1 }}
-            />
-          );
-        })}
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ color: colors.textMuted, fontSize: 11 }}>0%</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 11 }}>50%</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 11 }}>100%</Text>
-      </View>
-    </View>
-  );
-}
 
 // Pequeno gráfico das respostas de 2 em 2 minutos.
 function Curve({ values }: { values: number[] }) {
@@ -192,7 +133,7 @@ export function ExposureSessionFlow({
           <Text style={{ color: colors.textMuted }}>‹ {t('common.back')}</Text>
         </Pressable>
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700' }}>{step.label}</Text>
-        <Stepper stage={stage} labels={[x.sBefore, x.sDuring, x.sAfter]} />
+        <Stepper current={stage === 'before' ? 0 : stage === 'during' ? 1 : 2} done={stage === 'done'} labels={[x.sBefore, x.sDuring, x.sAfter]} />
 
         {/* 1 · Antes: a previsão */}
         {stage === 'before' && (

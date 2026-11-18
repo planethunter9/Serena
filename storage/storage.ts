@@ -324,6 +324,9 @@ export type ExperimentEntry = {
   id: string; date: string; ts: string;
   experiment: string; prediction: string; belief: number; // 0–10
   outcome: string; learned: string; done: boolean;
+  prob?: number;                        // quão provável parecia antes (0–100)
+  probAfter?: number;                   // e depois (0–100)
+  happened?: 'yes' | 'partly' | 'no';
 };
 export async function loadExperiments(): Promise<ExperimentEntry[]> {
   const raw = await AsyncStorage.getItem(k('experiments'));

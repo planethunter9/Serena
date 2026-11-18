@@ -294,14 +294,20 @@ export default function ProgressScreen() {
     }
     if (chartView === 'exposures' || chartView === 'prediction') {
       const isPred = chartView === 'prediction';
-      const list = [...exposures]
+      // Itens comparáveis: exposições (e, na previsão, também as experiências).
+      type Item = { date: string; ts: string; label: string; a: number; b?: number };
+      const fromExp: Item[] = exposures
         .filter((e) => inPeriod(e.date) && (isPred ? typeof e.prob === 'number' : typeof e.before === 'number'))
-        .sort((x, y) => ((x.ts || x.date) < (y.ts || y.date) ? -1 : 1));
+        .map((e) => ({ date: e.date, ts: e.ts || e.date, label: e.stepLabel, a: isPred ? e.prob! : e.before, b: isPred ? e.probAfter : e.after }));
+      const fromXp: Item[] = isPred
+        ? experiments
+          .filter((e) => inPeriod(e.date) && e.done)
+          .map((e) => ({ date: e.date, ts: e.ts || e.date, label: e.experiment, a: typeof e.prob === 'number' ? e.prob : e.belief * 10, b: e.probAfter }))
+        : [];
+      const list = [...fromExp, ...fromXp].sort((p1, p2) => (p1.ts < p2.ts ? -1 : 1));
       if (!list.length) return empty(isPred ? sx.emptyPrediction : sx.empty, isPred ? 'flask-outline' : 'trending-up-outline');
-      const aVal = (e: ExposureSession) => (isPred ? e.prob! : e.before);
-      const bVal = (e: ExposureSession) => (isPred ? e.probAfter : e.after);
-      const aPts = list.map((e, i) => ({ i, v: aVal(e) }));
-      const bPts = list.map((e, i) => ({ i, v: bVal(e) })).filter((p): p is LinePoint => typeof p.v === 'number');
+      const aPts = list.map((e, i) => ({ i, v: e.a }));
+      const bPts = list.map((e, i) => ({ i, v: e.b })).filter((p): p is LinePoint => typeof p.v === 'number');
       const mA = mean(aPts.map((p) => p.v)), mB = mean(bPts.map((p) => p.v));
       const fmt = (v: number) => (isPred ? `${Math.round(v)}%` : nf(v));
       const xl = list.length === 1 ? [{ i: 0, text: dm(list[0].date) }] : [{ i: 0, text: dm(list[0].date) }, { i: list.length - 1, text: dm(list[list.length - 1].date) }];
@@ -328,7 +334,7 @@ export default function ProgressScreen() {
             leftW={isPred ? 42 : 30}
             xLabels={xl}
             format={fmt}
-            slotLabel={(i) => `${dm(list[i].date)} · ${list[i].stepLabel}`}
+            slotLabel={(i) => `${dm(list[i].date)} · ${list[i].label}`}
           />
           <Text style={{ color: colors.textMuted, fontSize: 12 }}>{isPred ? sx.predHint : sx.expHint}</Text>
         </>

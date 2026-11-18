@@ -116,8 +116,8 @@ const TR = {
     'home.todaySection': 'Hoje',
 'home.nowSection': 'Quando precisares',
 
-    'tech.breathing': 'Respiração 4 segundos',
-    'tech.breathingDesc': 'Inspira e expira devagar, ao ritmo do círculo.',
+    'tech.breathing': 'Respiração guiada',
+    'tech.breathingDesc': 'Inspira devagar e expira ainda mais devagar, ao ritmo do círculo.',
     'tech.bodyscan': 'Varrimento corporal',
     'tech.bodyscanDesc': 'Percorre o corpo, parte a parte, com atenção.',
     'tech.positive': 'Pensamento positivo',
@@ -470,8 +470,8 @@ const TR = {
 'exercises.weekplan': 'Weekly plan',
 'exercises.weekplanDesc': 'Organise practice by day, with ERP and memories',
 
-    'tech.breathing': '4-second breathing',
-    'tech.breathingDesc': 'Breathe in and out slowly, with the circle.',
+    'tech.breathing': 'Guided breathing',
+    'tech.breathingDesc': 'Breathe in slowly and out even more slowly, with the circle.',
     'tech.bodyscan': 'Body scan',
     'tech.bodyscanDesc': 'Move through the body, part by part, with attention.',
     'tech.positive': 'Positive self-talk',
