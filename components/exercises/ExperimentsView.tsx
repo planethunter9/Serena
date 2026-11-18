@@ -87,7 +87,7 @@ export function ExperimentsView() {
   const label = (s: string) => <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15 }}>{s}</Text>;
   const happenedLabel = (h: Happened) => (h === 'yes' ? x.yes : h === 'partly' ? x.partly : x.no);
   const pending = entries.filter((e) => !e.done);
-  const doneList = entries.filter((e) => e.done);
+  const doneList = entries.filter((e) => e.done && e.id !== finished?.id);
   const current = resultId ? entries.find((e) => e.id === resultId) : null;
 
   // Cartão "Previsão vs. realidade" (igual ao da exposição).
@@ -235,7 +235,7 @@ export function ExperimentsView() {
               <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 16, fontWeight: '700', flex: 1 }}>{px.x_doneList}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>{doneList.length}</Text>
             </View>
-            {doneList.filter((e) => e.id !== finished?.id).slice(0, 6).map((e) => (
+            {doneList.slice(0, 6).map((e) => (
               <Card key={e.id} style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Ionicons name="checkmark-circle" size={16} color={colors.success} />
