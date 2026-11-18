@@ -4,15 +4,15 @@ import { HOME_BLOCKS, HOME_BLOCK_IDS, HOME_SETTINGS_TEXT, homeEmptyText, normali
 import { LANGS } from '../i18n/i18n';
 
 test('quem tinha só pilares/plano guardados fica com a ordem de antes', () => {
-  expect(normalizeHomeOrder(['plan', 'hero'])).toEqual(['affirmation', 'plan', 'hero', 'severity', 'nextStep']);
-  expect(normalizeHomeOrder([])).toEqual(['affirmation', 'hero', 'plan', 'severity', 'nextStep']);
+  expect(normalizeHomeOrder(['plan', 'hero'])).toEqual(['affirmation', 'plan', 'hero', 'forYou', 'severity']);
+  expect(normalizeHomeOrder([])).toEqual(['affirmation', 'hero', 'forYou', 'plan', 'severity']);
 });
 
-test('ids desconhecidos ou repetidos saem; nenhum bloco se perde', () => {
-  const o = normalizeHomeOrder(['nextStep', 'xpto', 'nextStep', 'severity']);
+test('ids desconhecidos ou repetidos saem (incl. o antigo "nextStep"); nenhum bloco se perde', () => {
+  const o = normalizeHomeOrder(['nextStep', 'plan', 'xpto', 'plan', 'severity']);
   expect(new Set(o)).toEqual(new Set(HOME_BLOCK_IDS));
   expect(o.length).toBe(HOME_BLOCK_IDS.length);
-  expect(o.slice(0, 3)).toEqual(['affirmation', 'nextStep', 'severity']);
+  expect(o.slice(0, 3)).toEqual(['affirmation', 'plan', 'severity']);
 });
 
 test('textos dos blocos e do ecrã nas 10 línguas', () => {

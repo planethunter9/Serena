@@ -20,6 +20,8 @@ import { pick, useLang, tr2 } from '../../i18n/i18n';
 import {
   ExposureSession,
   loadExposureDays,
+  loadNextStepId,
+  saveNextStepId,
   loadExposureHidden,
   loadExposureOrder,
   loadExposureSessions,
@@ -38,6 +40,8 @@ import { Card, CardHeader, PrimaryButton, Segmented } from '../ui';
 import { ExposureSessionFlow } from './ExposureSessionFlow';
 import { consecutiveDays, L, Step, ymd } from './shared';
 import { exposureText } from '../../data/exposureText';
+import { homeText } from '../../data/homeText';
+import { migrateNextStep } from '../../lib/nextStepMigration';
 
 const EXPOSURE_PHASES: L[] = [
   { pt: 'Dizer palavras ou frases', en: 'Say words or phrases' },
@@ -97,6 +101,8 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const ex = exposureText(lang);
+  const hx = homeText(lang);
+  const [nextId, setNextId] = useState<string | null>(null);
   const [custom, setCustom] = useState<ProfileItem[]>([]);
   const [order, setOrder] = useState<string[]>([]);
   const [hidden, setHidden] = useState<string[]>([]);
@@ -116,8 +122,9 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
     loadExposureHidden().then(setHidden);
     loadExposureSessions().then(setSessions);
     loadExposureDays().then(setExpDays);
+    migrateNextStep(lang).finally(() => loadNextStepId().then(setNextId));
     loadOnboarding().then((d: any) => { if (d?.subtypes) setSubtypeIds(d.subtypes.map((x: any) => x.id)); });
-  }, []);
+  }, [lang]);
 
   // Importa os degraus de um modelo para a escada (sem duplicar os que já existem).
   function importSteps(stepsL: L[]) {
@@ -162,6 +169,9 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
   const ordered: Step[] = order.map((id) => byId.get(id)).filter(Boolean) as Step[];
   const seen = new Set(order);
   const steps: Step[] = [...ordered, ...base.filter((s) => !seen.has(s.id))];
+  // Próximo degrau marcado; sem marcação, sugere o 1.º degrau ainda sem sessões.
+  const nextStep = nextId ? steps.find((st) => st.id === nextId) ?? null : null;
+  const suggested = nextStep ? null : steps.find((st) => !sessions.some((ss) => ss.stepId === st.id)) ?? steps[0] ?? null;
 
   function addStep() {
     const v = newStep.trim();
@@ -208,6 +218,13 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('common.remove'), style: 'destructive', onPress: () => doRemove(s) },
     ]);
+  }
+
+  function togglePin(id: string) {
+    Haptics.selectionAsync().catch(() => {});
+    const next = nextId === id ? null : id;
+    setNextId(next);
+    saveNextStepId(next);
   }
 
   function openStep(s: Step) {
@@ -289,6 +306,35 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
 
       {tab === 'steps' && (
         <>
+          {/* O teu próximo degrau (antes estava no ecrã inicial) */}
+          <Card style={{ gap: spacing.md, borderColor: nextStep ? colors.primary : colors.border }}>
+            <CardHeader icon="pin-outline" title={hx.nx_title} />
+            {nextStep ? (
+              <>
+                <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700' }}>{nextStep.label}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <View style={{ flex: 1 }}><PrimaryButton label={hx.nx_start} onPress={() => openStep(nextStep)} /></View>
+                  <Pressable onPress={() => togglePin(nextStep.id)} hitSlop={8} accessibilityRole="button" style={{ padding: 6 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 13, fontWeight: '600' }}>{hx.nx_unpin}</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{hx.nx_none}</Text>
+                {suggested && (
+                  <Pressable onPress={() => togglePin(suggested.id)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primarySoft, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 10 }}>
+                    <Ionicons name="bulb-outline" size={16} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontSize: 14, flex: 1 }} numberOfLines={2}>
+                      <Text style={{ fontWeight: '700' }}>{hx.nx_suggest}: </Text>{suggested.label}
+                    </Text>
+                    <Ionicons name="pin-outline" size={16} color={colors.primary} />
+                  </Pressable>
+                )}
+              </>
+            )}
+          </Card>
+
           {/* Dias de exposição: série, últimos 7 dias e registar hoje */}
           <ExposureDaysCard days={expDays} streak={streak} markedToday={markedToday} onToggle={toggleToday} />
 
@@ -357,10 +403,17 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
                     </Pressable>
                   </>
                 ) : (
-                  <Pressable onPress={() => openStep(s)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                    <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{s.label}</Text>
-                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-                  </Pressable>
+                  <>
+                    <Pressable onPress={() => openStep(s)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                      <Text style={{ color: s.id === nextId ? colors.primary : colors.text, fontSize: 15, flex: 1, fontWeight: s.id === nextId ? '700' : '400' }}>{s.label}</Text>
+                    </Pressable>
+                    <Pressable onPress={() => togglePin(s.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={s.id === nextId ? hx.nx_unpin : hx.nx_pin} accessibilityState={{ selected: s.id === nextId }} style={{ padding: 4 }}>
+                      <Ionicons name={s.id === nextId ? 'pin' : 'pin-outline'} size={18} color={s.id === nextId ? colors.primary : colors.textMuted} />
+                    </Pressable>
+                    <Pressable onPress={() => openStep(s)} hitSlop={6} accessibilityElementsHidden importantForAccessibility="no">
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                    </Pressable>
+                  </>
                 )}
               </View>
             ))}

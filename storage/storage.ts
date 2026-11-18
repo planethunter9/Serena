@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree', 'nextStepId'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -655,6 +655,13 @@ export async function loadNextStep(): Promise<string> {
 export async function saveNextStep(s: string) {
   await setUserItem('nextStep', s);
 }
+// Degrau da escada marcado como "próximo" (id), na Exposição.
+export async function loadNextStepId(): Promise<string | null> {
+  return (await AsyncStorage.getItem(k('nextStepId'))) || null;
+}
+export async function saveNextStepId(id: string | null) {
+  await setUserItem('nextStepId', id ?? '');
+}
 
 // --- Registo genérico de sessões de exercícios (para o contador/pilares) ---
 // Cada vez que o utilizador marca uma sessão de um exercício, fica aqui um
@@ -690,7 +697,7 @@ export async function savePlanEnabled(on: boolean) {
 
 // Tarefas do plano, escolhidas pelo utilizador. Uma tarefa predefinida guarda só
 // o id (o rótulo vem do catálogo, bilingue); uma tarefa própria guarda o label.
-export type PlanTask = { id: string; label?: string };
+export type PlanTask = { id: string; label?: string; days?: number[] }; // days: 0=seg … 6=dom (vazio/undefined = todos)
 export async function loadPlanTasks(): Promise<PlanTask[]> {
   const raw = await AsyncStorage.getItem(k('planTasks'));
   return raw ? JSON.parse(raw) : [];

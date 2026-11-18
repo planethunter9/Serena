@@ -3,8 +3,9 @@
 
 import type { Ionicons } from '@expo/vector-icons';
 import type { Lang } from '../i18n/i18n';
+import { REC_TEXT_LANGS, recText } from './recText';
 
-export type HomeBlockId = 'affirmation' | 'hero' | 'plan' | 'severity' | 'nextStep';
+export type HomeBlockId = 'affirmation' | 'hero' | 'forYou' | 'plan' | 'severity';
 type T = Record<Lang, string>;
 
 export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMap; title: T; desc: T }[] = [
@@ -19,6 +20,11 @@ export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMa
     desc: { pt: 'Prática, Repetição e Aproximação, e os dias seguidos.', 'pt-BR': 'Prática, Repetição e Aproximação, e os dias seguidos.', en: 'Practice, Repetition and Approach, plus your streak.', es: 'Práctica, Repetición y Acercamiento, y los días seguidos.', fr: "Pratique, Répétition et Approche, et les jours d'affilée.", de: 'Übung, Wiederholung und Annäherung sowie deine Serie.', it: 'Pratica, Ripetizione e Avvicinamento, e i giorni di fila.', nl: 'Oefenen, Herhalen en Benaderen, plus je reeks.', pl: 'Praktyka, Powtarzanie i Zbliżanie się oraz seria dni.', ru: 'Практика, Повторение и Приближение, а также серия дней.' },
   },
   {
+    id: 'forYou', icon: 'sparkles-outline',
+    title: Object.fromEntries(REC_TEXT_LANGS.map((l) => [l, recText(l).header])) as T,
+    desc: Object.fromEntries(REC_TEXT_LANGS.map((l) => [l, recText(l).desc])) as T,
+  },
+  {
     id: 'plan', icon: 'list-outline',
     title: { pt: 'O teu plano', 'pt-BR': 'Seu plano', en: 'Your plan', es: 'Tu plan', fr: 'Ton plan', de: 'Dein Plan', it: 'Il tuo piano', nl: 'Je plan', pl: 'Twój plan', ru: 'Твой план' },
     desc: { pt: 'As tarefas da semana.', 'pt-BR': 'As tarefas da semana.', en: 'Your tasks for the week.', es: 'Las tareas de la semana.', fr: 'Les tâches de la semaine.', de: 'Deine Aufgaben für die Woche.', it: 'Le attività della settimana.', nl: 'Je taken voor de week.', pl: 'Zadania na ten tydzień.', ru: 'Задачи на неделю.' },
@@ -27,11 +33,6 @@ export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMa
     id: 'severity', icon: 'pulse-outline',
     title: { pt: 'Como está a fobia hoje?', 'pt-BR': 'Como está a fobia hoje?', en: 'How is the phobia today?', es: '¿Cómo está la fobia hoy?', fr: "Comment va la phobie aujourd'hui ?", de: 'Wie ist die Phobie heute?', it: 'Come va la fobia oggi?', nl: 'Hoe is de fobie vandaag?', pl: 'Jak dziś z fobią?', ru: 'Как фобия сегодня?' },
     desc: { pt: 'Um registo rápido de 0 a 5 (alimenta as Estatísticas).', 'pt-BR': 'Um registro rápido de 0 a 5 (alimenta as Estatísticas).', en: 'A quick 0–5 check-in (feeds your Statistics).', es: 'Un registro rápido de 0 a 5 (alimenta las Estadísticas).', fr: 'Un relevé rapide de 0 à 5 (alimente les Statistiques).', de: 'Ein kurzer Check-in von 0 bis 5 (für die Statistiken).', it: 'Un rapido check-in da 0 a 5 (alimenta le Statistiche).', nl: 'Een snelle check-in van 0 tot 5 (voor je statistieken).', pl: 'Szybka ocena od 0 do 5 (zasila Statystyki).', ru: 'Быстрая отметка от 0 до 5 (для статистики).' },
-  },
-  {
-    id: 'nextStep', icon: 'footsteps-outline',
-    title: { pt: 'O teu próximo passo', 'pt-BR': 'Seu próximo passo', en: 'Your next step', es: 'Tu próximo paso', fr: 'Ta prochaine étape', de: 'Dein nächster Schritt', it: 'Il tuo prossimo passo', nl: 'Je volgende stap', pl: 'Twój następny krok', ru: 'Твой следующий шаг' },
-    desc: { pt: 'Um objetivo pequeno para te lembrares do que vem a seguir.', 'pt-BR': 'Um objetivo pequeno para lembrar o que vem depois.', en: 'A small goal to remind you what comes next.', es: 'Un objetivo pequeño para recordar lo que viene después.', fr: 'Un petit objectif pour te rappeler la suite.', de: 'Ein kleines Ziel, das dich an den nächsten Schritt erinnert.', it: 'Un piccolo obiettivo per ricordarti cosa viene dopo.', nl: 'Een klein doel om je te herinneren aan wat komt.', pl: 'Mały cel, który przypomina, co dalej.', ru: 'Небольшая цель, чтобы помнить, что дальше.' },
   },
 ];
 
@@ -44,7 +45,13 @@ export function normalizeHomeOrder(saved: string[]): HomeBlockId[] {
   // Quem só tinha 'hero'/'plan' guardados: a frase do dia continua no topo, como antes.
   const missing = HOME_BLOCK_IDS.filter((k) => !uniq.includes(k));
   const front = missing.includes('affirmation') ? (['affirmation'] as HomeBlockId[]) : [];
-  return [...front, ...uniq, ...missing.filter((k) => k !== 'affirmation')];
+  const out = [...front, ...uniq, ...missing.filter((k) => k !== 'affirmation' && k !== 'forYou')];
+  // "Recomendado para ti" (bloco novo): entra logo a seguir aos pilares.
+  if (missing.includes('forYou')) {
+    const at = out.indexOf('hero');
+    out.splice(at >= 0 ? at + 1 : Math.min(1, out.length), 0, 'forYou');
+  }
+  return out;
 }
 
 // Texto quando a pessoa escondeu todos os blocos.
