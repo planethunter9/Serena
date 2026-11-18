@@ -1,14 +1,23 @@
-// Seletor de gráfico: o título do cartão é um botão ("Nome ▾") que abre uma
-// folha com todos os gráficos, cada um com ícone e uma frase a explicar.
+// Seletor de gráfico: o título do cartão é um botão ("Nome ▾").
+// - iOS e Android: abre o menu nativo do sistema (SwiftUI Menu / Material
+//   DropdownMenu, via @expo/ui), com um visto no gráfico atual.
+// - Web: o menu nativo não existe, por isso abre uma folha com a lista.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { requireOptionalNativeModule } from 'expo';
+import { Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 import { radius, spacing } from '../../theme/theme';
 
-export type ChartOption<T extends string> = { id: T; icon: keyof typeof Ionicons.glyphMap; name: string; desc: string };
+// O menu nativo só existe se o módulo do Expo UI estiver na app (build nova /
+// Expo Go recente); se não estiver, usa-se a folha como alternativa.
+const HAS_NATIVE_MENU = Platform.OS !== 'web' && !!requireOptionalNativeModule('ExpoUI');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MenuView: any = HAS_NATIVE_MENU ? require('@expo/ui/community/menu').MenuView : null;
+
+export type ChartOption<T extends string> = { id: T; icon: keyof typeof Ionicons.glyphMap; sf?: string; name: string; desc: string };
 
 export default function ChartPicker<T extends string>({ value, options, onChange, title }: {
   value: T;
@@ -20,6 +29,29 @@ export default function ChartPicker<T extends string>({ value, options, onChange
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const cur = options.find((o) => o.id === value) ?? options[0];
+
+  const trigger = (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Ionicons name={cur.icon} size={18} color={colors.primary} />
+      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flexShrink: 1 }}>{cur.name}</Text>
+      <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="chevron-down" size={15} color={colors.primary} />
+      </View>
+    </View>
+  );
+
+  if (MenuView) {
+    return (
+      <MenuView
+        title={title}
+        actions={options.map((o) => ({ id: o.id, title: o.name, state: o.id === value ? 'on' : 'off', ...(Platform.OS === 'ios' && o.sf ? { image: o.sf as any } : {}) }))}
+        onPressAction={({ nativeEvent }: { nativeEvent: { event: string } }) => onChange(nativeEvent.event as T)}
+        style={{ alignSelf: 'flex-start' }}
+      >
+        {trigger}
+      </MenuView>
+    );
+  }
 
   return (
     <>
