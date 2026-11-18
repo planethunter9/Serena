@@ -139,8 +139,8 @@ function SafetyBody() {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Pressable onPress={() => toggleFreeToday(r.id)} accessibilityRole="checkbox" accessibilityState={{ checked: fi.today }} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 999, backgroundColor: fi.today ? colors.successSoft : colors.primary }}>
-                {!fi.today && <Ionicons name="checkmark" size={16} color="#fff" />}
-                <Text style={{ color: fi.today ? colors.success : '#fff', fontSize: 13, fontWeight: '700' }}>{fi.today ? sx.todayDone : sx.todayNot}</Text>
+                {!fi.today && <Ionicons name="checkmark" size={16} color={colors.onPrimary} />}
+                <Text style={{ color: fi.today ? colors.success : colors.onPrimary, fontSize: 13, fontWeight: '700' }}>{fi.today ? sx.todayDone : sx.todayNot}</Text>
               </Pressable>
               <Pressable onPress={() => change(r, { dropping: false })} hitSlop={6} accessibilityRole="button" style={{ paddingHorizontal: 10, paddingVertical: 10 }}>
                 <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600' }}>{sx.stopDrop}</Text>
@@ -196,7 +196,7 @@ function SafetyBody() {
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15 }}
           />
           <Pressable onPress={addCustom} accessibilityRole="button" style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{t('common.add')}</Text>
           </Pressable>
         </View>
       )}

@@ -49,7 +49,7 @@ export function PeopleList({ people, onChange, editable, big }: { people: PlanPe
                 <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
               </Pressable>
               <Pressable onPress={() => open(`tel:${clean(p.phone)}`)} accessibilityRole="button" accessibilityLabel={`${px.call}: ${p.name}`} hitSlop={6} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="call" size={18} color="#fff" />
+                <Ionicons name="call" size={18} color={colors.onPrimary} />
               </Pressable>
             </>
           ) : null}

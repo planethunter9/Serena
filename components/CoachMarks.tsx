@@ -224,7 +224,7 @@ export function CoachProvider({ children }: { children: ReactNode }) {
                   </PressableScale>
                 )}
                 <PressableScale onPress={next} accessibilityRole="button" style={{ backgroundColor: colors.primary, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9, marginLeft: 6 }}>
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{isLast ? ui.done : ui.next}</Text>
+                  <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 14 }}>{isLast ? ui.done : ui.next}</Text>
                 </PressableScale>
               </View>
             </Animated.View>

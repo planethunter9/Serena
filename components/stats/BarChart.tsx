@@ -33,7 +33,7 @@ export default function BarChart({ values, xLabels, slotLabel, color }: {
             <View key={i} style={{ position: 'absolute', left: i * slot + (slot - barW) / 2, width: barW, bottom: BOTTOM, height: v ? Math.max(4, (v / max) * plotH) : 0, borderRadius: 4, backgroundColor: color, opacity: sel === null || sel === i ? 1 : 0.4 }} />
           ))}
           {xLabels.map((l) => (
-            <Text key={l.i} numberOfLines={1} style={{ position: 'absolute', top: H - BOTTOM + 5, left: l.i * slot + slot / 2 - 24, width: 48, textAlign: 'center', fontSize: 11, color: l.strong ? colors.primary : colors.textMuted, fontWeight: l.strong ? '700' : '400' }}>{l.text}</Text>
+            <Text key={l.i} numberOfLines={1} maxFontSizeMultiplier={1.3} style={{ position: 'absolute', top: H - BOTTOM + 5, left: l.i * slot + slot / 2 - 24, width: 48, textAlign: 'center', fontSize: 11, color: l.strong ? colors.primary : colors.textMuted, fontWeight: l.strong ? '700' : '400' }}>{l.text}</Text>
           ))}
           <Pressable
             onPress={(e) => { const i = Math.min(n - 1, Math.max(0, Math.floor(e.nativeEvent.locationX / slot))); setSel(sel === i ? null : i); }}

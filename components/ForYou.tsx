@@ -116,7 +116,7 @@ export function RecRow({ r, first, divider }: { r: Rec; first?: boolean; divider
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: divider ? 1 : 0, borderTopColor: colors.border }}
     >
       <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: first ? colors.primary : colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name={r.icon as keyof typeof Ionicons.glyphMap} size={19} color={first ? '#fff' : colors.primary} />
+        <Ionicons name={r.icon as keyof typeof Ionicons.glyphMap} size={19} color={first ? colors.onPrimary : colors.primary} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text numberOfLines={2} style={{ color: colors.text, fontSize: 15, fontWeight: '700' }}>{title}</Text>

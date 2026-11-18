@@ -91,8 +91,8 @@ export default function FeedbackScreen({ onBack }: { onBack: () => void }) {
               const active = kind === kOpt.id;
               return (
                 <Pressable key={kOpt.id} onPress={() => setKind(kOpt.id)} style={{ flex: 1, alignItems: 'center', gap: 6, paddingVertical: 14, borderRadius: radius.md, backgroundColor: active ? colors.primary : colors.card, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
-                  <Ionicons name={kOpt.icon} size={20} color={active ? '#fff' : colors.primary} />
-                  <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700', fontSize: 13 }}>{tt(kOpt.label)}</Text>
+                  <Ionicons name={kOpt.icon} size={20} color={active ? colors.onPrimary : colors.primary} />
+                  <Text style={{ color: active ? colors.onPrimary : colors.text, fontWeight: '700', fontSize: 13 }}>{tt(kOpt.label)}</Text>
                 </Pressable>
               );
             })}
@@ -115,7 +115,7 @@ export default function FeedbackScreen({ onBack }: { onBack: () => void }) {
           )}
 
           <Pressable onPress={send} disabled={!message.trim() || sending} style={{ paddingVertical: 15, borderRadius: radius.md, alignItems: 'center', backgroundColor: !message.trim() || sending ? colors.border : colors.primary }}>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 16 }}>
               {sending ? tt({ pt: 'A enviar…', en: 'Sending…' }) : tt({ pt: 'Enviar', en: 'Send' })}
             </Text>
           </Pressable>

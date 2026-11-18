@@ -30,7 +30,7 @@ export default function Heatmap({ grid, weekdays, less, more, dayLabel }: {
         <View style={{ flexDirection: 'row' }}>
           <View style={{ width: LABEL, gap }}>
             {weekdays.map((d, i) => (
-              <Text key={i} style={{ height: cell, fontSize: 10, lineHeight: cell, color: colors.textMuted }}>{i % 2 === 0 ? d : ''}</Text>
+              <Text key={i} maxFontSizeMultiplier={1.2} style={{ height: cell, fontSize: 10, lineHeight: cell, color: colors.textMuted }}>{i % 2 === 0 ? d : ''}</Text>
             ))}
           </View>
           <View style={{ flexDirection: 'row', gap }}>

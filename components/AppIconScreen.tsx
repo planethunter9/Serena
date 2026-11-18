@@ -73,7 +73,7 @@ export default function AppIconScreen({ onBack }: { onBack: () => void }) {
                   )}
                   {active && (
                     <View style={{ position: 'absolute', right: 4, top: 4, backgroundColor: colors.primary, borderRadius: 999, width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name="checkmark" size={15} color="#fff" />
+                      <Ionicons name="checkmark" size={15} color={colors.onPrimary} />
                     </View>
                   )}
                 </View>

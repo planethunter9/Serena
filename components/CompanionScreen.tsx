@@ -162,8 +162,8 @@ export default function CompanionScreen({ onBack }: { onBack: () => void }) {
         )}
 
         <Pressable onPress={share} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, borderRadius: radius.md, backgroundColor: colors.primary, marginTop: 4 }}>
-          <Ionicons name="share-outline" size={20} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{tt({ pt: 'Partilhar', en: 'Share' })}</Text>
+          <Ionicons name="share-outline" size={20} color={colors.onPrimary} />
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 16 }}>{tt({ pt: 'Partilhar', en: 'Share' })}</Text>
         </Pressable>
       </ScrollView>
     </View>

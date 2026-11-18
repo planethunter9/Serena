@@ -98,11 +98,11 @@ export default function LineChart({
           </Svg>
           {/* Eixo Y */}
           {yTicks.map((v) => (
-            <Text key={'y' + v} style={{ position: 'absolute', left: 0, width: LEFT - 6, top: yAt(v) - 7, textAlign: 'right', fontSize: 11, color: colors.textMuted, fontVariant: ['tabular-nums'] }}>{(tickFormat ?? String)(v)}</Text>
+            <Text key={'y' + v} maxFontSizeMultiplier={1.3} style={{ position: 'absolute', left: 0, width: LEFT - 6, top: yAt(v) - 7, textAlign: 'right', fontSize: 11, color: colors.textMuted, fontVariant: ['tabular-nums'] }}>{(tickFormat ?? String)(v)}</Text>
           ))}
           {/* Eixo X */}
           {xLabels.map((l) => (
-            <Text key={'x' + l.i} numberOfLines={1} style={{ position: 'absolute', top: H - BOTTOM + 5, left: xAt(l.i) - 24, width: 48, textAlign: 'center', fontSize: 11, color: l.strong ? colors.primary : colors.textMuted, fontWeight: l.strong ? '700' : '400' }}>{l.text}</Text>
+            <Text key={'x' + l.i} numberOfLines={1} maxFontSizeMultiplier={1.3} style={{ position: 'absolute', top: H - BOTTOM + 5, left: xAt(l.i) - 24, width: 48, textAlign: 'center', fontSize: 11, color: l.strong ? colors.primary : colors.textMuted, fontWeight: l.strong ? '700' : '400' }}>{l.text}</Text>
           ))}
           {/* Toque */}
           <Pressable onPress={(e) => onPress(e.nativeEvent.locationX)} style={{ position: 'absolute', left: LEFT, top: 0, right: 0, bottom: BOTTOM }} accessibilityRole="adjustable" />

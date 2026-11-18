@@ -72,7 +72,7 @@ export default function MainApp() {
         const pack = tutorialPack(langRef.current);
         const home = () => setTab('home');
         const show: Record<TutorialStepId, () => void> = {
-          welcome: home, pillars: home, 'home-plan': home, 'header-actions': home,
+          welcome: home, pillars: home, 'home-plan': home, 'home-severity': home, 'header-actions': home,
           'support-now': () => setTab('support'), 'support-techniques': () => setTab('support'),
           'calendar-card': () => setTab('calendar'), 'resources-list': () => setTab('resources'),
           tabbar: home, end: home,

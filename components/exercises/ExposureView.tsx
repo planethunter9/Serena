@@ -348,7 +348,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TextInput value={newStep} onChangeText={setNewStep} onSubmitEditing={addStep} autoFocus placeholder={t('exposure.addStep')} placeholderTextColor={colors.textMuted} style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
               <Pressable onPress={addStep} accessibilityRole="button" style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{t('common.add')}</Text>
               </Pressable>
               <Pressable onPress={() => { setAdding(false); setNewStep(''); }} accessibilityRole="button" accessibilityLabel={t('common.cancel')} style={{ width: 44, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="close" size={20} color={colors.textMuted} />
@@ -359,7 +359,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
               <Ionicons name="swap-vertical" size={18} color={colors.primary} />
               <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{ex.reorderHint}</Text>
               <Pressable onPress={() => setReordering(false)} accessibilityRole="button" style={{ backgroundColor: colors.primary, paddingHorizontal: 14, height: 34, borderRadius: 999, justifyContent: 'center' }}>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('common.done')}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>{t('common.done')}</Text>
               </Pressable>
             </View>
           ) : (

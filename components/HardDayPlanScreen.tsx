@@ -79,12 +79,12 @@ export function HardDayBody() {
 
         {/* Modo de leitura para os momentos difíceis */}
         <Pressable onPress={() => router.push('/myplan' as any)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.lg }}>
-          <Ionicons name="reader-outline" size={24} color="#fff" />
+          <Ionicons name="reader-outline" size={24} color={colors.onPrimary} />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{px.viewPlan}</Text>
-            <Text style={{ color: '#fff', opacity: 0.85, fontSize: 12 }}>{px.viewHint}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 16 }}>{px.viewPlan}</Text>
+            <Text style={{ color: colors.onPrimary, opacity: 0.85, fontSize: 12 }}>{px.viewHint}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
+          <Ionicons name="chevron-forward" size={20} color={colors.onPrimary} />
         </Pressable>
 
         {fields.map((f) => (

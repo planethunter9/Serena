@@ -105,7 +105,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 16 }}
           />
           <Pressable onPress={add} style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{t('common.add')}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{t('common.add')}</Text>
           </Pressable>
         </View>
 
@@ -121,7 +121,7 @@ export default function GoalsScreen({ onBack }: { onBack: () => void }) {
           <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 16, borderWidth: 1, borderColor: colors.border }}>
             <Pressable onPress={() => toggle(g.id)} hitSlop={8}>
               <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: g.done ? colors.success : 'transparent', borderWidth: 2, borderColor: g.done ? colors.success : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-                {g.done && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
+                {g.done && <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>✓</Text>}
               </View>
             </Pressable>
             <Text style={{ color: g.done ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: g.done ? 'line-through' : 'none' }}>{g.text}</Text>

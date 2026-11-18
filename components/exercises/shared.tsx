@@ -59,7 +59,7 @@ export function Suds({ value, onChange }: { value: number | null; onChange: (v: 
             accessibilityState={{ selected: active }}
             style={{ width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}
           >
-            <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{v}</Text>
+            <Text style={{ color: active ? colors.onPrimary : colors.text, fontWeight: '700' }}>{v}</Text>
           </Pressable>
         );
       })}
@@ -86,11 +86,11 @@ export function Stepper({ labels, current, done }: { labels: string[]; current: 
             <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
               <View style={{ flex: 1, height: 2, backgroundColor: i === 0 ? 'transparent' : i <= current || done ? colors.primary : colors.border }} />
               <View style={{ width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: isDone || on ? colors.primary : colors.card, borderWidth: 2, borderColor: isDone || on ? colors.primary : colors.border }}>
-                {isDone ? <Ionicons name="checkmark" size={16} color="#fff" /> : <Text style={{ color: on ? '#fff' : colors.textMuted, fontSize: 13, fontWeight: '700' }}>{i + 1}</Text>}
+                {isDone ? <Ionicons name="checkmark" size={16} color={colors.onPrimary} /> : <Text style={{ color: on ? colors.onPrimary : colors.textMuted, fontSize: 13, fontWeight: '700' }}>{i + 1}</Text>}
               </View>
               <View style={{ flex: 1, height: 2, backgroundColor: i === last ? 'transparent' : i < current || done ? colors.primary : colors.border }} />
             </View>
-            <Text numberOfLines={1} style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: on ? '700' : '500' }}>{l}</Text>
+            <Text numberOfLines={1} maxFontSizeMultiplier={1.4} style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: on ? '700' : '500' }}>{l}</Text>
           </View>
         );
       })}

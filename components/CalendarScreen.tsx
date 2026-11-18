@@ -177,7 +177,7 @@ export default function CalendarScreen() {
                 return (
                   <Pressable key={dateStr} onPress={() => setSelected(dateStr)} accessibilityRole="button" accessibilityState={{ selected: isSelected }} style={{ flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' }}>
                     <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? colors.primary : isToday ? colors.primarySoft : 'transparent' }}>
-                      <Text style={{ color: isSelected ? '#fff' : colors.text, fontSize: 15, fontWeight: isToday ? '700' : '500' }}>{day}</Text>
+                      <Text style={{ color: isSelected ? colors.onPrimary : colors.text, fontSize: 15, fontWeight: isToday ? '700' : '500' }}>{day}</Text>
                     </View>
                     {/* Marcas: vermelho (ataque) e/ou verde (exposição) */}
                     <View style={{ flexDirection: 'row', gap: 3, marginTop: 2, height: 6 }}>
@@ -224,7 +224,7 @@ export default function CalendarScreen() {
                 <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{typeLabel(e.type)}</Text>
                 {e.vomited !== undefined && (
                   <View style={{ backgroundColor: e.vomited ? colors.danger : colors.successSoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-                    <Text style={{ color: e.vomited ? '#fff' : colors.success, fontSize: 11, fontWeight: '700' }}>{e.vomited ? (tr2(lang, 'vomitou', 'vomited')) : (tr2(lang, 'não vomitou', 'did not vomit'))}</Text>
+                    <Text style={{ color: e.vomited ? colors.onPrimary : colors.success, fontSize: 11, fontWeight: '700' }}>{e.vomited ? (tr2(lang, 'vomitou', 'vomited')) : (tr2(lang, 'não vomitou', 'did not vomit'))}</Text>
                   </View>
                 )}
                 <Text style={{ color: colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>{timeOf(e.ts)}</Text>
@@ -249,7 +249,7 @@ export default function CalendarScreen() {
                   const active = newType === tp;
                   return (
                     <Pressable key={tp} onPress={() => setNewType(tp)} style={{ flex: 1, paddingVertical: 8, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
-                      <Text numberOfLines={1} style={{ color: active ? '#fff' : colors.text, fontSize: 12, fontWeight: '700' }}>{typeLabel(tp)}</Text>
+                      <Text numberOfLines={1} style={{ color: active ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{typeLabel(tp)}</Text>
                     </Pressable>
                   );
                 })}
@@ -261,7 +261,7 @@ export default function CalendarScreen() {
                   const active = newVomited === val;
                   return (
                     <Pressable key={String(val)} onPress={() => setNewVomited(val)} style={{ flex: 1, paddingVertical: 10, borderRadius: radius.md, alignItems: 'center', backgroundColor: active ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: active ? colors.primary : colors.border }}>
-                      <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{label}</Text>
+                      <Text style={{ color: active ? colors.onPrimary : colors.text, fontWeight: '700' }}>{label}</Text>
                     </Pressable>
                   );
                 })}
@@ -271,7 +271,7 @@ export default function CalendarScreen() {
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{tr2(lang, 'Cancelar', 'Cancel')}</Text>
                 </Pressable>
                 <Pressable onPress={addEntry} style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, alignItems: 'center', backgroundColor: colors.primary }}>
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>{tr2(lang, 'Guardar', 'Save')}</Text>
+                  <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{tr2(lang, 'Guardar', 'Save')}</Text>
                 </Pressable>
               </View>
             </View>

@@ -129,7 +129,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
         <SvgCircle cx={S / 2} cy={S / 2} r={R} stroke={pct >= 1 ? colors.success : colors.primary} strokeWidth={5} fill="none"
           strokeDasharray={`${C * pct} ${C}`} strokeLinecap="round" transform={`rotate(-90 ${S / 2} ${S / 2})`} />
       </Svg>
-      <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{done}/{total}</Text>
+      <Text maxFontSizeMultiplier={1.2} style={{ color: colors.text, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{done}/{total}</Text>
     </View>
   );
 }
@@ -229,8 +229,8 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
         </View>
         <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Ainda não tens um plano. Cria um.', "You don't have a plan yet. Create one.")}</Text>
         <Pressable onPress={onEdit} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: radius.md, backgroundColor: colors.primary }}>
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{Lx('Criar plano', 'Create plan')}</Text>
+          <Ionicons name="add" size={18} color={colors.onPrimary} />
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 14 }}>{Lx('Criar plano', 'Create plan')}</Text>
         </Pressable>
       </Card>
     );
@@ -277,9 +277,9 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
           const border = st === 'full' ? colors.success : st === 'partial' ? colors.primary : colors.border;
           return (
             <View key={d} style={{ alignItems: 'center', gap: 4, flex: 1 }}>
-              <Text style={{ color: isToday ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: isToday ? '700' : '500' }}>{WD[i]}</Text>
+              <Text maxFontSizeMultiplier={1.3} style={{ color: isToday ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: isToday ? '700' : '500' }}>{WD[i]}</Text>
               <View style={{ width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: fill, borderWidth: st === 'rest' ? 0 : 2, borderColor: border, borderStyle: st === 'future' ? 'dashed' : 'solid', opacity: st === 'future' ? 0.6 : 1 }}>
-                {st === 'full' ? <Ionicons name="checkmark" size={13} color="#fff" /> : st === 'rest' ? <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.border }} /> : null}
+                {st === 'full' ? <Ionicons name="checkmark" size={13} color={colors.onPrimary} /> : st === 'rest' ? <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.border }} /> : null}
               </View>
             </View>
           );
@@ -302,7 +302,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
             <View key={task.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, opacity: task.done ? 0.6 : 1 }}>
               <Pressable onPress={() => !task.auto && toggleDone(task.key)} hitSlop={6} accessibilityRole="checkbox" accessibilityState={{ checked: task.done }} accessibilityLabel={task.label}>
                 <View style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: task.done ? colors.success : colors.border, backgroundColor: task.done ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                  {task.done && <Reanimated.View entering={checkPop}><Ionicons name="checkmark" size={15} color="#fff" /></Reanimated.View>}
+                  {task.done && <Reanimated.View entering={checkPop}><Ionicons name="checkmark" size={15} color={colors.onPrimary} /></Reanimated.View>}
                 </View>
               </Pressable>
               <Pressable
@@ -330,8 +330,8 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
           </View>
           <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{focusDisplay}</Text>
           <Pressable onPress={toggleFocusFree} accessibilityRole="checkbox" accessibilityState={{ checked: focusDone }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 999, backgroundColor: focusDone ? colors.successSoft : colors.primary }}>
-            {!focusDone && <Ionicons name="checkmark" size={15} color="#fff" />}
-            <Text style={{ color: focusDone ? colors.success : '#fff', fontSize: 13, fontWeight: '700' }}>{focusDone ? sx.todayDone : sx.todayNot}</Text>
+            {!focusDone && <Ionicons name="checkmark" size={15} color={colors.onPrimary} />}
+            <Text style={{ color: focusDone ? colors.success : colors.onPrimary, fontSize: 13, fontWeight: '700' }}>{focusDone ? sx.todayDone : sx.todayNot}</Text>
           </Pressable>
         </View>
       )}
@@ -485,7 +485,7 @@ export function PlanEditor() {
           <TextInput value={newTask} onChangeText={setNewTask} onSubmitEditing={addCustomTask} placeholder={Lx('Escreve o que quiseres fazer…', 'Write whatever you want to do…')} placeholderTextColor={colors.textMuted}
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.cardAlt, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }} />
           <Pressable onPress={addCustomTask} style={{ paddingHorizontal: 18, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{Lx('Adicionar', 'Add')}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{Lx('Adicionar', 'Add')}</Text>
           </Pressable>
         </View>
       </Card>

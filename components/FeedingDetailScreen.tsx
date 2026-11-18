@@ -94,8 +94,8 @@ export default function FeedingDetailScreen() {
               accessibilityRole="button"
               style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999 }}
             >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{sx.tryNow}</Text>
-              <Ionicons name="arrow-forward" size={15} color="#fff" />
+              <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 13 }}>{sx.tryNow}</Text>
+              <Ionicons name="arrow-forward" size={15} color={colors.onPrimary} />
             </Pressable>
           )}
         </Card>

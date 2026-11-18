@@ -220,8 +220,8 @@ export default function SettingsScreen({
               disabled={backupBusy}
               style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: radius.md, backgroundColor: colors.primary, opacity: backupBusy ? 0.6 : 1 }}
             >
-              {backupBusy ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="download-outline" size={16} color="#fff" />}
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{L('Exportar', 'Export')}</Text>
+              {backupBusy ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Ionicons name="download-outline" size={16} color={colors.onPrimary} />}
+              <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 14 }}>{L('Exportar', 'Export')}</Text>
             </Pressable>
             <Pressable
               onPress={importBackup}

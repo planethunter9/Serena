@@ -328,6 +328,12 @@ export const dict: Record<string, string> = {
 };
 
 export const inline: Record<string, string> = {
+  "More information": "Meer informatie",
+  "Playing": "Speelt af",
+  "Paused": "Gepauzeerd",
+  "Pause": "Pauze",
+  "Play": "Afspelen",
+  "Stop": "Stoppen",
   ' · your fear': ' · jouw angst',
   'Acceptance & values': 'Acceptatie & waarden',
   'Add': 'Toevoegen',

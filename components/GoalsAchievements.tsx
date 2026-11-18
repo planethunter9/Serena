@@ -5,18 +5,11 @@ import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
-import { CHAPTERS } from '../data/content';
 import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
   Goal,
   isoLocal,
-  loadExposureDays,
   loadGoals,
-  loadJournal,
-  loadLessonsDone,
-  loadManualAchievements,
-  loadSeverity,
-  loadStreakStart,
   saveGoals,
   saveManualAchievements,
 } from '../storage/storage';
@@ -24,6 +17,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, CardHeader, PrimaryButton, Segmented, TopBackBar } from './ui';
 import { goalsText } from '../data/goalsText';
+import { loadAchStats } from '../lib/achievementStats';
 import { loadLadderSteps } from '../lib/ladder';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -50,38 +44,7 @@ function AchievementsBody() {
   const [manual, setManual] = useState<string[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const [streakStart, lessons, journal, goals, severity, man, expDays] = await Promise.all([
-        loadStreakStart(),
-        loadLessonsDone(),
-        loadJournal(),
-        loadGoals(),
-        loadSeverity(),
-        loadManualAchievements(),
-        loadExposureDays(),
-      ]);
-
-      const expSet = new Set(expDays);
-      const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const d0 = new Date();
-      if (!expSet.has(ymd(d0))) d0.setDate(d0.getDate() - 1);
-      let exposureStreak = 0;
-      while (expSet.has(ymd(d0))) { exposureStreak++; d0.setDate(d0.getDate() - 1); }
-      const streakDays = streakStart ? Math.max(0, Math.floor((Date.now() - new Date(streakStart).getTime()) / 86400000)) : 0;
-      const journalDays = new Set(journal.map((e) => e.date)).size;
-      setStats({
-        streakDays,
-        lessonsDone: lessons.length,
-        lessonsTotal: CHAPTERS.flatMap((c) => c.lessons).length,
-        journalDays,
-        goalsCreated: goals.length,
-        goalsDone: goals.filter((g) => g.done).length,
-        fearDays: severity.length,
-        exposureDays: expDays.length,
-        exposureStreak,
-      });
-      setManual(man);
-    })();
+    loadAchStats().then(({ stats: st, manual: m }) => { setStats(st); setManual(m); });
   }, []);
 
   function isUnlocked(a: (typeof ACHIEVEMENTS)[number]) {
@@ -211,7 +174,7 @@ function GoalsBody() {
   const done = goals.filter((g) => g.done).sort((a, b) => ((a.doneAt ?? '') < (b.doneAt ?? '') ? 1 : -1));
   const today = isoLocal();
   const chip = (on: boolean) => ({ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' });
-  const chipText = (on: boolean) => ({ color: on ? '#fff' : colors.text, fontSize: 13, fontWeight: '600' as const });
+  const chipText = (on: boolean) => ({ color: on ? colors.onPrimary : colors.text, fontSize: 13, fontWeight: '600' as const });
 
   const goalCard = (g: Goal) => {
     const late = !g.done && g.target && g.target < today;
@@ -220,7 +183,7 @@ function GoalsBody() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Pressable onPress={() => toggle(g)} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: g.done }} accessibilityLabel={g.text}>
             <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: g.done ? colors.success : 'transparent', borderWidth: 2, borderColor: g.done ? colors.success : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-              {g.done && <Ionicons name="checkmark" size={16} color="#fff" />}
+              {g.done && <Ionicons name="checkmark" size={16} color={colors.onPrimary} />}
             </View>
           </Pressable>
           <Text style={{ color: g.done ? colors.textMuted : colors.text, fontSize: 16, flex: 1, textDecorationLine: g.done ? 'line-through' : 'none' }}>{g.text}</Text>

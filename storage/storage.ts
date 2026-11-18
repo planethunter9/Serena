@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree', 'nextStepId'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree', 'nextStepId', 'achSeen'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -721,4 +721,20 @@ export async function loadHealthConsent(): Promise<HealthConsent | null> {
 }
 export async function saveHealthConsent(c: HealthConsent) {
   await setUserItem('healthConsent', JSON.stringify(c));
+}
+
+// Conquistas já mostradas no aviso "Conquista desbloqueada" (null = ainda nunca
+// verificado: na primeira vez guarda-se o estado atual sem mostrar nada).
+export async function loadAchSeen(): Promise<string[] | null> {
+  try {
+    const raw = await AsyncStorage.getItem(k('achSeen'));
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+export async function saveAchSeen(ids: string[]) {
+  await setUserItem('achSeen', JSON.stringify(ids));
 }

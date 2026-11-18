@@ -3,6 +3,8 @@
 // app) e devolve o HTML. Os dados vêm de lib/reportData.ts.
 
 import type { ReportText } from '../data/reportText';
+import type { ReportExtra } from '../data/reportExtra';
+import { legendHtml, lineChartSvg } from './reportCharts';
 
 export type ReportData = {
   name?: string;
@@ -19,7 +21,18 @@ export type ReportData = {
   safety: { inUse: string[]; dropping: string[]; dropped: { label: string; date: string }[] };
   thoughts: { date: string; thought: string; balanced: string; before: number; after: number }[];
   talk?: string;
+  // Novos (opcionais para compatibilidade): gráficos, aprendizagens e secções.
+  charts?: {
+    severity: { date: string; v: number }[];
+    prediction: { date: string; a: number; b?: number }[];
+    discomfort: { date: string; before: number; after: number }[];
+  };
+  learnings?: { date: string; source: 'exposure' | 'unplanned' | 'experiment'; text: string }[];
+  sections?: Partial<Record<ReportSection, boolean>>;
 };
+
+export type ReportSection = 'charts' | 'learnings' | 'exposures' | 'unplanned' | 'hard' | 'safety' | 'thoughts';
+export const REPORT_SECTIONS: ReportSection[] = ['charts', 'learnings', 'exposures', 'unplanned', 'hard', 'safety', 'thoughts'];
 
 const esc = (s: string | number | undefined | null) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -35,7 +48,8 @@ function table(head: string[], rows: (string | number)[][], x: ReportText): stri
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
-export function buildReportHtml(d: ReportData, x: ReportText, lang: string): string {
+export function buildReportHtml(d: ReportData, x: ReportText, lang: string, xe?: ReportExtra): string {
+  const on = (k: ReportSection) => d.sections?.[k] !== false;
   const yn = (b: boolean | undefined) => (b == null ? '–' : b ? x.yes : x.no);
   const happened = (h?: 'yes' | 'partly' | 'no') => (h === 'yes' ? x.yes : h === 'partly' ? x.partly : h === 'no' ? x.no : '–');
   const typeLabel = { anxiety: x.anxiety, panic: x.panic, behavior: x.behavior };
@@ -90,6 +104,24 @@ export function buildReportHtml(d: ReportData, x: ReportText, lang: string): str
     ? table([x.date, x.thought, x.balanced, x.ba], d.thoughts.map((t) => [t.date, t.thought, t.balanced, `${t.before} / ${t.after}`]), x)
     : `<p class="muted">${esc(x.notesHidden)}</p>`;
 
+  // Gráficos de evolução (SVG).
+  const C_PRIMARY = '#2f8aa8', C_GREEN = '#2fae66';
+  const chartBlock = (title: string, svg: string | null, legend?: string, hint?: string) =>
+    `<div class="chart"><h3>${esc(title)}</h3>${hint ? `<p class="muted">${esc(hint)}</p>` : ''}${svg ? (legend ?? '') + svg : `<p class="muted">${esc(xe?.notEnough ?? x.none)}</p>`}</div>`;
+  const ends = <T extends { date: string }>(a: T[]): [string, string] => [a[0]?.date ?? '', a[a.length - 1]?.date ?? ''];
+  const ch = d.charts;
+  const chartsHtml = ch && xe ? [
+    chartBlock(xe.chartPred, ch.prediction.length >= 2 ? lineChartSvg({ lines: [{ color: C_PRIMARY, values: ch.prediction.map((p) => p.a) }, { color: C_GREEN, values: ch.prediction.map((p) => p.b ?? null) }], yMax: 100, yTicks: [0, 50, 100], tickSuffix: '%', xLabels: ends(ch.prediction) }) : null,
+      legendHtml([{ color: C_PRIMARY, label: xe.before }, { color: C_GREEN, label: xe.after }]), xe.chartPredHint),
+    chartBlock(xe.chartSev, ch.severity.length >= 2 ? lineChartSvg({ lines: [{ color: C_PRIMARY, values: ch.severity.map((p) => p.v) }], yMax: 5, yTicks: [0, 1, 2, 3, 4, 5], xLabels: ends(ch.severity) }) : null),
+    chartBlock(xe.chartDisc, ch.discomfort.length >= 2 ? lineChartSvg({ lines: [{ color: C_PRIMARY, values: ch.discomfort.map((p) => p.before) }, { color: C_GREEN, values: ch.discomfort.map((p) => p.after) }], yMax: 10, yTicks: [0, 5, 10], xLabels: ends(ch.discomfort) }) : null,
+      legendHtml([{ color: C_PRIMARY, label: xe.before }, { color: C_GREEN, label: xe.after }])),
+  ].join('') : '';
+  const srcLabel = (s: 'exposure' | 'unplanned' | 'experiment') => (xe ? (s === 'exposure' ? xe.srcExposure : s === 'unplanned' ? xe.srcUnplanned : xe.srcExperiment) : s);
+  const learningsHtml = d.learnings && d.learnings.length
+    ? `<ul class="learn">${d.learnings.map((l) => `<li><span class="muted">${esc(l.date)} · ${esc(srcLabel(l.source))}</span><br>${multiline(l.text)}</li>`).join('')}</ul>`
+    : `<p class="muted">${esc(x.none)}</p>`;
+
   return `<!doctype html>
 <html lang="${esc(lang)}">
 <head>
@@ -113,6 +145,11 @@ export function buildReportHtml(d: ReportData, x: ReportText, lang: string): str
   tr { page-break-inside: avoid; }
   ul { margin: 6px 0; padding-left: 18px; }
   .talk { background: #f1f6f8; border-radius: 8px; padding: 10px 12px; }
+  h3 { font-size: 11pt; margin: 12px 0 2px; }
+  .chart { page-break-inside: avoid; margin-bottom: 6px; }
+  .legend { display: flex; gap: 14px; font-size: 9pt; color: #5d6b78; margin: 2px 0 4px; }
+  .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .learn li { margin-bottom: 6px; page-break-inside: avoid; }
   footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid #dde5ea; color: #5d6b78; font-size: 8.5pt; }
 </style>
 </head>
@@ -129,20 +166,19 @@ ${d.talk && d.talk.trim() ? `<h2>${esc(x.talk)}</h2><div class="talk">${multilin
 
 ${profile ? `<h2>${esc(x.profile)}</h2>${profile}` : ''}
 
-<h2>${esc(x.exposures)}</h2>
-${table(expHead, expRows, x)}
+${on('charts') && chartsHtml ? `<h2>${esc(xe?.charts ?? '')}</h2>${chartsHtml}` : ''}
 
-<h2>${esc(x.unplanned)}</h2>
-${table(unpHead, unpRows, x)}
+${on('learnings') && d.learnings ? `<h2>${esc(xe?.learnings ?? '')}</h2>${learningsHtml}` : ''}
 
-<h2>${esc(x.hard)}</h2>
-${table(hardHead, hardRows, x)}
+${on('exposures') ? `<h2>${esc(x.exposures)}</h2>${table(expHead, expRows, x)}` : ''}
 
-<h2>${esc(x.safety)}</h2>
-${safety}
+${on('unplanned') ? `<h2>${esc(x.unplanned)}</h2>${table(unpHead, unpRows, x)}` : ''}
 
-<h2>${esc(x.thoughts)}</h2>
-${thoughts}
+${on('hard') ? `<h2>${esc(x.hard)}</h2>${table(hardHead, hardRows, x)}` : ''}
+
+${on('safety') ? `<h2>${esc(x.safety)}</h2>${safety}` : ''}
+
+${on('thoughts') ? `<h2>${esc(x.thoughts)}</h2>${thoughts}` : ''}
 
 <footer>${esc(x.footer)}</footer>
 </body>

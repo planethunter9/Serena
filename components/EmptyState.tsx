@@ -37,8 +37,8 @@ export default function EmptyState({
           onPress={onAction}
           style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, paddingHorizontal: 18, paddingVertical: 11, borderRadius: 999 }}
         >
-          <Ionicons name="add" size={16} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>{actionLabel}</Text>
+          <Ionicons name="add" size={16} color={colors.onPrimary} />
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 14 }}>{actionLabel}</Text>
         </Pressable>
       )}
     </View>

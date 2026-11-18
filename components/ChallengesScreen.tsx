@@ -155,12 +155,12 @@ export default function ChallengesScreen() {
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <Pressable onPress={() => setMode((m) => (m === 'pick' ? 'none' : 'pick'))} style={pill(mode === 'pick')}>
-          <Ionicons name={mode === 'pick' ? 'close' : 'list-outline'} size={16} color={mode === 'pick' ? '#fff' : colors.primary} />
-          <Text style={{ color: mode === 'pick' ? '#fff' : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Escolher da lista', en: 'Pick from list' })}</Text>
+          <Ionicons name={mode === 'pick' ? 'close' : 'list-outline'} size={16} color={mode === 'pick' ? colors.onPrimary : colors.primary} />
+          <Text style={{ color: mode === 'pick' ? colors.onPrimary : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Escolher da lista', en: 'Pick from list' })}</Text>
         </Pressable>
         <Pressable onPress={() => setMode((m) => (m === 'create' ? 'none' : 'create'))} style={pill(mode === 'create')}>
-          <Ionicons name={mode === 'create' ? 'close' : 'add'} size={16} color={mode === 'create' ? '#fff' : colors.primary} />
-          <Text style={{ color: mode === 'create' ? '#fff' : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Criar o meu', en: 'Create my own' })}</Text>
+          <Ionicons name={mode === 'create' ? 'close' : 'add'} size={16} color={mode === 'create' ? colors.onPrimary : colors.primary} />
+          <Text style={{ color: mode === 'create' ? colors.onPrimary : colors.primary, fontWeight: '700', fontSize: 13 }}>{tt({ pt: 'Criar o meu', en: 'Create my own' })}</Text>
         </Pressable>
       </View>
 
@@ -176,7 +176,7 @@ export default function ChallengesScreen() {
             style={{ flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 2, borderColor: colors.border, color: colors.text, fontSize: 15 }}
           />
           <Pressable onPress={addCustom} style={{ paddingHorizontal: 16, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{tt({ pt: 'Adicionar', en: 'Add' })}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{tt({ pt: 'Adicionar', en: 'Add' })}</Text>
           </Pressable>
         </View>
       )}
@@ -212,7 +212,7 @@ export default function ChallengesScreen() {
             return (
               <Pressable key={m.id} onPress={() => toggle(m.id)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={labelOf(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.lg, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                 <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                  {checked && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>✓</Text>}
+                  {checked && <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12 }}>✓</Text>}
                 </View>
                 <Text style={{ color: colors.text, fontSize: 14, flex: 1, lineHeight: 20 }}>{labelOf(m)}</Text>
                 <Pressable onPress={() => remove(m)} hitSlop={8} accessibilityRole="button" accessibilityLabel={tt({ pt: 'Remover desafio', en: 'Remove challenge' })} style={{ padding: 2 }}>

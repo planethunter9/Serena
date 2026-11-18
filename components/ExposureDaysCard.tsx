@@ -106,7 +106,7 @@ export default function ExposureDaysCard({ days, streak, markedToday, onToggle }
                   borderStyle: d.done || d.today ? 'solid' : 'dashed',
                 }}
               >
-                {d.done ? <Ionicons name="checkmark" size={18} color="#fff" /> : null}
+                {d.done ? <Ionicons name="checkmark" size={18} color={colors.onPrimary} /> : null}
               </View>
               <Text style={{ color: d.today ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: d.today ? '800' : '600' }}>{d.letter}</Text>
             </View>
@@ -121,9 +121,9 @@ export default function ExposureDaysCard({ days, streak, markedToday, onToggle }
         accessibilityLabel={markedToday ? `${x.logged}. ${x.undo}` : x.log}
         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.md, paddingVertical: 13, backgroundColor: markedToday ? colors.successSoft : colors.primary, borderWidth: markedToday ? 1 : 0, borderColor: colors.success }}
       >
-        <Ionicons name={markedToday ? 'checkmark-circle' : 'add-circle-outline'} size={20} color={markedToday ? colors.success : '#fff'} />
+        <Ionicons name={markedToday ? 'checkmark-circle' : 'add-circle-outline'} size={20} color={markedToday ? colors.success : colors.onPrimary} />
         <View style={{ alignItems: 'center' }}>
-          <Text style={{ color: markedToday ? colors.success : '#fff', fontWeight: '700', fontSize: 15 }}>{markedToday ? x.logged : x.log}</Text>
+          <Text style={{ color: markedToday ? colors.success : colors.onPrimary, fontWeight: '700', fontSize: 15 }}>{markedToday ? x.logged : x.log}</Text>
           {markedToday && <Text style={{ color: colors.success, fontSize: 11, opacity: 0.8 }}>{x.undo}</Text>}
         </View>
       </Pressable>
