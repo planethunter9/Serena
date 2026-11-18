@@ -38,6 +38,8 @@ import { DataProvider } from '../store/DataContext';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import SyncBanner from '../components/SyncBanner';
 import { AchievementWatcher } from '../components/AchievementUnlock';
+import MiniPlayer from '../components/MiniPlayer';
+import { SoundProvider } from '../store/SoundContext';
 
 function ThemedStatusBar() {
   const { isDark } = useTheme();
@@ -138,6 +140,8 @@ function ThemedApp() {
       <SyncBanner />
       {/* "Conquista desbloqueada" (verifica ao mudar de ecrã) */}
       <AchievementWatcher />
+      {/* Mini-leitor dos sons (enquanto há um som ativo) */}
+      <MiniPlayer />
     </>
   );
 }
@@ -159,7 +163,9 @@ export default function RootLayout() {
         <AuthProvider>
           <DataProvider>
             <SafeAreaProvider>
-              <ThemedApp />
+              <SoundProvider>
+                <ThemedApp />
+              </SoundProvider>
             </SafeAreaProvider>
           </DataProvider>
         </AuthProvider>
