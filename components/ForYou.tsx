@@ -1,6 +1,8 @@
-// Cartão "Recomendado para ti" (ecrã inicial): junta o que a pessoa indicou
-// (tipo de medo) com o que tem feito e mostra até 3 sugestões, cada uma com o
-// motivo. As regras estão em lib/recommendations.ts; nada sai do telemóvel.
+// Recomendações por regras (lib/recommendations.ts), usadas em dois sítios:
+// - no "Como está a fobia hoje?" do ecrã inicial (a melhor sugestão para hoje);
+// - no topo de Recursos › Exercícios ("Para ti", só exercícios).
+// Junta o que a pessoa indicou (tipo de medo) com o que tem feito; cada
+// sugestão diz o porquê. Nada sai do telemóvel.
 
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -12,7 +14,7 @@ import { SAFETY_BEHAVIORS } from '../data/safety';
 import { recText } from '../data/recText';
 import { pick, useLang } from '../i18n/i18n';
 import { loadLadderSteps } from '../lib/ladder';
-import { recommend, RecInput } from '../lib/recommendations';
+import { Rec, RecId, recommend, RecInput } from '../lib/recommendations';
 import {
   isoLocal,
   loadExerciseLog,
@@ -40,13 +42,10 @@ type Base = Omit<RecInput, 'severity' | 'today'>;
 const arr = <T,>(x: T[] | null | undefined): T[] => (Array.isArray(x) ? x : []);
 const lastDate = (xs: { date: string }[]) => xs.reduce<string | null>((m, x) => (!m || x.date > m ? x.date : m), null);
 
-export default function ForYou({ severity }: { severity: number | null }) {
-  const { colors } = useTheme();
+// Carrega o resumo usado pelas regras (recarrega ao voltar ao ecrã).
+export function useRecBase(): Base | null {
   const { lang } = useLang();
-  const rx = recText(lang) as unknown as Record<string, string>;
-  const router = useRouter();
   const [base, setBase] = useState<Base | null>(null);
-
   useFocusEffect(useCallback(() => {
     let alive = true;
     (async () => {
@@ -93,39 +92,55 @@ export default function ForYou({ severity }: { severity: number | null }) {
     })();
     return () => { alive = false; };
   }, [lang]));
+  return base;
+}
 
-  if (!base) return null;
-  const recs = recommend({ ...base, severity, today: isoLocal() });
-  const fill = (s: string, vars?: Record<string, string>) => Object.entries(vars ?? {}).reduce((acc, [k, v]) => acc.replace(`{${k}}`, v), s);
+// Texto (título e porquê) de uma recomendação.
+export function recLabels(r: Rec, rx: Record<string, string>) {
+  const fill = (s: string) => Object.entries(r.vars ?? {}).reduce((acc, [k, v]) => acc.replace(`{${k}}`, v), s);
+  const titleKey = r.id === 'lessonFor' ? 't_lesson' : `t_${r.id}`;
+  const reasonKey = r.reasonKey ?? (r.id === 'lessonFor' ? 'r_lessonFor' : r.id === 'experiment' ? 'r_experimentFor' : r.id === 'words' ? 'r_wordsFor' : `r_${r.id}`);
+  return { title: fill(rx[titleKey] ?? ''), reason: fill(rx[reasonKey] ?? '') };
+}
 
+// Uma linha de recomendação (ícone, título, porquê, seta).
+export function RecRow({ r, first, divider }: { r: Rec; first?: boolean; divider?: boolean }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const router = useRouter();
+  const { title, reason } = recLabels(r, recText(lang) as unknown as Record<string, string>);
   return (
-    <Card style={{ gap: spacing.sm }}>
-      <CardHeader icon="sparkles-outline" title={rx.header} />
-      {recs.length === 0 ? (
-        <Text style={{ color: colors.textMuted, fontSize: 14 }}>{rx.empty}</Text>
-      ) : (
-        recs.map((r, i) => {
-          const titleKey = r.id === 'lessonFor' ? 't_lesson' : `t_${r.id}`;
-          const reasonKey = r.reasonKey ?? (r.id === 'lessonFor' ? 'r_lessonFor' : r.id === 'experiment' ? 'r_experimentFor' : r.id === 'words' ? 'r_wordsFor' : `r_${r.id}`);
-          return (
-            <Pressable
-              key={r.id}
-              onPress={() => router.push(r.route as any)}
-              accessibilityRole="button"
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border }}
-            >
-              <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: i === 0 ? colors.primary : colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={r.icon as keyof typeof Ionicons.glyphMap} size={19} color={i === 0 ? '#fff' : colors.primary} />
-              </View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text numberOfLines={2} style={{ color: colors.text, fontSize: 15, fontWeight: '700' }}>{fill(rx[titleKey] ?? '', r.vars)}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 17 }}>{fill(rx[reasonKey] ?? '', r.vars)}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </Pressable>
-          );
-        })
-      )}
+    <Pressable
+      onPress={() => router.push(r.route as any)}
+      accessibilityRole="button"
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderTopWidth: divider ? 1 : 0, borderTopColor: colors.border }}
+    >
+      <View style={{ width: 38, height: 38, borderRadius: radius.md, backgroundColor: first ? colors.primary : colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name={r.icon as keyof typeof Ionicons.glyphMap} size={19} color={first ? '#fff' : colors.primary} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text numberOfLines={2} style={{ color: colors.text, fontSize: 15, fontWeight: '700' }}>{title}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 17 }}>{reason}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+    </Pressable>
+  );
+}
+
+// Só sugestões de exercícios (para o topo de Recursos › Exercícios).
+const EXERCISE_RECS: RecId[] = ['exposure', 'template', 'result', 'experiment', 'words', 'thought', 'myth'];
+
+export function ForYouExercises({ severity }: { severity: number | null }) {
+  const { colors } = useTheme();
+  const { lang } = useLang();
+  const base = useRecBase();
+  if (!base) return null;
+  const recs = recommend({ ...base, severity, today: isoLocal() }, 99).filter((r) => EXERCISE_RECS.includes(r.id)).slice(0, 2);
+  if (!recs.length) return null;
+  return (
+    <Card style={{ gap: spacing.xs, borderColor: colors.primary }}>
+      <CardHeader icon="sparkles-outline" title={recText(lang).forExercises} />
+      {recs.map((r, i) => <RecRow key={r.id} r={r} first={i === 0} divider={i > 0} />)}
     </Card>
   );
 }
