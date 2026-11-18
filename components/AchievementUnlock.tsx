@@ -63,7 +63,7 @@ function ConfettiPiece({ i, W, H, color }: { i: number; W: number; H: number; co
 function Rays({ color }: { color: string }) {
   const r = useSharedValue(0);
   useEffect(() => {
-    r.set(withRepeat(withTiming(360, { duration: 12000, easing: Easing.linear }), -1));
+    r.set(withRepeat(withTiming(360, { duration: 20000, easing: Easing.linear }), -1));
   }, [r]);
   const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${r.get()}deg` }] }));
   return (
@@ -82,7 +82,7 @@ function Rays({ color }: { color: string }) {
 function Twinkle({ x, y, delay, color }: { x: number; y: number; delay: number; color: string }) {
   const o = useSharedValue(0);
   useEffect(() => {
-    o.set(withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0.2, { duration: 700 })), -1, true)));
+    o.set(withDelay(delay, withRepeat(withSequence(withTiming(0.9, { duration: 900 }), withTiming(0.25, { duration: 1100 })), -1, true)));
   }, [o, delay]);
   const style = useAnimatedStyle(() => ({ opacity: o.get(), transform: [{ scale: 0.6 + 0.6 * o.get() }] }));
   return (
@@ -99,8 +99,9 @@ function Medal({ icon }: { icon: Achievement['icon'] }) {
   const rot = useSharedValue(0);
   useEffect(() => {
     if (reduced) return;
-    s.set(withDelay(180, withSpring(1, { damping: 7, stiffness: 140 })));
-    rot.set(withDelay(500, withSequence(withTiming(-10, { duration: 90 }), withTiming(10, { duration: 120 }), withTiming(-6, { duration: 110 }), withTiming(0, { duration: 100 }))));
+    // Entrada suave (sem ressalto) e um pequeno abanão.
+    s.set(withDelay(150, withSpring(1, { damping: 16, stiffness: 120 })));
+    rot.set(withDelay(450, withSequence(withTiming(-4, { duration: 140 }), withTiming(3, { duration: 160 }), withTiming(0, { duration: 140 }))));
   }, [s, rot, reduced]);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: s.get() }, { rotate: `${rot.get()}deg` }] }));
   return (
@@ -142,9 +143,9 @@ export function AchievementUnlockModal({ achievement, onClose, onSeeAll }: { ach
   return (
     <Modal visible transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <Animated.View entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}>
-        {!reduced && Array.from({ length: 36 }, (_, i) => <ConfettiPiece key={i} i={i} W={W} H={H} color={confettiColors[i % confettiColors.length]} />)}
+        {!reduced && Array.from({ length: 22 }, (_, i) => <ConfettiPiece key={i} i={i} W={W} H={H} color={confettiColors[i % confettiColors.length]} />)}
 
-        <Animated.View entering={ZoomIn.springify().damping(12).stiffness(170).reduceMotion(ReduceMotion.System)} style={{ width: CARD_W }}>
+        <Animated.View entering={ZoomIn.springify().damping(20).stiffness(140).reduceMotion(ReduceMotion.System)} style={{ width: CARD_W }}>
           {/* Pontas da fita (atrás do cartão) */}
           <View style={{ position: 'absolute', top: 30, left: -24, width: 48, height: 44, backgroundColor: colors.primary, borderTopLeftRadius: 4, borderBottomLeftRadius: 4, transform: [{ skewY: '-10deg' }] }}>
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.22)' }} />
