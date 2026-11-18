@@ -253,7 +253,6 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
   const totalToday = todayTasks.length + (focusDisplay ? 1 : 0);
   const doneToday = todayTasks.filter((x) => x.done).length + (focusDone ? 1 : 0);
   const allDone = totalToday > 0 && doneToday === totalToday;
-  const catColor = (c: PlanCat) => (c === 'exp' ? colors.primary : c === 'cog' ? colors.chartMid : c === 'acc' ? colors.success : c === 'beh' ? colors.chartHigh : c === 'care' ? colors.primary : colors.textMuted);
   const WD = weekdaysOf(lang);
 
   return (
@@ -299,7 +298,6 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
       {/* Tarefas de hoje (por fazer em cima, feitas em baixo) */}
       <View style={{ gap: 2 }}>
         {ordered.map((task) => {
-          const c = catColor(task.cat);
           return (
             <View key={task.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, opacity: task.done ? 0.6 : 1 }}>
               <Pressable onPress={() => !task.auto && toggleDone(task.key)} hitSlop={6} accessibilityRole="checkbox" accessibilityState={{ checked: task.done }} accessibilityLabel={task.label}>
@@ -307,9 +305,6 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
                   {task.done && <Reanimated.View entering={checkPop}><Ionicons name="checkmark" size={15} color="#fff" /></Reanimated.View>}
                 </View>
               </Pressable>
-              <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={CAT_ICON[task.cat]} size={16} color={c} />
-              </View>
               <Pressable
                 onPress={() => (task.route ? router.push(task.route as any) : toggleDone(task.key))}
                 accessibilityRole={task.route ? 'link' : 'button'}
