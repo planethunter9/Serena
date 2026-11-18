@@ -8,10 +8,11 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { reportExtra } from '../data/reportExtra';
 import { reportText } from '../data/reportText';
 import { useLang } from '../i18n/i18n';
 import { collectReportData, ReportPeriod } from '../lib/reportData';
-import { buildReportHtml } from '../lib/reportHtml';
+import { REPORT_SECTIONS, ReportSection, buildReportHtml } from '../lib/reportHtml';
 import { isoLocal } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -26,11 +27,15 @@ export default function ReportScreen({ onBack }: { onBack: () => void }) {
   const [includeName, setIncludeName] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [talk, setTalk] = useState('');
+  const xe = reportExtra(lang);
+  // Secções do PDF (todas ligadas por defeito).
+  const [sections, setSections] = useState<Record<ReportSection, boolean>>(() => Object.fromEntries(REPORT_SECTIONS.map((k) => [k, true])) as Record<ReportSection, boolean>);
+  const sectionLabel: Record<ReportSection, string> = { charts: xe.charts, learnings: xe.learnings, exposures: x.exposures, unplanned: x.unplanned, hard: x.hard, safety: x.safety, thoughts: x.thoughts };
   const [busy, setBusy] = useState<'share' | 'preview' | null>(null);
 
   async function html() {
-    const data = await collectReportData({ lang, period, includeName, includeNotes, talk });
-    return buildReportHtml(data, x, lang);
+    const data = await collectReportData({ lang, period, includeName, includeNotes, talk, sections });
+    return buildReportHtml(data, x, lang, xe);
   }
 
   async function share() {
@@ -105,6 +110,24 @@ export default function ReportScreen({ onBack }: { onBack: () => void }) {
                 );
               })}
             </View>
+          </View>
+
+          {/* Secções do PDF */}
+          <View style={{ gap: 8 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{xe.sections}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {REPORT_SECTIONS.map((k) => {
+                const on = sections[k];
+                return (
+                  <Pressable key={k} onPress={() => setSections({ ...sections, [k]: !on })} accessibilityRole="checkbox" accessibilityState={{ checked: on }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primarySoft : colors.card }}>
+                    <Ionicons name={on ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={on ? colors.primary : colors.textMuted} />
+                    <Text style={{ color: on ? colors.primary : colors.text, fontSize: 13, fontWeight: '600' }}>{sectionLabel[k]}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {sections.learnings && <Text style={{ color: colors.textMuted, fontSize: 12 }}>{xe.learnings}: {xe.learningsHint}</Text>}
           </View>
 
           {/* Privacidade */}

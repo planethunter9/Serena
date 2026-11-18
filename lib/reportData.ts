@@ -24,7 +24,7 @@ import {
 } from '../storage/storage';
 import { UNPLANNED_TRIGGERS } from '../components/UnplannedScreen';
 import { behaviorLabel } from './behaviorLabel';
-import type { ReportData } from './reportHtml';
+import type { ReportData, ReportSection } from './reportHtml';
 
 export type ReportPeriod = '30' | '90' | 'all';
 
@@ -51,6 +51,7 @@ export function periodStart(period: ReportPeriod, today = new Date()): string | 
 
 export async function collectReportData(opts: {
   lang: Lang; period: ReportPeriod; includeName: boolean; includeNotes: boolean; talk: string;
+  sections?: Partial<Record<ReportSection, boolean>>;
 }): Promise<ReportData> {
   const { lang, period, includeNotes } = opts;
   const x = reportText(lang);
@@ -127,5 +128,19 @@ export async function collectReportData(opts: {
       ? thoughts.map((t) => ({ date: fmtDate(t.date, lang), thought: t.thought || t.situation, balanced: t.balanced, before: t.before, after: t.after }))
       : [],
     talk: opts.talk,
+    sections: opts.sections,
+    charts: {
+      severity: severity.map((e) => ({ date: fmtDate(e.date, lang), v: e.value })),
+      prediction: [
+        ...exposures.filter((e) => typeof e.prob === 'number').map((e) => ({ ts: e.ts || e.date, date: fmtDate(e.date, lang), a: e.prob as number, b: e.probAfter })),
+        ...arr(xp).filter((e) => inPeriod(e.date) && e.done).map((e) => ({ ts: e.ts || e.date, date: fmtDate(e.date, lang), a: typeof e.prob === 'number' ? e.prob : e.belief * 10, b: e.probAfter })),
+      ].sort((p, q) => (p.ts < q.ts ? -1 : 1)).map(({ date, a, b }) => ({ date, a, b })),
+      discomfort: exposures.filter((e) => typeof e.before === 'number' && typeof e.after === 'number').map((e) => ({ date: fmtDate(e.date, lang), before: e.before, after: e.after })),
+    },
+    learnings: [
+      ...exposures.filter((e) => e.learned).map((e) => ({ ts: e.ts || e.date, date: fmtDate(e.date, lang), source: 'exposure' as const, text: e.learned as string })),
+      ...unplanned.filter((u) => u.learned).map((u) => ({ ts: u.ts || u.date, date: fmtDate(u.date, lang), source: 'unplanned' as const, text: u.learned as string })),
+      ...arr(xp).filter((e) => inPeriod(e.date) && e.learned).map((e) => ({ ts: e.ts || e.date, date: fmtDate(e.date, lang), source: 'experiment' as const, text: e.learned })),
+    ].sort((p, q) => (p.ts < q.ts ? -1 : 1)).map(({ date, source, text }) => ({ date, source, text })),
   };
 }

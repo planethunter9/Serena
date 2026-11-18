@@ -52,3 +52,18 @@ test('cada atalho abre o ecrã certo', () => {
   expect(routeForQuickAction({ id: 'xpto' })).toBeNull();
   expect(routeForQuickAction(undefined)).toBeNull();
 });
+
+test('PDF: gráficos, aprendizagens e secções escolhidas', () => {
+  const { reportExtra } = require('../data/reportExtra');
+  const d = {
+    ...base,
+    charts: { severity: [{ date: '01/11', v: 4 }, { date: '10/11', v: 2 }], prediction: [{ date: '01/11', a: 80, b: 30 }, { date: '05/11', a: 60, b: 10 }], discomfort: [] },
+    learnings: [{ date: '05/11', source: 'exposure' as const, text: 'O enjoo passou' }],
+    sections: { hard: false },
+  };
+  const html = buildReportHtml(d, reportText('pt'), 'pt', reportExtra('pt'));
+  expect(html).toContain('<svg');
+  expect(html).toContain('O enjoo passou');
+  expect(html).toContain('Previsão vs. realidade');
+  expect(html).not.toContain('<h2>Momentos difíceis</h2>');
+});
