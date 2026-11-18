@@ -2,8 +2,9 @@
 // cheiro, um enjoo próprio…) aproveitado como treino, em vez de fugir.
 //  1. "Estou nisto agora" — passos curtos para o próprio momento + atalhos
 //     (respiração, surfar a vontade, linhas de apoio).
-//  2. Registo depois — o que aconteceu, onde, antes/pico/depois, o que temia e
-//     se aconteceu, comportamentos de segurança usados, o que aprendi.
+//  2. Registo depois, em 3 passos — O que aconteceu (gatilho, onde, o que temia)
+//     → O que senti (antes/pico/depois, se fiquei, segurança usada) → O que
+//     aprendi (aconteceu?, aprendizagem); no fim, um cartão-resumo.
 //  3. Histórico com o detalhe de cada registo.
 
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,10 @@ import { isoLocal, loadUnplanned, saveUnplanned, UnplannedLog } from '../storage
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { HistoryButton } from './HistoryButton';
-import { Card, PrimaryButton, TopBackBar } from './ui';
+import { Card, CardHeader, PrimaryButton, TopBackBar } from './ui';
+import { Stepper } from './exercises/shared';
+import { practiceText } from '../data/practiceText';
+import * as Haptics from 'expo-haptics';
 
 type L = { pt: string; en: string };
 
@@ -87,6 +91,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
   const router = useRouter();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const lx = (o: L) => tr2(lang, o.pt, o.en);
+  const px = practiceText(lang);
 
   const [logs, setLogs] = useState<UnplannedLog[]>([]);
   const [nowOpen, setNowOpen] = useState(false);
@@ -103,10 +108,11 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
   const [happened, setHappened] = useState<'yes' | 'partly' | 'no' | null>(null);
   const [stayed, setStayed] = useState(true);
   const [safety, setSafety] = useState<string[]>([]);
-  const [showSafety, setShowSafety] = useState(false);
   const [learned, setLearned] = useState('');
   const [note, setNote] = useState('');
   const [openLog, setOpenLog] = useState<string | null>(null);
+  const [step, setStep] = useState(0); // 0..2 passos, 3 = guardado
+  const [saved, setSaved] = useState<UnplannedLog | null>(null);
 
   useEffect(() => {
     loadUnplanned().then(setLogs);
@@ -118,7 +124,7 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
     setTriggers([]); setOtherTrigger(''); setWhere('');
     setBefore(null); setPeak(null); setAfter(null);
     setFear(''); setHappened(null); setStayed(true);
-    setSafety([]); setShowSafety(false); setLearned(''); setNote('');
+    setSafety([]); setLearned(''); setNote('');
   }
 
   function save() {
@@ -145,12 +151,9 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
     setLogs(next);
     saveUnplanned(next);
     reset();
-    Alert.alert(
-      L('Bem feito 💛', 'Well done 💛'),
-      stayed
-        ? L('Enfrentaste um momento que não escolheste. Isso conta muito.', "You faced a moment you didn't choose. That counts a lot.")
-        : L('Registar já é um passo. Da próxima vez, tenta ficar só mais um bocadinho.', 'Logging it is already a step. Next time, try to stay just a little longer.'),
-    );
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    setSaved(entry);
+    setStep(3);
   }
 
   function removeLog(id: string) {
@@ -232,82 +235,136 @@ export default function UnplannedScreen({ onBack }: { onBack: () => void }) {
           )}
         </View>
 
-        {/* ---------- Registo ---------- */}
+        {/* ---------- Registo, em 3 passos ---------- */}
         <Text style={{ color: colors.text, fontSize: 17, fontWeight: '700', marginTop: spacing.sm }}>{L('Registar o momento', 'Log the moment')}</Text>
+        <Stepper labels={[px.un_s1, px.un_s2, px.un_s3]} current={Math.min(step, 2)} done={step === 3} />
 
-        <Card style={{ gap: 8 }}>
-          {label(L('O que aconteceu?', 'What happened?'))}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {UNPLANNED_TRIGGERS.map((tr) => (
-              <Chip key={tr.id} label={lx(tr.label)} active={triggers.includes(tr.id)} onPress={() => setTriggers((l) => toggleIn(l, tr.id))} />
-            ))}
-          </View>
-          <TextInput value={otherTrigger} onChangeText={setOtherTrigger} placeholder={L('Outra coisa…', 'Something else…')} placeholderTextColor={colors.textMuted} style={input} />
-        </Card>
+        {step === 0 && (
+          <>
+            <Card style={{ gap: 8 }}>
+              {label(L('O que aconteceu?', 'What happened?'))}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {UNPLANNED_TRIGGERS.map((tr) => (
+                  <Chip key={tr.id} label={lx(tr.label)} active={triggers.includes(tr.id)} onPress={() => setTriggers((l) => toggleIn(l, tr.id))} />
+                ))}
+              </View>
+              <TextInput value={otherTrigger} onChangeText={setOtherTrigger} placeholder={L('Outra coisa…', 'Something else…')} placeholderTextColor={colors.textMuted} style={input} />
+            </Card>
+            <Card style={{ gap: 8 }}>
+              {label(L('Onde estavas?', 'Where were you?'))}
+              <TextInput value={where} onChangeText={setWhere} placeholder={L('Ex.: no autocarro, no trabalho, em casa…', 'E.g. on the bus, at work, at home…')} placeholderTextColor={colors.textMuted} style={input} />
+              {label(L('O que temeste que acontecesse?', 'What did you fear would happen?'))}
+              <TextInput value={fear} onChangeText={setFear} multiline placeholder={L('Ex.: "Vou vomitar", "vou apanhar o vírus"…', 'E.g. "I\'ll throw up", "I\'ll catch the bug"…')} placeholderTextColor={colors.textMuted} style={[input, { minHeight: 56, textAlignVertical: 'top' }]} />
+            </Card>
+          </>
+        )}
 
-        <Card style={{ gap: 8 }}>
-          {label(L('Onde estavas?', 'Where were you?'))}
-          <TextInput value={where} onChangeText={setWhere} placeholder={L('Ex.: no autocarro, no trabalho, em casa…', 'E.g. on the bus, at work, at home…')} placeholderTextColor={colors.textMuted} style={input} />
-        </Card>
-
-        <Card style={{ gap: 8 }}>
-          {label(L('O que temeste que acontecesse?', 'What did you fear would happen?'))}
-          <TextInput value={fear} onChangeText={setFear} multiline placeholder={L('Ex.: "Vou vomitar", "vou apanhar o vírus"…', 'E.g. "I\'ll throw up", "I\'ll catch the bug"…')} placeholderTextColor={colors.textMuted} style={[input, { minHeight: 56, textAlignVertical: 'top' }]} />
-        </Card>
-
-        <Card style={{ gap: 10 }}>
-          {label(t('exposure.before'))}
-          {hint(L('Quando percebeste o que se passava (0 = calma, 10 = máximo).', 'When you realised what was happening (0 = calm, 10 = max).'))}
-          <Suds value={before} onChange={setBefore} />
-          {label(L('Pico do desconforto', 'Peak discomfort'))}
-          <Suds value={peak} onChange={setPeak} />
-          {label(t('exposure.after'))}
-          <Suds value={after} onChange={setAfter} />
-        </Card>
-
-        <Card style={{ gap: 10 }}>
-          <Pressable onPress={() => setStayed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: stayed ? colors.primary : colors.border, backgroundColor: stayed ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-              {stayed && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>✓</Text>}
-            </View>
-            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('unplanned.stayed')}</Text>
-          </Pressable>
-
-          <Pressable onPress={() => setShowSafety((o) => !o)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ color: colors.text, fontWeight: '600', flex: 1 }}>
-              {L('Usei comportamentos de segurança?', 'Did I use safety behaviours?')}{safety.length ? ` (${safety.length})` : ''}
-            </Text>
-            <Ionicons name={showSafety ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
-          </Pressable>
-          {showSafety && (
-            <View style={{ gap: 8 }}>
+        {step === 1 && (
+          <>
+            <Card style={{ gap: 10 }}>
+              {label(t('exposure.before'))}
+              {hint(L('Quando percebeste o que se passava (0 = calma, 10 = máximo).', 'When you realised what was happening (0 = calm, 10 = max).'))}
+              <Suds value={before} onChange={setBefore} />
+              {label(L('Pico do desconforto', 'Peak discomfort'))}
+              <Suds value={peak} onChange={setPeak} />
+              {label(t('exposure.after'))}
+              <Suds value={after} onChange={setAfter} />
+            </Card>
+            <Card style={{ gap: 10 }}>
+              <Pressable onPress={() => setStayed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: stayed ? colors.primary : colors.border, backgroundColor: stayed ? colors.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                  {stayed && <Ionicons name="checkmark" size={15} color="#fff" />}
+                </View>
+                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('unplanned.stayed')}</Text>
+              </Pressable>
+              {label(L('Usei comportamentos de segurança?', 'Did I use safety behaviours?'))}
               {hint(L('Sem julgamento — saber o que fizeste ajuda a largar da próxima vez.', 'No judgement — knowing what you did helps you drop it next time.'))}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {SAFETY_BEHAVIORS.map((b) => (
                   <Chip key={b.id} label={lx(b.label)} active={safety.includes(b.id)} onPress={() => setSafety((l) => toggleIn(l, b.id))} />
                 ))}
               </View>
+            </Card>
+          </>
+        )}
+
+        {step === 2 && (
+          <Card style={{ gap: 10 }}>
+            {label(L('O que temias aconteceu?', 'Did what you feared happen?'))}
+            {fear.trim() ? <Text style={{ color: colors.textMuted, fontSize: 14, fontStyle: 'italic' }}>“{fear.trim()}”</Text> : null}
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              {(['no', 'partly', 'yes'] as const).map((h) => {
+                const on = happened === h;
+                return (
+                  <Pressable key={h} onPress={() => setHappened(on ? null : h)} accessibilityRole="radio" accessibilityState={{ selected: on }} style={{ flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: radius.md, borderWidth: 2, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : 'transparent' }}>
+                    <Text style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 15 }}>{happenedLabel(h)}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
-          )}
-        </Card>
+            {label(L('O que aprendi?', 'What did I learn?'))}
+            <TextInput value={learned} onChangeText={setLearned} multiline placeholder={L('Ex.: "Senti enjoo e passou sozinho", "consegui ficar"…', 'E.g. "I felt sick and it passed on its own", "I managed to stay"…')} placeholderTextColor={colors.textMuted} style={[input, { minHeight: 56, textAlignVertical: 'top' }]} />
+            <TextInput value={note} onChangeText={setNote} placeholder={t('exposure.note')} placeholderTextColor={colors.textMuted} multiline style={[input, { minHeight: 50, textAlignVertical: 'top' }]} />
+          </Card>
+        )}
 
-        <Card style={{ gap: 8 }}>
-          {label(L('O que temias aconteceu?', 'Did what you feared happen?'))}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {(['no', 'partly', 'yes'] as const).map((h) => (
-              <Chip key={h} label={happenedLabel(h)} active={happened === h} onPress={() => setHappened(happened === h ? null : h)} />
-            ))}
+        {step < 3 && (
+          <View style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              {step > 0 && (
+                <Pressable onPress={() => setStep(step - 1)} accessibilityRole="button" style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingVertical: 14 }}>
+                  <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>{px.prev}</Text>
+                </Pressable>
+              )}
+              <View style={{ flex: 2 }}>
+                {step < 2
+                  ? <PrimaryButton label={px.next} onPress={() => setStep(step + 1)} disabled={step === 1 && before === null} />
+                  : <PrimaryButton label={t('unplanned.save')} onPress={save} disabled={before === null} />}
+              </View>
+            </View>
+            {step === 1 && before === null && hint(L('Indica pelo menos o desconforto "antes" para guardar.', 'Enter at least the "before" discomfort to save.'))}
           </View>
-          {label(L('O que aprendi?', 'What did I learn?'))}
-          <TextInput value={learned} onChangeText={setLearned} multiline placeholder={L('Ex.: "Senti enjoo e passou sozinho", "consegui ficar"…', 'E.g. "I felt sick and it passed on its own", "I managed to stay"…')} placeholderTextColor={colors.textMuted} style={[input, { minHeight: 56, textAlignVertical: 'top' }]} />
-        </Card>
+        )}
 
-        <TextInput value={note} onChangeText={setNote} placeholder={t('exposure.note')} placeholderTextColor={colors.textMuted} multiline style={[input, { minHeight: 60, textAlignVertical: 'top' }]} />
-        <PrimaryButton label={t('unplanned.save')} onPress={save} disabled={before === null} />
-        {before === null && hint(L('Indica pelo menos o desconforto "antes" para guardar.', 'Enter at least the "before" discomfort to save.'))}
+        {/* Fim: resumo do momento */}
+        {step === 3 && saved && (
+          <>
+            <Card style={{ gap: spacing.md }}>
+              <CardHeader icon="footsteps-outline" title={px.un_doneTitle} />
+              {saved.fear ? <Text style={{ color: colors.text, fontSize: 15, fontStyle: 'italic' }}>“{saved.fear}”</Text> : null}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {saved.happened && (
+                  <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: saved.happened === 'no' ? colors.successSoft : colors.cardAlt }}>
+                    <Text style={{ color: saved.happened === 'no' ? colors.success : colors.text, fontSize: 13, fontWeight: '600' }}>{L('Aconteceu?', 'Did it happen?')} {happenedLabel(saved.happened)}</Text>
+                  </View>
+                )}
+                <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.cardAlt }}>
+                  <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{saved.before}{saved.peak != null ? ` → ${saved.peak}` : ''} → {saved.after}</Text>
+                </View>
+                {saved.stayed && (
+                  <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.successSoft }}>
+                    <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>✓ {px.un_stayedYes}</Text>
+                  </View>
+                )}
+              </View>
+              {saved.learned ? (
+                <View style={{ backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: spacing.md, gap: 2 }}>
+                  <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>{L('Aprendi', 'Learned')}</Text>
+                  <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21 }}>{saved.learned}</Text>
+                </View>
+              ) : null}
+              <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
+                {saved.stayed
+                  ? L('Enfrentaste um momento que não escolheste. Isso conta muito.', "You faced a moment you didn't choose. That counts a lot.")
+                  : L('Registar já é um passo. Da próxima vez, tenta ficar só mais um bocadinho.', 'Logging it is already a step. Next time, try to stay just a little longer.')}
+              </Text>
+            </Card>
+            <PrimaryButton label={px.newRecord} onPress={() => { setSaved(null); setStep(0); }} />
+          </>
+        )}
 
         {/* ---------- Histórico ---------- */}
-        {logs.length > 0 && (
+        {step === 0 && logs.length > 0 && (
           <View style={{ gap: 8, marginTop: 4 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>{t('unplanned.history')}</Text>
             {logs.map((l) => {
