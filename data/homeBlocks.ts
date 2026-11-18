@@ -3,8 +3,9 @@
 
 import type { Ionicons } from '@expo/vector-icons';
 import type { Lang } from '../i18n/i18n';
+import { REC_TEXT_LANGS, recText } from './recText';
 
-export type HomeBlockId = 'affirmation' | 'hero' | 'plan' | 'severity';
+export type HomeBlockId = 'affirmation' | 'hero' | 'forYou' | 'plan' | 'severity';
 type T = Record<Lang, string>;
 
 export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMap; title: T; desc: T }[] = [
@@ -17,6 +18,11 @@ export const HOME_BLOCKS: { id: HomeBlockId; icon: keyof typeof Ionicons.glyphMa
     id: 'hero', icon: 'ellipse-outline',
     title: { pt: 'Os teus pilares', 'pt-BR': 'Seus pilares', en: 'Your pillars', es: 'Tus pilares', fr: 'Tes piliers', de: 'Deine Säulen', it: 'I tuoi pilastri', nl: 'Je pijlers', pl: 'Twoje filary', ru: 'Твои опоры' },
     desc: { pt: 'Prática, Repetição e Aproximação, e os dias seguidos.', 'pt-BR': 'Prática, Repetição e Aproximação, e os dias seguidos.', en: 'Practice, Repetition and Approach, plus your streak.', es: 'Práctica, Repetición y Acercamiento, y los días seguidos.', fr: "Pratique, Répétition et Approche, et les jours d'affilée.", de: 'Übung, Wiederholung und Annäherung sowie deine Serie.', it: 'Pratica, Ripetizione e Avvicinamento, e i giorni di fila.', nl: 'Oefenen, Herhalen en Benaderen, plus je reeks.', pl: 'Praktyka, Powtarzanie i Zbliżanie się oraz seria dni.', ru: 'Практика, Повторение и Приближение, а также серия дней.' },
+  },
+  {
+    id: 'forYou', icon: 'sparkles-outline',
+    title: Object.fromEntries(REC_TEXT_LANGS.map((l) => [l, recText(l).header])) as T,
+    desc: Object.fromEntries(REC_TEXT_LANGS.map((l) => [l, recText(l).desc])) as T,
   },
   {
     id: 'plan', icon: 'list-outline',
@@ -39,7 +45,13 @@ export function normalizeHomeOrder(saved: string[]): HomeBlockId[] {
   // Quem só tinha 'hero'/'plan' guardados: a frase do dia continua no topo, como antes.
   const missing = HOME_BLOCK_IDS.filter((k) => !uniq.includes(k));
   const front = missing.includes('affirmation') ? (['affirmation'] as HomeBlockId[]) : [];
-  return [...front, ...uniq, ...missing.filter((k) => k !== 'affirmation')];
+  const out = [...front, ...uniq, ...missing.filter((k) => k !== 'affirmation' && k !== 'forYou')];
+  // "Recomendado para ti" (bloco novo): entra logo a seguir aos pilares.
+  if (missing.includes('forYou')) {
+    const at = out.indexOf('hero');
+    out.splice(at >= 0 ? at + 1 : Math.min(1, out.length), 0, 'forYou');
+  }
+  return out;
 }
 
 // Texto quando a pessoa escondeu todos os blocos.

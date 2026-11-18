@@ -4,8 +4,8 @@ import { HOME_BLOCKS, HOME_BLOCK_IDS, HOME_SETTINGS_TEXT, homeEmptyText, normali
 import { LANGS } from '../i18n/i18n';
 
 test('quem tinha só pilares/plano guardados fica com a ordem de antes', () => {
-  expect(normalizeHomeOrder(['plan', 'hero'])).toEqual(['affirmation', 'plan', 'hero', 'severity']);
-  expect(normalizeHomeOrder([])).toEqual(['affirmation', 'hero', 'plan', 'severity']);
+  expect(normalizeHomeOrder(['plan', 'hero'])).toEqual(['affirmation', 'plan', 'hero', 'forYou', 'severity']);
+  expect(normalizeHomeOrder([])).toEqual(['affirmation', 'hero', 'forYou', 'plan', 'severity']);
 });
 
 test('ids desconhecidos ou repetidos saem (incl. o antigo "nextStep"); nenhum bloco se perde', () => {

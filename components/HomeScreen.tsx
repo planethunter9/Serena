@@ -13,6 +13,7 @@ import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
 import { HOME_BLOCK_IDS, HomeBlockId, homeEmptyText, normalizeHomeOrder } from '../data/homeBlocks';
 import EmptyState from './EmptyState';
 import PlanView, { PlanEditor } from './Plan';
+import ForYou from './ForYou';
 import { migrateNextStep } from '../lib/nextStepMigration';
 import { homeText } from '../data/homeText';
 import { plansText } from '../data/plansText';
@@ -348,7 +349,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     );
   }
 
-  const DASH: Record<HomeBlockId, () => any> = { affirmation: affirmationBlock, hero: heroBlock, plan: planBlock, severity: severityBlock };
+  const DASH: Record<HomeBlockId, () => any> = { affirmation: affirmationBlock, hero: heroBlock, forYou: () => <ForYou severity={severityToday} />, plan: planBlock, severity: severityBlock };
   // Só os blocos que a pessoa quer ver, pela ordem escolhida.
   const visibleBlocks = dashOrder.filter((k) => !hiddenBlocks.includes(k));
 
