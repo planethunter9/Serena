@@ -66,11 +66,10 @@ export default function BodyScanScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={t('tech.bodyscan')} onBack={onBack} />
+      <TopBackBar title={t('tech.bodyscan')} onBack={onBack} info={x.intro} />
 
       {stage === 'setup' && (
         <View style={{ flex: 1, padding: spacing.xl, paddingTop: spacing.md, gap: spacing.lg }}>
-          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{x.intro}</Text>
           <Card style={{ gap: spacing.md }}>
             <CardHeader icon="body-outline" title={t('tech.bodyscan')} />
             {([['guided', x.guided, x.guidedDesc, 'play-circle-outline'], ['manual', x.manual, x.manualDesc, 'hand-left-outline']] as const).map(([m, name, desc, icon]) => {

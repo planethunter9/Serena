@@ -2,6 +2,7 @@
 // estou com um gatilho, exposição não planeada, técnicas e sons.
 // Agrupado por secções; nada colapsável (tem de estar tudo a um toque).
 
+import InfoButton from './InfoButton';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, Text, View } from 'react-native';
 import { tr2, useLang } from '../i18n/i18n';
@@ -12,22 +13,16 @@ import DisclaimerCard from './DisclaimerCard';
 import { PressableScale } from '../lib/motion';
 import { ScreenTitle } from './ui';
 
-function SectionHeader({ label }: { label: string }) {
+function SectionHeader({ label, info }: { label: string; info?: string }) {
   const { colors } = useTheme();
   return (
-    <Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm }}>{label}</Text>
-  );
-}
-
-function Note({ text }: { text: string }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: spacing.md }}>
-      <Ionicons name="information-circle-outline" size={18} color={colors.primary} style={{ marginTop: 1 }} />
-      <Text style={{ color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 }}>{text}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, minHeight: 24 }}>
+      <Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</Text>
+      {info ? <InfoButton text={info} title={label} size={17} /> : null}
     </View>
   );
 }
+
 
 function Row({ title, desc, icon, onPress, highlight }: { title: string; desc: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; highlight?: boolean }) {
   const { colors } = useTheme();
@@ -96,8 +91,7 @@ export default function SupportScreen({
       <DisclaimerCard variant="short" />
 
       {/* Técnicas */}
-      <SectionHeader label={t('home.techniquesTitle')} />
-      <Note text={anchorNote} />
+      <SectionHeader label={t('home.techniquesTitle')} info={anchorNote} />
       <CoachTarget name="support-techniques" style={{ gap: spacing.md }}>
       {techniques.map((tech) => (
         <PressableScale key={tech.key} onPress={tech.onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>

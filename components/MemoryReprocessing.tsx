@@ -141,12 +141,6 @@ export default function MemoryView() {
     <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: 40 }}>
       {step === 'intro' && (
         <>
-          <Text style={{ color: colors.text, fontSize: 16, lineHeight: 23 }}>
-            {tt({
-              pt: 'Esta secção ajuda-te a trabalhar uma memória difícil ligada ao medo (por exemplo, uma virose em criança). Vais seguir com os olhos uma luz que se move de um lado para o outro, enquanto deixas a memória estar presente ao de leve. Muitas pessoas sentem que, aos poucos, a memória perde intensidade.',
-              en: 'This section helps you work on a difficult memory linked to the fear (for example, a childhood stomach bug). You will follow a light moving side to side with your eyes, while letting the memory be lightly present. Many people find that, little by little, the memory loses intensity.',
-            })}
-          </Text>
           <SafetyNote />
           <PrimaryButton label={tt({ pt: 'Começar', en: 'Start' })} onPress={() => setStep('calm')} />
           {history.length > 0 && (

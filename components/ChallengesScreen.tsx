@@ -121,12 +121,6 @@ export default function ChallengesScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-      <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-        {tt({
-          pt: 'Pequenos passos para treinar a tolerância à incerteza e ao desconforto. A ideia não é gostar — é deixar entrar e perceber que a incerteza não magoa.',
-          en: 'Small steps to train tolerance of uncertainty and discomfort. The idea is not to like it — it is to let it in and see that uncertainty does not hurt.',
-        })}
-      </Text>
 
       {/* Sugestão de desafio */}
       {suggestion && (

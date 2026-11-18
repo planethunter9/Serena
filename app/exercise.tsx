@@ -15,6 +15,7 @@ import MemoryView from '../components/MemoryReprocessing';
 import { HistoryButton } from '../components/HistoryButton';
 import { TopBackBar } from '../components/ui';
 import { tr2, useLang } from '../i18n/i18n';
+import { introText } from '../data/introTexts';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/theme';
 
@@ -41,6 +42,7 @@ export default function ExerciseRoute() {
       <TopBackBar
         title={title}
         onBack={() => router.back()}
+        info={type ? introText(type, lang) : undefined}
         right={type ? <HistoryButton kind={type} /> : undefined}
       />
       <View style={{ flex: 1, padding: spacing.xl }}>

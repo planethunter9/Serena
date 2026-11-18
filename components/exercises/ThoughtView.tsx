@@ -100,12 +100,6 @@ export function ThoughtView() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.xl }} keyboardShouldPersistTaps="handled">
-        {step === 0 && (
-          <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>
-            {L('O medo costuma mentir: exagera o perigo e a probabilidade. Aqui pões o pensamento à prova, passo a passo — nomeias a armadilha, pesas as provas e escreves uma versão mais realista.',
-               'Fear tends to lie: it exaggerates danger and likelihood. Here you put the thought on trial, step by step — name the trap, weigh the evidence, and write a more realistic version.')}
-          </Text>
-        )}
         <Stepper labels={[px.t_s1, px.t_s2, px.t_s3, px.t_s4]} current={Math.min(step, 3)} done={step === 4} />
 
         {step === 0 && (

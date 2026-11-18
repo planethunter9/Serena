@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import Svg, { Path } from 'react-native-svg';
 import { practiceText } from '../data/practiceText';
+import { introText } from '../data/introTexts';
 import KeepAwake from './KeepAwake';
 import LineChart from './stats/LineChart';
 import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
@@ -146,16 +147,10 @@ export default function UrgeSurfScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <TopBackBar title={tr2(lang, 'Surfar o impulso', 'Urge surfing')} onBack={onBack} />
+      <TopBackBar title={tr2(lang, 'Surfar o impulso', 'Urge surfing')} onBack={onBack} info={introText('urgesurf', lang)} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 40 }}>
         {step === 'intro' && (
           <>
-            <Text style={{ color: colors.text, fontSize: 15, lineHeight: 23 }}>
-              {tt({
-                pt: 'Quando dá vontade de fazer um comportamento de segurança — verificar, perguntar, lavar, evitar — essa vontade é como uma onda: sobe, atinge um pico e desce sozinha, se não lhe obedeceres.\n\nAqui não lutas contra o impulso nem o cumpres. Só o observas enquanto passa. Cada vez que o fazes, o cérebro aprende que não precisava dele.',
-                en: 'When you feel the urge to do a safety behaviour — check, ask, wash, avoid — that urge is like a wave: it rises, peaks and falls on its own, if you do not obey it.\n\nHere you neither fight the urge nor carry it out. You just observe it as it passes. Each time you do, the brain learns it did not need it.',
-              })}
-            </Text>
             <Card style={{ gap: 10 }}>
               <Text style={{ color: colors.text, fontWeight: '600' }}>{tt({ pt: 'Quão forte é o impulso agora? (0–10)', en: 'How strong is the urge now? (0–10)' })}</Text>
               <Suds value={before} onChange={setBefore} />
