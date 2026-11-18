@@ -13,7 +13,9 @@ import Svg, { Circle, Defs, G, LinearGradient, Stop } from 'react-native-svg';
 import { HOME_BLOCK_IDS, HomeBlockId, homeEmptyText, normalizeHomeOrder } from '../data/homeBlocks';
 import EmptyState from './EmptyState';
 import PlanView, { PlanEditor } from './Plan';
-import ForYou from './ForYou';
+import { RecRow, useRecBase } from './ForYou';
+import { recommend } from '../lib/recommendations';
+import { recText } from '../data/recText';
 import { migrateNextStep } from '../lib/nextStepMigration';
 import { homeText } from '../data/homeText';
 import { plansText } from '../data/plansText';
@@ -77,8 +79,9 @@ function expStreakOf(days: string[]): number {
 
 export default function HomeScreen({ startDate }: { startDate: string }) {
   const { colors, unlocked, ringColors, defaultRingColors } = useTheme();
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const hx = homeText(lang);
+  const recBase = useRecBase();
   const router = useRouter();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
 
@@ -312,27 +315,28 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
           <Text style={{ color: colors.textMuted, fontSize: 12 }}>{hx.s_zero}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 12 }}>{hx.s_five}</Text>
         </View>
-        {/* Sugestão conforme o número escolhido */}
+        {/* Sugestão para hoje: a melhor recomendação para ti, conforme o número
+            escolhido, o teu tipo de medo e o que tens feito (regras, sem IA). */}
         {severityToday != null && (() => {
           const v = severityToday;
           const band = v <= 1 ? 'low' : v <= 3 ? 'mid' : v === 4 ? 'high' : 'max';
           const text = band === 'low' ? hx.s_low : band === 'mid' ? hx.s_mid : band === 'high' ? hx.s_high : hx.s_max;
-          const acts: [string, keyof typeof Ionicons.glyphMap, any][] =
-            band === 'low' ? [[t('exposure.title'), 'trending-up-outline', { pathname: '/exercise', params: { type: 'exposure' } }]]
-            : band === 'mid' ? [[t('games.words'), 'text-outline', { pathname: '/exercise', params: { type: 'words' } }], [t('exposure.title'), 'trending-up-outline', { pathname: '/exercise', params: { type: 'exposure' } }]]
-            : band === 'high' ? [[L('Surfar o impulso', 'Urge surfing'), 'water-outline', '/urgesurf'], [t('tech.breathing'), 'pulse-outline', '/breathing']]
-            : [[plansText(lang).viewPlan, 'reader-outline', '/myplan'], [t('triggerhelp.title'), 'flash-outline', '/triggerhelp']];
+          const best = recBase ? recommend({ ...recBase, severity: v, today: isoLocal() }, 1)[0] : undefined;
           return (
-            <View style={{ backgroundColor: band === 'max' || band === 'high' ? colors.cardAlt : colors.primarySoft, borderRadius: radius.md, padding: spacing.md, gap: 10 }}>
+            <View style={{ backgroundColor: band === 'max' || band === 'high' ? colors.cardAlt : colors.primarySoft, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: best ? 2 : spacing.md, gap: 4 }}>
               <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{text}</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {acts.map(([label, icon, route]) => (
-                  <Pressable key={label} onPress={() => router.push(route)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
-                    <Ionicons name={icon} size={15} color={colors.primary} />
-                    <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{label}</Text>
-                  </Pressable>
-                ))}
-              </View>
+              {best && (
+                <>
+                  <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 }}>{recText(lang).forExercises}</Text>
+                  <RecRow r={best} first />
+                </>
+              )}
+              {band === 'max' && (
+                <Pressable onPress={() => router.push('/myplan' as any)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10 }}>
+                  <Ionicons name="reader-outline" size={16} color={colors.primary} />
+                  <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '700' }}>{plansText(lang).viewPlan}</Text>
+                </Pressable>
+              )}
             </View>
           );
         })()}
@@ -349,7 +353,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
     );
   }
 
-  const DASH: Record<HomeBlockId, () => any> = { affirmation: affirmationBlock, hero: heroBlock, forYou: () => <ForYou severity={severityToday} />, plan: planBlock, severity: severityBlock };
+  const DASH: Record<HomeBlockId, () => any> = { affirmation: affirmationBlock, hero: heroBlock, plan: planBlock, severity: severityBlock };
   // Só os blocos que a pessoa quer ver, pela ordem escolhida.
   const visibleBlocks = dashOrder.filter((k) => !hiddenBlocks.includes(k));
 

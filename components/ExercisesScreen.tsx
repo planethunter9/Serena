@@ -2,7 +2,9 @@
 // Cada exercício tem o seu ficheiro em components/exercises/.
 
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { isoLocal, loadSeverity } from '../storage/storage';
+import { ForYouExercises } from './ForYou';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLang, tr2 } from '../i18n/i18n';
@@ -46,6 +48,9 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const router = useRouter();
+  // Gravidade de hoje (para as sugestões "Para ti").
+  const [severityToday, setSeverityToday] = useState<number | null>(null);
+  useEffect(() => { loadSeverity().then((l) => { const e = l.find((x) => x.date === isoLocal()); setSeverityToday(e ? e.value : null); }); }, []);
   // Cada exercício abre numa rota própria (/exercise?type=…), para o deslizar do
   // iOS voltar a este hub e deste para os Recursos (hierarquia correta).
   const open = (type: string) => () => router.push({ pathname: '/exercise', params: { type } } as any);
@@ -56,6 +61,9 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
       <View style={{ flex: 1, padding: spacing.xl }}>
         <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.xxl }}>
           <Text style={{ color: colors.textMuted, fontSize: 14 }}>{t('exercises.intro')}</Text>
+
+          {/* Para ti: os 2 exercícios mais indicados agora (regras, sem IA) */}
+          <ForYouExercises severity={severityToday} />
 
           <HubGroup title={L('Enfrentar o medo', 'Facing the fear')} defaultOpen>
             <HubRow icon="trending-up-outline" title={t('exercises.exposure')} desc={t('exercises.exposureDesc')} onPress={open('exposure')} />
