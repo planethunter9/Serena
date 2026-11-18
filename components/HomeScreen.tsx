@@ -4,7 +4,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Alert, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,6 +14,8 @@ import { HOME_BLOCK_IDS, HomeBlockId, homeEmptyText, normalizeHomeOrder } from '
 import EmptyState from './EmptyState';
 import PlanView, { PlanEditor } from './Plan';
 import { migrateNextStep } from '../lib/nextStepMigration';
+import { homeText } from '../data/homeText';
+import { plansText } from '../data/plansText';
 import ProgressScreen from './ProgressScreen';
 import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
@@ -74,7 +76,9 @@ function expStreakOf(days: string[]): number {
 
 export default function HomeScreen({ startDate }: { startDate: string }) {
   const { colors, unlocked, ringColors, defaultRingColors } = useTheme();
-  const { lang } = useLang();
+  const { t, lang } = useLang();
+  const hx = homeText(lang);
+  const router = useRouter();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [tab, setTab] = useState<'overview' | 'stats'>('overview');
@@ -303,9 +307,34 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
             );
           })}
         </View>
-        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-          {severityToday != null ? L(`Hoje: ${severityToday}/5 · toca para mudar`, `Today: ${severityToday}/5 · tap to change`) : L('0 = nada · 5 = muito', '0 = none · 5 = a lot')}
-        </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{hx.s_zero}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{hx.s_five}</Text>
+        </View>
+        {/* Sugestão conforme o número escolhido */}
+        {severityToday != null && (() => {
+          const v = severityToday;
+          const band = v <= 1 ? 'low' : v <= 3 ? 'mid' : v === 4 ? 'high' : 'max';
+          const text = band === 'low' ? hx.s_low : band === 'mid' ? hx.s_mid : band === 'high' ? hx.s_high : hx.s_max;
+          const acts: [string, keyof typeof Ionicons.glyphMap, any][] =
+            band === 'low' ? [[t('exposure.title'), 'trending-up-outline', { pathname: '/exercise', params: { type: 'exposure' } }]]
+            : band === 'mid' ? [[t('games.words'), 'text-outline', { pathname: '/exercise', params: { type: 'words' } }], [t('exposure.title'), 'trending-up-outline', { pathname: '/exercise', params: { type: 'exposure' } }]]
+            : band === 'high' ? [[L('Surfar o impulso', 'Urge surfing'), 'water-outline', '/urgesurf'], [t('tech.breathing'), 'pulse-outline', '/breathing']]
+            : [[plansText(lang).viewPlan, 'reader-outline', '/myplan'], [t('triggerhelp.title'), 'flash-outline', '/triggerhelp']];
+          return (
+            <View style={{ backgroundColor: band === 'max' || band === 'high' ? colors.cardAlt : colors.primarySoft, borderRadius: radius.md, padding: spacing.md, gap: 10 }}>
+              <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{text}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {acts.map(([label, icon, route]) => (
+                  <Pressable key={label} onPress={() => router.push(route)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
+                    <Ionicons name={icon} size={15} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '700' }}>{label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          );
+        })()}
       </Card>
     );
   }

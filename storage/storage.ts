@@ -697,7 +697,7 @@ export async function savePlanEnabled(on: boolean) {
 
 // Tarefas do plano, escolhidas pelo utilizador. Uma tarefa predefinida guarda só
 // o id (o rótulo vem do catálogo, bilingue); uma tarefa própria guarda o label.
-export type PlanTask = { id: string; label?: string };
+export type PlanTask = { id: string; label?: string; days?: number[] }; // days: 0=seg … 6=dom (vazio/undefined = todos)
 export async function loadPlanTasks(): Promise<PlanTask[]> {
   const raw = await AsyncStorage.getItem(k('planTasks'));
   return raw ? JSON.parse(raw) : [];

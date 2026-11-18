@@ -5,11 +5,31 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useA11y } from '../lib/a11y';
-import { useEffect, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import Reanimated from 'react-native-reanimated';
+import Svg, { Circle as SvgCircle } from 'react-native-svg';
+import { homeText } from '../data/homeText';
+import { safetyText } from '../data/safetyText';
+import { loadLadderSteps } from '../lib/ladder';
+import { appliesOn, AutoCtx, catOf, dayState, isAutoDone, PlanCat, TASK_META } from '../lib/planLogic';
+import { dowMon, weekdaysOf } from '../lib/weekdays';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SAFETY_BEHAVIORS } from '../data/safety';
 import { Lang, pick, useLang , tr2 } from '../i18n/i18n';
 import {
+  loadActCommitments,
+  loadExerciseLog,
+  loadExperiments,
+  loadExposureSessions,
+  loadJournal,
+  loadMemorySessions,
+  loadNextStepId,
+  loadSafetyFree,
+  loadThoughtRecords,
+  SafetyFreeDays,
+  saveSafetyFree,
   loadPlanTasks,
   loadSafety,
   loadWeekPlan,
@@ -20,7 +40,7 @@ import {
 } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
-import { Card } from './ui';
+import { Card, checkPop } from './ui';
 
 type L = { pt: string; en: string };
 
@@ -89,45 +109,118 @@ function labelOf(tk: PlanTask, lang: Lang) {
   return tk.label ?? (pick(SUGGESTIONS.find((s) => s.id === tk.id)?.label, lang) || tk.id);
 }
 
-// ============ VISTA (checklist do dia, no ecrã inicial) ============
+// ============ VISTA (to-do do dia, no ecrã inicial) ============
+// Cabeçalho com anel de progresso e a semana (um ponto por dia); tarefas com
+// o ícone/cor da categoria; tocar no texto abre o exercício; algumas marcam-se
+// sozinhas quando o exercício é feito; as feitas descem e ficam riscadas; o
+// comportamento a largar tem cartão próprio com "Hoje não fiz isto".
+const CAT_ICON: Record<PlanCat, keyof typeof Ionicons.glyphMap> = {
+  exp: 'trending-up-outline', cog: 'bulb-outline', acc: 'leaf-outline', beh: 'hand-left-outline', care: 'heart-outline', custom: 'checkbox-outline',
+};
+
+function ProgressRing({ done, total }: { done: number; total: number }) {
+  const { colors } = useTheme();
+  const S = 46, R = 19, C = 2 * Math.PI * R;
+  const pct = total ? done / total : 0;
+  return (
+    <View style={{ width: S, height: S, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={S} height={S} style={{ position: 'absolute' }}>
+        <SvgCircle cx={S / 2} cy={S / 2} r={R} stroke={colors.track} strokeWidth={5} fill="none" />
+        <SvgCircle cx={S / 2} cy={S / 2} r={R} stroke={pct >= 1 ? colors.success : colors.primary} strokeWidth={5} fill="none"
+          strokeDasharray={`${C * pct} ${C}`} strokeLinecap="round" transform={`rotate(-90 ${S / 2} ${S / 2})`} />
+      </Svg>
+      <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{done}/{total}</Text>
+    </View>
+  );
+}
+
 export default function PlanView({ onEdit }: { onEdit: () => void }) {
   const { colors } = useTheme();
   const { lang } = useLang();
   const Lx = (pt: string, en: string) => tr2(lang, pt, en);
+  const hx = homeText(lang);
+  const sx = safetyText(lang);
+  const router = useRouter();
 
   const [plan, setPlan] = useState<WeekPlan | null>(null);
   const [tasks, setTasks] = useState<PlanTask[]>([]);
+  const [ctxDays, setCtxDays] = useState<Record<string, AutoCtx>>({});
+  const [free, setFree] = useState<SafetyFreeDays>({});
+  const [nextLabel, setNextLabel] = useState<{ id: string; label: string } | null>(null);
 
-  const today = ymd(new Date());
+  const now = new Date();
+  const today = ymd(now);
+  const todayDow = dowMon(now);
+  const weekDates = Array.from({ length: 7 }, (_, i) => ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() - todayDow + i)));
 
-  useEffect(() => {
+  // Recarrega ao voltar ao ecrã (para apanhar exercícios feitos entretanto).
+  useFocusEffect(useCallback(() => {
     loadFreshPlan().then(setPlan);
     loadPlanTasks().then((stored) => {
       const m = migrate(stored);
       setTasks(m);
       if (JSON.stringify(m) !== JSON.stringify(stored)) savePlanTasks(m);
     });
-  }, []);
+    loadSafetyFree().then(setFree);
+    Promise.all([loadNextStepId(), loadLadderSteps(lang)]).then(([id, steps]) => setNextLabel(id ? steps.find((x) => x.id === id) ?? null : null));
+    Promise.all([loadExposureSessions(), loadExerciseLog(), loadThoughtRecords(), loadMemorySessions(), loadExperiments(), loadActCommitments(), loadJournal()])
+      .then(([exp, log, th, mem, xp, act, jr]) => {
+        const arr = <T,>(x: T[] | null | undefined) => (Array.isArray(x) ? x : []);
+        const map: Record<string, AutoCtx> = {};
+        const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - dowMon(d) + i); return ymd(d); });
+        for (const d of days) {
+          map[d] = {
+            exposure: arr(exp).some((e) => e.date === d),
+            words: arr(log).some((e) => e.type === 'words' && e.date === d),
+            myth: arr(log).some((e) => e.type === 'myth' && e.date === d),
+            thought: arr(th).some((e) => e.date === d),
+            memory: arr(mem).some((e) => e.date === d),
+            experiment: arr(xp).some((e) => e.date === d),
+            approach: arr(act).some((c) => arr(c.logs).includes(d)),
+            journal: arr(jr).some((e) => e.date === d),
+            focusFree: false,
+          };
+        }
+        setCtxDays(map);
+      });
+  }, [lang]));
 
   if (!plan) return null;
+  const p = plan;
+
+  const focusDisplay = p.focusLabel
+    ? (pick(SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === p.focusId)?.label, lang) || p.focusLabel)
+    : null;
+  const ctxFor = (d: string): AutoCtx => ({ ...(ctxDays[d] ?? { exposure: false, words: false, myth: false, thought: false, memory: false, experiment: false, approach: false, journal: false, focusFree: false }), focusFree: !!(p.focusId && (free[p.focusId] ?? []).includes(d)) });
+  const isDone = (key: string, d: string) => p.done.includes(`${d}:${key}`) || isAutoDone(key, ctxFor(d));
+  const keysFor = (dow: number) => [...tasks.filter((tk) => appliesOn(tk.days, dow)).map((tk) => tk.id), ...(focusDisplay ? ['focus'] : [])];
 
   function toggleDone(key: string) {
-    if (!plan) return;
     const id = `${today}:${key}`;
-    const done = plan.done.includes(id) ? plan.done.filter((x) => x !== id) : [...plan.done, id];
-    setPlan({ ...plan, done });
-    saveWeekPlan({ ...plan, done });
+    const wasDone = p.done.includes(id);
+    const done = wasDone ? p.done.filter((x) => x !== id) : [...p.done, id];
+    if (!wasDone) {
+      Haptics.selectionAsync().catch(() => {});
+      const remaining = keysFor(todayDow).filter((k) => k !== key && !isDone(k, today));
+      if (remaining.length === 0) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
+    setPlan({ ...p, done });
+    saveWeekPlan({ ...p, done });
+  }
+  function toggleFocusFree() {
+    if (!p.focusId) return;
+    const list = free[p.focusId] ?? [];
+    const on = list.includes(today);
+    if (!on) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const next = { ...free, [p.focusId]: on ? list.filter((d) => d !== today) : [...list, today] };
+    setFree(next);
+    saveSafetyFree(next);
   }
 
-  const focusDisplay = plan.focusLabel
-    ? (pick(SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === plan!.focusId)?.label, lang) || plan.focusLabel)
-    : null;
-  const dayTasks: { key: string; label: string }[] = tasks.map((tk) => ({ key: tk.id, label: labelOf(tk, lang) }));
-  if (focusDisplay) dayTasks.push({ key: 'focus', label: Lx(`Resistir hoje a: ${focusDisplay}`, `Resist today: ${focusDisplay}`) });
-  const doneToday = dayTasks.filter((t) => plan.done.includes(`${today}:${t.key}`)).length;
+  const totalTasks = tasks.length + (focusDisplay ? 1 : 0);
 
   // Plano vazio → convite a criar.
-  if (dayTasks.length === 0) {
+  if (totalTasks === 0) {
     return (
       <Card style={{ gap: spacing.sm }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -143,28 +236,110 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
     );
   }
 
+  const todayTasks = tasks.filter((tk) => appliesOn(tk.days, todayDow)).map((tk) => {
+    const meta = TASK_META[tk.id];
+    let label = labelOf(tk, lang);
+    let route = meta?.route;
+    if (tk.id === 'exp_day' && nextLabel) {
+      label = hx.p_exposureOn.replace('{step}', nextLabel.label);
+      route = { pathname: '/exercise', params: { type: 'exposure', step: nextLabel.id, label: nextLabel.label } };
+    }
+    const manual = p.done.includes(`${today}:${tk.id}`);
+    const auto = !manual && isAutoDone(tk.id, ctxFor(today));
+    return { key: tk.id, label, route, cat: catOf(tk.id), done: manual || auto, auto };
+  });
+  const ordered = [...todayTasks.filter((x) => !x.done), ...todayTasks.filter((x) => x.done)];
+  const focusDone = focusDisplay ? isDone('focus', today) : false;
+  const totalToday = todayTasks.length + (focusDisplay ? 1 : 0);
+  const doneToday = todayTasks.filter((x) => x.done).length + (focusDone ? 1 : 0);
+  const allDone = totalToday > 0 && doneToday === totalToday;
+  const catColor = (c: PlanCat) => (c === 'exp' ? colors.primary : c === 'cog' ? colors.chartMid : c === 'acc' ? colors.success : c === 'beh' ? colors.chartHigh : c === 'care' ? colors.primary : colors.textMuted);
+  const WD = weekdaysOf(lang);
+
   return (
-    <Card style={{ gap: spacing.sm }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{Lx('O teu plano de hoje', "Your plan for today")}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13, marginRight: 12 }}>{doneToday}/{dayTasks.length}</Text>
-        <Pressable onPress={onEdit} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+    <Card style={{ gap: spacing.md }}>
+      {/* Cabeçalho: anel + título + editar */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <ProgressRing done={doneToday} total={totalToday} />
+        <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16, flex: 1 }}>{hx.p_today}</Text>
+        <Pressable onPress={onEdit} hitSlop={8} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Ionicons name="create-outline" size={16} color={colors.primary} />
           <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{Lx('Editar', 'Edit')}</Text>
         </Pressable>
       </View>
 
-      {dayTasks.map((task) => {
-        const checked = plan.done.includes(`${today}:${task.key}`);
-        return (
-          <Pressable key={task.key} onPress={() => toggleDone(task.key)} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={task.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
-            <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: checked ? colors.success : colors.border, backgroundColor: checked ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-              {checked && <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>✓</Text>}
+      {/* A semana: um ponto por dia */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {weekDates.map((d, i) => {
+          const keys = keysFor(i);
+          const st = dayState(keys.length, keys.filter((k) => isDone(k, d)).length, d > today);
+          const isToday = d === today;
+          const fill = st === 'full' ? colors.success : st === 'partial' ? colors.primarySoft : 'transparent';
+          const border = st === 'full' ? colors.success : st === 'partial' ? colors.primary : colors.border;
+          return (
+            <View key={d} style={{ alignItems: 'center', gap: 4, flex: 1 }}>
+              <Text style={{ color: isToday ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: isToday ? '700' : '500' }}>{WD[i]}</Text>
+              <View style={{ width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: fill, borderWidth: st === 'rest' ? 0 : 2, borderColor: border, borderStyle: st === 'future' ? 'dashed' : 'solid', opacity: st === 'future' ? 0.6 : 1 }}>
+                {st === 'full' ? <Ionicons name="checkmark" size={13} color="#fff" /> : st === 'rest' ? <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.border }} /> : null}
+              </View>
             </View>
-            <Text style={{ color: checked ? colors.textMuted : colors.text, fontSize: 15, flex: 1, textDecorationLine: checked ? 'line-through' : 'none' }}>{task.label}</Text>
+          );
+        })}
+      </View>
+
+      {allDone && (
+        <View accessibilityLiveRegion="polite" style={{ backgroundColor: colors.successSoft, borderRadius: radius.md, padding: spacing.md, gap: 2 }}>
+          <Text style={{ color: colors.success, fontWeight: '700', fontSize: 15 }}>{hx.p_doneAll}</Text>
+          <Text style={{ color: colors.text, fontSize: 13 }}>{hx.p_doneAllBody}</Text>
+        </View>
+      )}
+
+      {todayTasks.length === 0 && !focusDisplay && <Text style={{ color: colors.textMuted, fontSize: 14 }}>{hx.p_rest}</Text>}
+
+      {/* Tarefas de hoje (por fazer em cima, feitas em baixo) */}
+      <View style={{ gap: 2 }}>
+        {ordered.map((task) => {
+          const c = catColor(task.cat);
+          return (
+            <View key={task.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, opacity: task.done ? 0.6 : 1 }}>
+              <Pressable onPress={() => !task.auto && toggleDone(task.key)} hitSlop={6} accessibilityRole="checkbox" accessibilityState={{ checked: task.done }} accessibilityLabel={task.label}>
+                <View style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: task.done ? colors.success : colors.border, backgroundColor: task.done ? colors.success : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                  {task.done && <Reanimated.View entering={checkPop}><Ionicons name="checkmark" size={15} color="#fff" /></Reanimated.View>}
+                </View>
+              </Pressable>
+              <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={CAT_ICON[task.cat]} size={16} color={c} />
+              </View>
+              <Pressable
+                onPress={() => (task.route ? router.push(task.route as any) : toggleDone(task.key))}
+                accessibilityRole={task.route ? 'link' : 'button'}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: task.done ? colors.textMuted : colors.text, fontSize: 15, textDecorationLine: task.done ? 'line-through' : 'none' }}>{task.label}</Text>
+                  {task.auto && <Text style={{ color: colors.success, fontSize: 11 }}>{hx.p_auto}</Text>}
+                </View>
+                {task.route && !task.done && <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* Comportamento a largar esta semana */}
+      {focusDisplay && (
+        <View style={{ backgroundColor: colors.cardAlt, borderRadius: radius.md, padding: spacing.md, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="flag-outline" size={16} color={colors.chartHigh} />
+            <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 }}>{hx.p_resist}</Text>
+          </View>
+          <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>{focusDisplay}</Text>
+          <Pressable onPress={toggleFocusFree} accessibilityRole="checkbox" accessibilityState={{ checked: focusDone }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 999, backgroundColor: focusDone ? colors.successSoft : colors.primary }}>
+            {!focusDone && <Ionicons name="checkmark" size={15} color="#fff" />}
+            <Text style={{ color: focusDone ? colors.success : '#fff', fontSize: 13, fontWeight: '700' }}>{focusDone ? sx.todayDone : sx.todayNot}</Text>
           </Pressable>
-        );
-      })}
+        </View>
+      )}
     </Card>
   );
 }
@@ -191,10 +366,13 @@ function Section({ title, icon, badge, defaultOpen, children }: { title: string;
 }
 
 // ============ EDITOR (formulário, no sheet) ============
+const EDIT_CAT_ICON = CAT_ICON;
+
 export function PlanEditor() {
   const { colors } = useTheme();
   const a11y = useA11y();
   const { lang } = useLang();
+  const hx = homeText(lang);
   const Lx = (pt: string, en: string) => tr2(lang, pt, en);
 
   const [plan, setPlan] = useState<WeekPlan | null>(null);
@@ -224,6 +402,16 @@ export function PlanEditor() {
     setNewTask('');
   }
   function removeTask(id: string) { persistTasks(tasks.filter((t) => t.id !== id)); }
+  // Liga/desliga um dia; com os 7 dias ligados guarda-se "todos" (sem lista).
+  function toggleDay(id: string, d: number) {
+    persistTasks(tasks.map((t) => {
+      if (t.id !== id) return t;
+      const cur = t.days && t.days.length ? t.days : [0, 1, 2, 3, 4, 5, 6];
+      const next = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d].sort();
+      if (next.length === 0) return t; // pelo menos um dia
+      return next.length === 7 ? { id: t.id, ...(t.label ? { label: t.label } : {}) } : { ...t, days: next };
+    }));
+  }
   function chooseFocus(id: string, label: string) {
     if (!plan) return;
     setPlan({ ...plan, focusId: id, focusLabel: label });
@@ -258,13 +446,28 @@ export function PlanEditor() {
           <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{Lx('Vazio. Acrescenta tarefas abaixo.', 'Empty. Add tasks below.')}</Text>
         ) : (
           <>
-            {tasks.map((tk) => (
-              <View key={tk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
-                <Ionicons name="ellipse" size={8} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{labelOf(tk, lang)}</Text>
-                <Pressable onPress={() => removeTask(tk.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${a11y.delete}: ${labelOf(tk, lang)}`}>
-                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
-                </Pressable>
+            {tasks.map((tk, ti) => (
+              <View key={tk.id} style={{ gap: 8, paddingVertical: 8, borderTopWidth: ti ? 1 : 0, borderTopColor: colors.border }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Ionicons name={EDIT_CAT_ICON[catOf(tk.id)]} size={16} color={colors.primary} />
+                  <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{labelOf(tk, lang)}</Text>
+                  <Pressable onPress={() => removeTask(tk.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${a11y.delete}: ${labelOf(tk, lang)}`}>
+                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                  </Pressable>
+                </View>
+                {/* Dias da semana desta tarefa (todos = todos os dias) */}
+                <View style={{ flexDirection: 'row', gap: 4 }}>
+                  {weekdaysOf(lang).map((wd, d) => {
+                    const on = appliesOn(tk.days, d);
+                    return (
+                      <Pressable key={d} onPress={() => toggleDay(tk.id, d)} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={`${labelOf(tk, lang)}: ${wd}`}
+                        style={{ flex: 1, paddingVertical: 6, borderRadius: 8, alignItems: 'center', backgroundColor: on ? colors.primarySoft : 'transparent', borderWidth: 1, borderColor: on ? colors.primary : colors.border }}>
+                        <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: '700' }}>{wd}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {!!tk.days?.length && tk.days.length < 7 ? null : <Text style={{ color: colors.textMuted, fontSize: 11 }}>{hx.p_everyDay}</Text>}
               </View>
             ))}
             {focusDisplay && (

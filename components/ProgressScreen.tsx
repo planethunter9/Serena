@@ -41,6 +41,7 @@ import { behaviorLabel } from '../lib/behaviorLabel';
 import EmptyState from './EmptyState';
 import { Card, CardHeader, Segmented } from './ui';
 import { statsText } from '../data/statsText';
+import { WEEKDAYS_BY_LANG } from '../lib/weekdays';
 import { changePct, countBy, fmtNum, heatmapGrid, lastDays, mean, Period, PERIOD_DAYS } from '../lib/statsData';
 import LineChart, { LinePoint } from './stats/LineChart';
 import BarChart from './stats/BarChart';
@@ -58,19 +59,6 @@ function expStreakOf(days: string[]): number {
   return n;
 }
 
-// Dias da semana (abreviados) em todas as línguas da app.
-const WEEKDAYS_BY_LANG: Record<string, string[]> = {
-  pt: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-  'pt-BR': ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-  en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  es: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-  fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
-  de: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-  it: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
-  nl: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
-  pl: ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'],
-  ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-};
 
 export default function ProgressScreen() {
   const { colors } = useTheme();
