@@ -37,6 +37,7 @@ import { AuthProvider } from '../auth/AuthContext';
 import { DataProvider } from '../store/DataContext';
 import { syncAffirmationReminder } from '../notifications/affirmation';
 import SyncBanner from '../components/SyncBanner';
+import { AchievementWatcher } from '../components/AchievementUnlock';
 
 function ThemedStatusBar() {
   const { isDark } = useTheme();
@@ -135,6 +136,8 @@ function ThemedApp() {
       <Stack key={remountKey} screenOptions={{ headerShown: false }} />
       {/* Aviso "sem ligação" (sincronização com a cloud), por cima de todos os ecrãs */}
       <SyncBanner />
+      {/* "Conquista desbloqueada" (verifica ao mudar de ecrã) */}
+      <AchievementWatcher />
     </>
   );
 }

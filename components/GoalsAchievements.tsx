@@ -5,18 +5,11 @@ import { newId } from '../lib/id';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ACHIEVEMENTS, AchStats } from '../data/achievements';
-import { CHAPTERS } from '../data/content';
 import { pick, useLang , tr2 } from '../i18n/i18n';
 import {
   Goal,
   isoLocal,
-  loadExposureDays,
   loadGoals,
-  loadJournal,
-  loadLessonsDone,
-  loadManualAchievements,
-  loadSeverity,
-  loadStreakStart,
   saveGoals,
   saveManualAchievements,
 } from '../storage/storage';
@@ -24,6 +17,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, CardHeader, PrimaryButton, Segmented, TopBackBar } from './ui';
 import { goalsText } from '../data/goalsText';
+import { loadAchStats } from '../lib/achievementStats';
 import { loadLadderSteps } from '../lib/ladder';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -50,38 +44,7 @@ function AchievementsBody() {
   const [manual, setManual] = useState<string[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const [streakStart, lessons, journal, goals, severity, man, expDays] = await Promise.all([
-        loadStreakStart(),
-        loadLessonsDone(),
-        loadJournal(),
-        loadGoals(),
-        loadSeverity(),
-        loadManualAchievements(),
-        loadExposureDays(),
-      ]);
-
-      const expSet = new Set(expDays);
-      const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const d0 = new Date();
-      if (!expSet.has(ymd(d0))) d0.setDate(d0.getDate() - 1);
-      let exposureStreak = 0;
-      while (expSet.has(ymd(d0))) { exposureStreak++; d0.setDate(d0.getDate() - 1); }
-      const streakDays = streakStart ? Math.max(0, Math.floor((Date.now() - new Date(streakStart).getTime()) / 86400000)) : 0;
-      const journalDays = new Set(journal.map((e) => e.date)).size;
-      setStats({
-        streakDays,
-        lessonsDone: lessons.length,
-        lessonsTotal: CHAPTERS.flatMap((c) => c.lessons).length,
-        journalDays,
-        goalsCreated: goals.length,
-        goalsDone: goals.filter((g) => g.done).length,
-        fearDays: severity.length,
-        exposureDays: expDays.length,
-        exposureStreak,
-      });
-      setManual(man);
-    })();
+    loadAchStats().then(({ stats: st, manual: m }) => { setStats(st); setManual(m); });
   }, []);
 
   function isUnlocked(a: (typeof ACHIEVEMENTS)[number]) {
