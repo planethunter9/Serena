@@ -6,7 +6,8 @@
 export type RecRoute = { pathname: string; params?: Record<string, string> };
 export type RecId =
   | 'breathe' | 'urge' | 'trigger' | 'exposure' | 'template' | 'lesson' | 'lessonFor' | 'kids'
-  | 'experiment' | 'words' | 'result' | 'free' | 'pickDrop' | 'thought' | 'journal' | 'myth';
+  | 'experiment' | 'words' | 'result' | 'free' | 'pickDrop' | 'thought' | 'journal' | 'myth'
+  | 'rainbow' | 'recite';
 export type Rec = { id: RecId; score: number; icon: string; route: RecRoute; vars?: Record<string, string>; reasonKey?: string };
 
 export type RecInput = {
@@ -42,26 +43,33 @@ export function recommend(x: RecInput, max = 3): Rec[] {
   const heavy = sev !== null && sev >= 4;
   const has = (id: string) => x.subtypes.includes(id);
 
-  // Dia difícil: primeiro acalmar.
+  // Cada número da escala tem a sua sugestão principal (score 99+):
+  // 0 subir um degrau · 1 testar uma previsão · 2 desconstruir um pensamento ·
+  // 3 Arco-íris (atenção para fora) · 4 respiração · 5 "Estou com um gatilho".
   if (heavy) {
     if (sev === 5) add({ id: 'trigger', score: 100, icon: 'flash-outline', route: { pathname: '/triggerhelp' } });
-    add({ id: 'breathe', score: 96, icon: 'pulse-outline', route: { pathname: '/breathing' } });
+    add({ id: 'breathe', score: sev === 4 ? 99 : 96, icon: 'pulse-outline', route: { pathname: '/breathing' } });
     add({ id: 'urge', score: 92, icon: 'water-outline', route: { pathname: '/urgesurf' } });
+    add({ id: 'recite', score: 90, icon: 'musical-notes-outline', route: { pathname: '/recite' } });
   }
+  if (sev === 3) add({ id: 'rainbow', score: 99, icon: 'color-palette-outline', route: { pathname: '/rainbow' } });
+  if (sev === 2) add({ id: 'thought', score: 99, icon: 'bulb-outline', route: { pathname: '/exercise', params: { type: 'thought' } } });
+  if (sev === 1) add({ id: 'experiment', score: 99, icon: 'flask-outline', route: { pathname: '/exercise', params: { type: 'experiments' } }, reasonKey: 'r_sev1' });
 
   // Exposição (a peça principal do tratamento).
   if (x.step) {
     const gap = x.lastExposure ? daysBetween(x.lastExposure, x.today) : null;
-    if (gap === null || gap >= 2) {
+    const calm = sev === 0;
+    if (calm || gap === null || gap >= 2) {
       add({
-        id: 'exposure', score: heavy ? 40 : 85, icon: 'trending-up-outline',
+        id: 'exposure', score: calm ? 99 : heavy ? 40 : 85, icon: 'trending-up-outline',
         route: { pathname: '/exercise', params: { type: 'exposure', step: x.step.id, label: x.step.label } },
-        vars: { step: x.step.label, n: String(gap ?? 0) }, reasonKey: gap === null ? 'r_expNever' : 'r_expDays',
+        vars: { step: x.step.label, n: String(gap ?? 0) }, reasonKey: calm ? 'r_sev0' : gap === null ? 'r_expNever' : 'r_expDays',
       });
     }
   }
   if (!x.hasCustomSteps && x.templateSubtype) {
-    add({ id: 'template', score: 70, icon: 'library-outline', route: { pathname: '/exercise', params: { type: 'exposure' } }, vars: { subtype: x.templateSubtype.label } });
+    add({ id: 'template', score: sev === 0 && !x.step ? 99 : 70, icon: 'library-outline', route: { pathname: '/exercise', params: { type: 'exposure' } }, vars: { subtype: x.templateSubtype.label } });
   }
 
   // Coisas por acabar.

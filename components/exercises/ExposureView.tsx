@@ -398,7 +398,7 @@ export function ExposureView({ selected, setSelected }: { selected: Step | null;
                     <Pressable onPress={() => move(i, 1)} hitSlop={6} disabled={i === steps.length - 1} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Mover para baixo', 'Move down')} style={{ padding: 4, opacity: i === steps.length - 1 ? 0.3 : 1 }}>
                       <Ionicons name="chevron-down" size={20} color={colors.primary} />
                     </Pressable>
-                    <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, `Remover ${s.label}`, `Remove ${s.label}`)} style={{ padding: 4, marginLeft: 2 }}>
+                    <Pressable onPress={() => removeStep(s)} hitSlop={6} accessibilityRole="button" accessibilityLabel={tr2(lang, 'Remover {x}', 'Remove {x}').replace('{x}', s.label)} style={{ padding: 4, marginLeft: 2 }}>
                       <Ionicons name="trash-outline" size={19} color={colors.danger} />
                     </Pressable>
                   </>

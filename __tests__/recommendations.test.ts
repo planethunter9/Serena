@@ -40,3 +40,10 @@ test('textos nas 10 línguas', () => {
     for (const k of keys) expect(t[k].trim().length).toBeGreaterThan(0);
   }
 });
+
+test('cada número da fobia (0–5) tem uma sugestão principal diferente', () => {
+  const tops = [0, 1, 2, 3, 4, 5].map((s) => recommend({ ...base, severity: s, lastExposure: '2026-11-18' }, 1)[0].id);
+  expect(tops).toEqual(['exposure', 'experiment', 'thought', 'rainbow', 'breathe', 'trigger']);
+  expect(new Set(tops).size).toBe(6);
+  expect(recommend({ ...base, severity: 0, step: null, hasCustomSteps: false, templateSubtype: { id: 'x', label: 'X' } }, 1)[0].id).toBe('template');
+});

@@ -36,7 +36,7 @@ export function ExerciseLogBar({ type }: { type: string }) {
       </Pressable>
       {todayCount > 0 && (
         <>
-          <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>{Lx(`✓ feito ${todayCount}× hoje`, `✓ done ${todayCount}× today`)}</Text>
+          <Text style={{ color: colors.success, fontSize: 13, fontWeight: '600' }}>{Lx('✓ feito {n}× hoje', '✓ done {n}× today').replace('{n}', String(todayCount))}</Text>
           <Pressable onPress={undo} hitSlop={6} accessibilityRole="button" accessibilityLabel={Lx('Anular último registo', 'Undo last log')} style={{ marginLeft: 'auto' }}>
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>{Lx('anular', 'undo')}</Text>
           </Pressable>

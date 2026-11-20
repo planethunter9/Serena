@@ -24,7 +24,6 @@ import {
   loadExperiments,
   loadExposureSessions,
   loadJournal,
-  loadMemorySessions,
   loadNextStepId,
   loadSafetyFree,
   loadThoughtRecords,
@@ -58,7 +57,6 @@ const SUGGESTIONS: { id: string; cat: string; label: L }[] = [
   { id: 'exp_senso', cat: 'exp', label: { pt: 'Exposição às sensações do corpo', en: 'Body-sensation exposure' } },
   { id: 'exp_food', cat: 'exp', label: { pt: 'Comer algo "assustador"', en: 'Eat something "scary"' } },
   { id: 'exp_read', cat: 'exp', label: { pt: 'Ler um relato / lição', en: 'Read an account / lesson' } },
-  { id: 'exp_mem', cat: 'exp', label: { pt: 'Trabalhar uma memória', en: 'Work on a memory' } },
   { id: 'cog_thought', cat: 'cog', label: { pt: 'Desconstruir um pensamento', en: 'Deconstruct a thought' } },
   { id: 'cog_review', cat: 'cog', label: { pt: 'Rever (previa vs aconteceu)', en: 'Review (predicted vs happened)' } },
   { id: 'cog_myth', cat: 'cog', label: { pt: 'Verdade ou mito', en: 'True or myth' } },
@@ -81,10 +79,11 @@ const SUGGESTIONS: { id: string; cat: string; label: L }[] = [
 // Ids antigos → novos (para planos criados na versão anterior).
 const LEGACY: Record<string, string> = {
   exp: 'exp_day', rev: 'cog_review', approach: 'acc_approach',
-  mem: 'exp_mem', breath: 'care_breath', journal: 'care_journal', values: 'acc_values',
+breath: 'care_breath', journal: 'care_journal', values: 'acc_values',
 };
 function migrate(list: PlanTask[]): PlanTask[] {
-  return list.map((t) => (!t.label && LEGACY[t.id] ? { id: LEGACY[t.id] } : t));
+  // Tarefas de exercícios que já não existem (ex.: exposição à memória) saem.
+  return list.map((t) => (!t.label && LEGACY[t.id] ? { id: LEGACY[t.id] } : t)).filter((t) => t.label || (t.id !== 'exp_mem' && t.id !== 'mem'));
 }
 
 function ymd(d: Date) {
@@ -163,8 +162,8 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
     });
     loadSafetyFree().then(setFree);
     Promise.all([loadNextStepId(), loadLadderSteps(lang)]).then(([id, steps]) => setNextLabel(id ? steps.find((x) => x.id === id) ?? null : null));
-    Promise.all([loadExposureSessions(), loadExerciseLog(), loadThoughtRecords(), loadMemorySessions(), loadExperiments(), loadActCommitments(), loadJournal()])
-      .then(([exp, log, th, mem, xp, act, jr]) => {
+    Promise.all([loadExposureSessions(), loadExerciseLog(), loadThoughtRecords(), loadExperiments(), loadActCommitments(), loadJournal()])
+      .then(([exp, log, th, xp, act, jr]) => {
         const arr = <T,>(x: T[] | null | undefined) => (Array.isArray(x) ? x : []);
         const map: Record<string, AutoCtx> = {};
         const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - dowMon(d) + i); return ymd(d); });
@@ -174,7 +173,6 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
             words: arr(log).some((e) => e.type === 'words' && e.date === d),
             myth: arr(log).some((e) => e.type === 'myth' && e.date === d),
             thought: arr(th).some((e) => e.date === d),
-            memory: arr(mem).some((e) => e.date === d),
             experiment: arr(xp).some((e) => e.date === d),
             approach: arr(act).some((c) => arr(c.logs).includes(d)),
             journal: arr(jr).some((e) => e.date === d),
@@ -191,7 +189,7 @@ export default function PlanView({ onEdit }: { onEdit: () => void }) {
   const focusDisplay = p.focusLabel
     ? (pick(SAFETY_BEHAVIORS.find((b: { id: string; label: L }) => b.id === p.focusId)?.label, lang) || p.focusLabel)
     : null;
-  const ctxFor = (d: string): AutoCtx => ({ ...(ctxDays[d] ?? { exposure: false, words: false, myth: false, thought: false, memory: false, experiment: false, approach: false, journal: false, focusFree: false }), focusFree: !!(p.focusId && (free[p.focusId] ?? []).includes(d)) });
+  const ctxFor = (d: string): AutoCtx => ({ ...(ctxDays[d] ?? { exposure: false, words: false, myth: false, thought: false, experiment: false, approach: false, journal: false, focusFree: false }), focusFree: !!(p.focusId && (free[p.focusId] ?? []).includes(d)) });
   const isDone = (key: string, d: string) => p.done.includes(`${d}:${key}`) || isAutoDone(key, ctxFor(d));
   const keysFor = (dow: number) => [...tasks.filter((tk) => appliesOn(tk.days, dow)).map((tk) => tk.id), ...(focusDisplay ? ['focus'] : [])];
 
@@ -468,7 +466,7 @@ export function PlanEditor() {
             {focusDisplay && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
                 <Ionicons name="hand-left-outline" size={14} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx(`Resistir a: ${focusDisplay}`, `Resist: ${focusDisplay}`)}</Text>
+                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx('Resistir a: {x}', 'Resist: {x}').replace('{x}', focusDisplay)}</Text>
                 <Pressable onPress={clearFocus} hitSlop={6} accessibilityRole="button" accessibilityLabel={a11y.delete}>
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </Pressable>

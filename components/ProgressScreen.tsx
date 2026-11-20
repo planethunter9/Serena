@@ -144,8 +144,8 @@ export default function ProgressScreen() {
   // 4 cartões — mesmos indicadores, mudam conforme o âmbito escolhido (Geral / Semana).
   const statsAll = [
     { icon: 'trending-down-outline' as const, value: expRel.length ? `${reliefPct}%` : '—', label: L('alívio nas exposições', 'relief in exposures'), sub: expRel.length ? `${fmtNum(relBefore, 1, lang)} → ${fmtNum(relAfter, 1, lang)} /10` : L('faz uma exposição', 'do an exposure'), color: colors.success },
-    { icon: 'flame-outline' as const, value: `${expStreak}`, label: L('dias seguidos', 'days in a row'), sub: L(`${totalExpDays} no total`, `${totalExpDays} total`), color: colors.primary, highlight: true },
-    { icon: 'barbell-outline' as const, value: `${exercisesTotal}`, label: L('exercícios feitos', 'exercises done'), sub: L(`${exposures.length} de exposição`, `${exposures.length} exposure`), color: colors.primary },
+    { icon: 'flame-outline' as const, value: `${expStreak}`, label: L('dias seguidos', 'days in a row'), sub: L('{t} no total', '{t} total').replace('{t}', String(totalExpDays)), color: colors.primary, highlight: true },
+    { icon: 'barbell-outline' as const, value: `${exercisesTotal}`, label: L('exercícios feitos', 'exercises done'), sub: L('{n} de exposição', '{n} exposure').replace('{n}', String(exposures.length)), color: colors.primary },
     { icon: 'leaf-outline' as const, value: `${dropped.length}`, label: L('comportamentos largados', 'behaviours dropped'), sub: L('que já não alimentam o medo', 'no longer feeding the fear'), color: colors.success },
   ];
   const statsWeek = [

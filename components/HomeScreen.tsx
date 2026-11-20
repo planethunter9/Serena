@@ -221,8 +221,8 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
 
   function heroBlock() {
     const streakLine = expStreak === 0
-      ? L(`sem dias seguidos agora — e tudo bem · ${totalExpDays} no total`, `no streak right now — and that's okay · ${totalExpDays} total`)
-      : L(`${expStreak} ${expStreak === 1 ? 'dia' : 'dias'} seguidos · ${totalExpDays} no total`, `${expStreak} ${expStreak === 1 ? 'day' : 'days'} in a row · ${totalExpDays} total`);
+      ? L('sem dias seguidos agora — e tudo bem · {t} no total', "no streak right now — and that's okay · {t} total").replace('{t}', String(totalExpDays))
+      : L('Dias seguidos: {n} · {t} no total', 'Days in a row: {n} · {t} total').replace('{n}', String(expStreak)).replace('{t}', String(totalExpDays));
     return (
       <Card style={{ gap: spacing.md }}>
         <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{L('Os teus pilares', 'Your pillars')}</Text>
@@ -303,7 +303,7 @@ export default function HomeScreen({ startDate }: { startDate: string }) {
                 key={v}
                 onPress={() => { Haptics.selectionAsync().catch(() => {}); setSeverityToday(v); addSeverity(v); }}
                 accessibilityRole="button"
-                accessibilityLabel={L(`Gravidade ${v} de 5`, `Severity ${v} of 5`)}
+                accessibilityLabel={L('Gravidade {v} de 5', 'Severity {v} of 5').replace('{v}', String(v))}
                 style={{ flex: 1, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? colors.primary : colors.cardAlt, borderWidth: 2, borderColor: sel ? colors.primary : colors.border }}
               >
                 <Text style={{ color: sel ? colors.onPrimary : colors.text, fontWeight: '700' }}>{v}</Text>

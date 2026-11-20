@@ -1,5 +1,6 @@
 // Perfil: modo de VISUALIZAÇÃO por defeito; edição pelo botão "Editar".
 
+import { localizeItems } from '../lib/onbLabels';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,10 +29,6 @@ async function keepPhoto(uri: string): Promise<string> {
   }
 }
 
-function asItems(arr: any[]): ProfileItem[] {
-  if (!Array.isArray(arr)) return [];
-  return arr.map((it, i) => (typeof it === 'string' ? { id: 'x' + i, label: it } : { id: it.id ?? 'x' + i, label: it.label ?? '' }));
-}
 
 function Avatar({ uri, size, onPress, label }: { uri?: string | null; size: number; onPress?: () => void; label?: string }) {
   const { colors } = useTheme();
@@ -70,12 +67,12 @@ export default function ProfileScreen({ onBack, data }: { onBack: () => void; da
   }
 
   const sections: { title: string; icon: keyof typeof Ionicons.glyphMap; items: ProfileItem[]; show: boolean }[] = [
-    { title: t('settings.subtypes'), icon: 'albums-outline', items: asItems(data.subtypes), show: p.showSubtypes },
-    { title: t('settings.triggers'), icon: 'flash-outline', items: asItems(data.triggers), show: p.showTriggers },
-    { title: t('settings.affects'), icon: 'pulse-outline', items: asItems(data.symptoms), show: p.showSymptoms },
-    { title: t('settings.losses'), icon: 'sad-outline', items: asItems(data.losses), show: p.showLosses },
-    { title: t('settings.recover'), icon: 'ribbon-outline', items: asItems(data.recover), show: p.showRecover },
-    { title: t('settings.coping'), icon: 'heart-outline', items: asItems(data.coping), show: p.showCoping },
+    { title: t('settings.subtypes'), icon: 'albums-outline', items: localizeItems(data.subtypes, 'subtypes', lang), show: p.showSubtypes },
+    { title: t('settings.triggers'), icon: 'flash-outline', items: localizeItems(data.triggers, 'triggers', lang), show: p.showTriggers },
+    { title: t('settings.affects'), icon: 'pulse-outline', items: localizeItems(data.symptoms, 'symptoms', lang), show: p.showSymptoms },
+    { title: t('settings.losses'), icon: 'sad-outline', items: localizeItems(data.losses, 'losses', lang), show: p.showLosses },
+    { title: t('settings.recover'), icon: 'ribbon-outline', items: localizeItems(data.recover, 'recover', lang), show: p.showRecover },
+    { title: t('settings.coping'), icon: 'heart-outline', items: localizeItems(data.coping, 'coping', lang), show: p.showCoping },
   ];
 
   // ---------- MODO VISUALIZAÇÃO ----------

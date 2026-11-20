@@ -75,11 +75,7 @@ export default function ExercisesScreen({ onBack }: { onBack: () => void }) {
             <HubRow icon="bulb-outline" title={t('exercises.thought')} desc={t('exercises.thoughtDesc')} onPress={open('thought')} />
             <HubRow icon="flask-outline" title={L('Experiências', 'Experiments')} desc={L('Prever vs o que acontece mesmo', 'Predict vs what actually happens')} onPress={open('experiments')} />
             <HubRow icon="help-circle-outline" title={t('games.myth')} desc={t('games.mythDesc')} onPress={open('myth')} />
-          </HubGroup>
-
-          <HubGroup title={L('Aceitação e memória', 'Acceptance & memory')}>
             <HubRow icon="leaf-outline" title={L('Aceitação e valores', 'Acceptance & values')} desc={L('Princípios, valores e compromissos de aproximação', 'Principles, values and approach commitments')} onPress={open('acceptance')} />
-            <HubRow icon="sparkles-outline" title={t('exercises.memory')} desc={t('exercises.memoryDesc')} onPress={open('memory')} />
           </HubGroup>
         </ScrollView>
       </View>
