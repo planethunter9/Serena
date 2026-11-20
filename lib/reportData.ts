@@ -2,6 +2,7 @@
 // Nada sai do telemóvel aqui: o PDF só é partilhado se a pessoa quiser.
 // O diário nunca entra; os textos escritos só entram se a pessoa escolher.
 
+import { localizeItems } from './onbLabels';
 import { reportText } from '../data/reportText';
 import { Lang, tr2 } from '../i18n/i18n';
 import {
@@ -105,8 +106,8 @@ export async function collectReportData(opts: {
     avgDiscomfort,
     severity: severity.length >= 2 ? { first: severity[0].value, last: severity[severity.length - 1].value } : null,
     profile: {
-      triggers: arr(onb?.triggers).map(labelOf).filter(Boolean),
-      symptoms: arr(onb?.symptoms).map(labelOf).filter(Boolean),
+      triggers: localizeItems(onb?.triggers, 'triggers', lang).map((i) => i.label).filter(Boolean),
+      symptoms: localizeItems(onb?.symptoms, 'symptoms', lang).map((i) => i.label).filter(Boolean),
     },
     exposures: exposures.map((e) => ({
       date: fmtDate(e.date, lang), step: e.stepLabel, before: e.before, peak: e.peak, after: e.after,

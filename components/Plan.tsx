@@ -466,7 +466,7 @@ export function PlanEditor() {
             {focusDisplay && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
                 <Ionicons name="hand-left-outline" size={14} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx(`Resistir a: ${focusDisplay}`, `Resist: ${focusDisplay}`)}</Text>
+                <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{Lx('Resistir a: {x}', 'Resist: {x}').replace('{x}', focusDisplay)}</Text>
                 <Pressable onPress={clearFocus} hitSlop={6} accessibilityRole="button" accessibilityLabel={a11y.delete}>
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </Pressable>

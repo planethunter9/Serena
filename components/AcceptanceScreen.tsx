@@ -253,7 +253,7 @@ export default function AcceptanceView() {
                 {it.logs.length > 0 && (
                   <>
                     <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-                      {L(`feito ${it.logs.length}×`, `done ${it.logs.length}×`)} · {it.logs[it.logs.length - 1].split('-').reverse().join('/')}
+                      {L('feito {n}×', 'done {n}×').replace('{n}', String(it.logs.length))} · {it.logs[it.logs.length - 1].split('-').reverse().join('/')}
                     </Text>
                     <Pressable onPress={() => undoLast(it.id)} hitSlop={6} accessibilityRole="button" accessibilityLabel={L('Anular último registo', 'Undo last log')} style={{ marginLeft: 'auto' }}>
                       <Text style={{ color: colors.textMuted, fontSize: 12 }}>{L('anular', 'undo')}</Text>

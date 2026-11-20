@@ -1,6 +1,7 @@
 // "Estou com um gatilho": mostra frases de coping para baixar a intensidade,
 // específicas para cada gatilho que o utilizador escolheu.
 
+import { localizeItems } from '../lib/onbLabels';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -14,10 +15,6 @@ import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
 import { Card, TopBackBar } from './ui';
 
-function asItems(arr: any[]): ProfileItem[] {
-  if (!Array.isArray(arr)) return [];
-  return arr.map((it, i) => (typeof it === 'string' ? { id: 'x' + i, label: it } : { id: it.id ?? 'x' + i, label: it.label ?? '' }));
-}
 
 export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void; data: OnboardingData }) {
   const { colors } = useTheme();
@@ -35,7 +32,7 @@ export default function TriggerHelpScreen({ onBack, data }: { onBack: () => void
     });
   }, [lang]);
 
-  const triggers = asItems(data.triggers);
+  const triggers = localizeItems(data.triggers, 'triggers', lang);
 
   // Frases para o gatilho escolhido (ou frases gerais se for personalizado/sem frases).
   function phrasesFor(id: string) {

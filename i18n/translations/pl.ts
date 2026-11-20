@@ -328,6 +328,15 @@ export const dict: Record<string, string> = {
 };
 
 export const inline: Record<string, string> = {
+  "✓ done {n}× today": "✓ dziś zrobione {n}×",
+  "Remove {x}": "Usuń {x}",
+  "no streak right now — and that's okay · {t} total": "teraz bez serii — i to w porządku · łącznie {t}",
+  "Days in a row: {n} · {t} total": "Dni z rzędu: {n} · łącznie {t}",
+  "Severity {v} of 5": "Nasilenie {v} z 5",
+  "done {n}×": "zrobione {n}×",
+  "{t} total": "łącznie {t}",
+  "{n} exposure": "ekspozycje: {n}",
+  "Resist: {x}": "Opieraj się: {x}",
   "More information": "Więcej informacji",
   "Playing": "Odtwarzanie",
   "Paused": "Wstrzymano",
