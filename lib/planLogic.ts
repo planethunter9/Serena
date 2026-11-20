@@ -7,7 +7,7 @@ export type PlanRoute = { pathname: string; params?: Record<string, string> };
 
 // Dados de hoje usados para marcar tarefas automaticamente.
 export type AutoCtx = {
-  exposure: boolean; words: boolean; myth: boolean; thought: boolean; memory: boolean;
+  exposure: boolean; words: boolean; myth: boolean; thought: boolean;
   experiment: boolean; approach: boolean; journal: boolean; focusFree: boolean;
 };
 
@@ -18,7 +18,6 @@ export const TASK_META: Record<string, { cat: PlanCat; route?: PlanRoute; auto?:
   exp_senso: { cat: 'exp', route: { pathname: '/exercise', params: { type: 'exposure' } } },
   exp_food: { cat: 'exp', route: { pathname: '/exercise', params: { type: 'exposure' } } },
   exp_read: { cat: 'exp', route: { pathname: '/lessons' } },
-  exp_mem: { cat: 'exp', route: { pathname: '/exercise', params: { type: 'memory' } }, auto: 'memory' },
   cog_thought: { cat: 'cog', route: { pathname: '/exercise', params: { type: 'thought' } }, auto: 'thought' },
   cog_review: { cat: 'cog', route: { pathname: '/exercise', params: { type: 'experiments' } }, auto: 'experiment' },
   cog_myth: { cat: 'cog', route: { pathname: '/exercise', params: { type: 'myth' } }, auto: 'myth' },

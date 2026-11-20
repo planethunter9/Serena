@@ -1,7 +1,7 @@
 import { expect, test } from '@jest/globals';
 import { appliesOn, dayState, isAutoDone, TASK_META } from '../lib/planLogic';
 
-const ctx = { exposure: true, words: false, myth: false, thought: false, memory: false, experiment: false, approach: false, journal: true, focusFree: false };
+const ctx = { exposure: true, words: false, myth: false, thought: false, experiment: false, approach: false, journal: true, focusFree: false };
 
 test('tarefas que se marcam sozinhas', () => {
   expect(isAutoDone('exp_day', ctx)).toBe(true);
