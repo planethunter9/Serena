@@ -5,6 +5,8 @@
 import InfoButton from './InfoButton';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { groundText } from '../data/groundText';
 import { tr2, useLang } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing } from '../theme/theme';
@@ -66,6 +68,8 @@ export default function SupportScreen({
   const { colors } = useTheme();
   const { t, lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
+  const router = useRouter();
+  const gx = groundText(lang);
   const anchorNote = L(
     'Usa isto como âncora para atravessar um momento difícil e não ficares horas em sofrimento — não para evitar, nem como prova de que "não vomitaste por causa disto".',
     'Use this as an anchor to get through a hard moment and not spend hours in distress — not to avoid, nor as proof that "you didn\'t vomit because of it".',
@@ -74,6 +78,9 @@ export default function SupportScreen({
   const techniques = [
     { key: 'breathing', title: t('tech.breathing'), desc: t('tech.breathingDesc'), icon: 'ellipse-outline' as const, onPress: onBreathing },
     { key: 'bodyscan', title: t('tech.bodyscan'), desc: t('tech.bodyscanDesc'), icon: 'body-outline' as const, onPress: onBodyScan },
+    { key: 'rainbow', title: gx.rb_title, desc: gx.rb_desc, icon: 'color-palette-outline' as const, onPress: () => router.push('/rainbow' as any) },
+    { key: 'balloons', title: gx.bl_title, desc: gx.bl_desc, icon: 'balloon-outline' as const, onPress: () => router.push('/balloons' as any) },
+    { key: 'recite', title: gx.rc_title, desc: gx.rc_desc, icon: 'musical-notes-outline' as const, onPress: () => router.push('/recite' as any) },
     { key: 'positive', title: t('tech.positive'), desc: t('tech.positiveDesc'), icon: 'chatbubble-ellipses-outline' as const, onPress: onPositive },
   ];
 

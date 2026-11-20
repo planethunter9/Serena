@@ -221,7 +221,7 @@ export async function saveStreakStart(iso: string) {
 
 // --- Exportar/importar tudo (usado pela sincronização com a cloud) --------
 
-const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree', 'nextStepId', 'achSeen'];
+const USER_KEY_NAMES = ['onboarding', 'severity', 'lessonsDone', 'attacks', 'goals', 'journal', 'reminder', 'reminders', 'streakStart', 'exposureSteps', 'exposureSessions', 'thoughtRecords', 'safetyBehaviors', 'unplannedLogs', 'profile', 'userSounds', 'feeding', 'exposureDays', 'manualAchievements', 'exposureOrder', 'memorySessions', 'weekPlan', 'experiments', 'droppedBehaviors', 'affirmationReminder', 'dashboardOrder', 'resourcesOrder', 'challengesDone', 'customChallenges', 'hardDayPlan', 'recapDismissed', 'actValues', 'actCommitments', 'ringMode', 'planEnabled', 'planTasks', 'nextStep', 'exerciseLog', 'relapsePlan', 'walkthroughSeen', 'healthConsent', 'homeHidden', 'phraseFavs', 'myPhrases', 'safetyFree', 'nextStepId', 'achSeen', 'recitations'];
 
 // Exporta os dados (cópia de segurança e envio para a cloud). Inclui as horas
 // das alterações em "_meta", para a sincronização saber qual é a mais recente.
@@ -388,6 +388,15 @@ export async function loadMyPhrases(): Promise<MyPhrase[]> {
 }
 export async function saveMyPhrases(list: MyPhrase[]) {
   await setUserItem('myPhrases', JSON.stringify(list));
+}
+
+// Textos para recitar escritos pela pessoa (poema curto, refrão, lengalenga…).
+export type Recitation = { id: string; title: string; text: string };
+export async function loadRecitations(): Promise<Recitation[]> {
+  return (await loadJsonArray<Recitation>('recitations')).filter((r) => r && typeof r.id === 'string' && typeof r.text === 'string');
+}
+export async function saveRecitations(list: Recitation[]) {
+  await setUserItem('recitations', JSON.stringify(list));
 }
 
 // Blocos da Visão geral escondidos pela pessoa (Definições › Ecrã inicial).
