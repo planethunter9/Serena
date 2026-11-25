@@ -47,7 +47,7 @@ export const dict: Record<string, string> = {
   'triggerhelp.detailHint': 'Читай медленно. Повторяй ту, что откликается сильнее всего.',
   'triggerhelp.breathe': 'Дыши глубоко. Это приходит волной - а волны всегда спадают.',
   'home.unplannedTitle': 'Незапланированная экспозиция',
-  'home.unplannedDesc': 'Внезапно встретился триггер? Запиши это здесь.',
+  'home.unplannedDesc': 'Случилось что-то неожиданное? Запиши это здесь.',
   'home.journeyDays': 'дней без приступов и поведений',
   'home.journeyDay': 'день без приступов и поведений',
   'home.journeyToday': 'Новое начало сегодня',
