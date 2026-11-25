@@ -354,7 +354,7 @@ const TR = {
 'support.title': 'Apoio',
 
     'home.unplannedTitle': 'Exposição não planeada',
-'home.unplannedDesc': 'Topaste um gatilho sem planear? Regista aqui.',
+'home.unplannedDesc': 'Deste de caras com um gatilho sem planear? Regista aqui.',
 
     'exposure.streakTitle': 'Dias de exposição',
     'exposure.streakDays': '{n} seguidos',
