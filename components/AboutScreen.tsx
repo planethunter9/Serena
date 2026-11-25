@@ -2,10 +2,11 @@
 // Acedido a partir das Definições.
 
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { pick, useLang , tr2 } from '../i18n/i18n';
 import { useTheme } from '../theme/ThemeContext';
-import { radius, spacing } from '../theme/theme';
+import { spacing } from '../theme/theme';
 import { SOURCES } from './CitationsScreen';
 import DisclaimerCard from './DisclaimerCard';
 import { Card, TopBackBar } from './ui';
@@ -15,6 +16,7 @@ export default function AboutScreen({ onBack }: { onBack: () => void }) {
   const { lang } = useLang();
   const L = (pt: string, en: string) => tr2(lang, pt, en);
   const open = (url: string) => Linking.openURL(url).catch(() => {});
+  const [showSources, setShowSources] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -36,29 +38,40 @@ export default function AboutScreen({ onBack }: { onBack: () => void }) {
 
         <DisclaimerCard />
 
-        {/* Fontes */}
-        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.sm }}>
-          {L('Fontes', 'Sources')}
-        </Text>
-        <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>
-          {L('O conteúdo baseia-se em fontes clínicas fidedignas. Toca numa fonte para a abrir.',
-             'The content is based on reliable clinical sources. Tap a source to open it.')}
-        </Text>
-
-        {SOURCES.map((s, i) => (
+        {/* Fontes: fechadas por defeito (abrem ao tocar) */}
+        <Card style={{ gap: 0, padding: 0, overflow: 'hidden' }}>
           <Pressable
-            key={i}
-            onPress={() => open(s.url)}
-            style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: 4 }}
+            onPress={() => setShowSources((v) => !v)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showSources }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: spacing.lg }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-              <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', flex: 1, lineHeight: 20 }}>{s.title}</Text>
-              <Ionicons name="open-outline" size={18} color={colors.primary} style={{ marginTop: 2 }} />
+            <Ionicons name="library-outline" size={18} color={colors.primary} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>{L('Fontes', 'Sources')} ({SOURCES.length})</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>
+                {L('O conteúdo baseia-se em fontes clínicas fidedignas. Toca numa fonte para a abrir.',
+                   'The content is based on reliable clinical sources. Tap a source to open it.')}
+              </Text>
             </View>
-            <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>{s.publisher}</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{pick(s.desc, lang)}</Text>
+            <Ionicons name={showSources ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textMuted} />
           </Pressable>
-        ))}
+          {showSources && SOURCES.map((s, i) => (
+            <Pressable
+              key={i}
+              onPress={() => open(s.url)}
+              accessibilityRole="link"
+              style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, gap: 2 }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: '700', flex: 1, lineHeight: 19 }}>{s.title}</Text>
+                <Ionicons name="open-outline" size={16} color={colors.primary} style={{ marginTop: 2 }} />
+              </View>
+              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '600' }}>{s.publisher}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 17 }}>{pick(s.desc, lang)}</Text>
+            </Pressable>
+          ))}
+        </Card>
       </ScrollView>
     </View>
   );

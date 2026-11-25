@@ -328,6 +328,10 @@ export const dict: Record<string, string> = {
 };
 
 export const inline: Record<string, string> = {
+  "Appearance": "Weergave",
+  "Your app": "Jouw app",
+  "Help and information": "Hulp en informatie",
+  "Data": "Gegevens",
   "✓ done {n}× today": "✓ vandaag {n}× gedaan",
   "Remove {x}": "{x} verwijderen",
   "no streak right now — and that's okay · {t} total": "nu geen reeks – en dat is oké · {t} in totaal",
