@@ -1,6 +1,6 @@
-// Definições: perfil, aspeto, idioma, personalização, escolhas, privacidade,
-// "Sobre" e terminar sessão. Linhas de navegação no mesmo estilo dos Recursos
-// (chip com ícone + título + seta).
+// Definições: perfil e, em grupos (como nas definições do iPhone), Aparência,
+// A tua app, Ajuda e informação e Dados (cópia de segurança); no fim terminar
+// sessão e eliminar conta.
 
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -19,17 +19,37 @@ import { radius, spacing } from '../theme/theme';
 import Avatar from './Avatar';
 import { Card, TopBackBar } from './ui';
 
-// Linha de navegação no estilo dos Recursos.
+// Linha de um grupo (estilo das definições do iPhone): ícone, nome, seta;
+// as linhas do mesmo grupo partilham um cartão, separadas por um traço fino.
 function NavRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   const { colors } = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
-      <View style={{ width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name={icon} size={22} color={colors.primary} />
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: spacing.md, backgroundColor: pressed ? colors.cardAlt : 'transparent' })}>
+      <View style={{ width: 34, height: 34, borderRadius: radius.sm, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name={icon} size={19} color={colors.primary} />
       </View>
-      <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 }}>{label}</Text>
-      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '500', flex: 1 }}>{label}</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      </View>
     </Pressable>
+  );
+}
+
+function Group({ title, children }: { title: string; children: React.ReactNode[] }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ gap: 6 }}>
+      <Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginLeft: 4 }}>{title}</Text>
+      <View style={{ backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
+        {children.map((c, i) => (
+          <View key={i}>
+            {i > 0 && <View style={{ height: 1, backgroundColor: colors.border, marginLeft: spacing.md + 34 + 12 }} />}
+            {c}
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -179,7 +199,7 @@ export default function SettingsScreen({
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <TopBackBar title={t('settings.title')} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: spacing.xxl }}>
         {user && (
           <Pressable onPress={onOpenProfile} accessibilityRole="button" accessibilityLabel={t('profile.title')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border }}>
             <Avatar uri={photoUri} size={52} bg={colors.primarySoft} iconColor={colors.primary} />
@@ -192,20 +212,33 @@ export default function SettingsScreen({
           </Pressable>
         )}
 
-        {/* Navegação */}
-        <NavRow icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />
-        <NavRow icon="home-outline" label={(HOME_SETTINGS_TEXT[lang] ?? HOME_SETTINGS_TEXT.en).title} onPress={() => router.push('/homeblocks' as any)} />
-        <NavRow icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} />
-        <NavRow icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />
-        <NavRow icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />
-        <NavRow icon="people-outline" label={tr2(lang, 'Modo acompanhante', 'Companion mode')} onPress={() => router.push('/companion' as any)} />
-        <NavRow icon="chatbox-ellipses-outline" label={tr2(lang, 'Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} />
-        <NavRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />
-        <NavRow icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />
-        <NavRow icon="compass-outline" label={tutorialPack(lang).ui.replay} onPress={async () => { await resetWalkthroughSeen(); onBack(); }} />
+        {/* Navegação, em grupos */}
+        <Group title={L('Aparência', 'Appearance')}>
+          {[
+            <NavRow key="p" icon="color-palette-outline" label={t('settings.personalization')} onPress={() => router.push('/personalization' as any)} />,
+            <NavRow key="h" icon="home-outline" label={(HOME_SETTINGS_TEXT[lang] ?? HOME_SETTINGS_TEXT.en).title} onPress={() => router.push('/homeblocks' as any)} />,
+            <NavRow key="i" icon="image-outline" label={L('Ícone da app', 'App icon')} onPress={() => router.push('/appicon' as any)} />,
+            <NavRow key="l" icon="language-outline" label={t('settings.language')} onPress={() => router.push('/language' as any)} />,
+          ]}
+        </Group>
+        <Group title={L('A tua app', 'Your app')}>
+          {[
+            <NavRow key="c" icon="options-outline" label={t('settings.choices')} onPress={onOpenChoices} />,
+            <NavRow key="m" icon="people-outline" label={L('Modo acompanhante', 'Companion mode')} onPress={() => router.push('/companion' as any)} />,
+          ]}
+        </Group>
+        <Group title={L('Ajuda e informação', 'Help and information')}>
+          {[
+            <NavRow key="t" icon="compass-outline" label={tutorialPack(lang).ui.replay} onPress={async () => { await resetWalkthroughSeen(); onBack(); }} />,
+            <NavRow key="f" icon="chatbox-ellipses-outline" label={L('Sugestões', 'Feedback')} onPress={() => router.push('/feedback' as any)} />,
+            <NavRow key="a" icon="information-circle-outline" label={L('Sobre a Serena', 'About Serena')} onPress={() => router.push('/about' as any)} />,
+            <NavRow key="v" icon="lock-closed-outline" label={t('settings.privacy')} onPress={onOpenPrivacy} />,
+          ]}
+        </Group>
 
         {/* Cópia de segurança */}
-        <Card style={{ gap: 10, marginTop: 4 }}>
+        <Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginLeft: 4, marginBottom: -6 }}>{L('Dados', 'Data')}</Text>
+        <Card style={{ gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />
             <Text style={{ color: colors.text, fontWeight: '700' }}>{L('Cópia de segurança', 'Backup')}</Text>
