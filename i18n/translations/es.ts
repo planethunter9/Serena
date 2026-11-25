@@ -47,7 +47,7 @@ export const dict: Record<string, string> = {
   'triggerhelp.detailHint': 'Lee despacio. Repite la que más te resuene.',
   'triggerhelp.breathe': 'Respira hondo. Esto viene en oleadas, y las olas siempre bajan.',
   'home.unplannedTitle': 'Exposición no planeada',
-  'home.unplannedDesc': '¿Te topaste con un desencadenante sin planearlo? Regístralo aquí.',
+  'home.unplannedDesc': '¿Pasó algo inesperado? Regístralo aquí.',
   'home.journeyDays': 'días sin ataques ni comportamientos',
   'home.journeyDay': 'día sin ataques ni comportamientos',
   'home.journeyToday': 'Nuevo comienzo hoy',

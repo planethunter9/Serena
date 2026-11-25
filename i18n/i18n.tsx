@@ -354,7 +354,7 @@ const TR = {
 'support.title': 'Apoio',
 
     'home.unplannedTitle': 'Exposição não planeada',
-'home.unplannedDesc': 'Topaste um gatilho sem planear? Regista aqui.',
+'home.unplannedDesc': 'Aconteceu algo inesperado? Regista aqui.',
 
     'exposure.streakTitle': 'Dias de exposição',
     'exposure.streakDays': '{n} seguidos',
@@ -437,7 +437,7 @@ const TR = {
     'triggerhelp.detailHint': 'Read slowly. Repeat the one that resonates most.',
     'triggerhelp.breathe': 'Breathe deeply. This comes in a wave - and waves always come down.',
     'home.unplannedTitle': 'Unplanned exposure',
-'home.unplannedDesc': 'Hit a trigger unexpectedly? Log it here.',
+'home.unplannedDesc': 'Something unexpected happened? Log it here.',
     'home.journeyDays': 'days without attacks or behaviors',
     'home.journeyDay': 'day without attacks or behaviors',
     'home.journeyToday': 'Fresh start today',

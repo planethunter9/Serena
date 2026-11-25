@@ -47,7 +47,7 @@ export const dict: Record<string, string> = {
   'triggerhelp.detailHint': 'Lees langzaam. Herhaal de zin die je het meest aanspreekt.',
   'triggerhelp.breathe': 'Adem diep. Dit komt in golven - en golven zakken altijd weer.',
   'home.unplannedTitle': 'Ongeplande blootstelling',
-  'home.unplannedDesc': 'Onverwacht op een trigger gestoten? Noteer het hier.',
+  'home.unplannedDesc': 'Gebeurde er iets onverwachts? Noteer het hier.',
   'home.journeyDays': 'dagen zonder aanvallen of gedrag',
   'home.journeyDay': 'dag zonder aanvallen of gedrag',
   'home.journeyToday': 'Vandaag een nieuwe start',
