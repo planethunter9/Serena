@@ -6,7 +6,7 @@ import { useA11y } from '../lib/a11y';
 import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { APP_NAME } from '../data/content';
 import { useLang } from '../i18n/i18n';
@@ -45,7 +45,12 @@ export default function MainApp() {
   }
 
   const settingsButton = (
-    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable
+      onPress={() => { console.log('[DIAG] roda: onPress'); openSettings(); }}
+      onPressIn={(e) => console.log('[DIAG] roda: onPressIn', Math.round(e.nativeEvent.pageX), Math.round(e.nativeEvent.pageY))}
+      onPressOut={() => console.log('[DIAG] roda: onPressOut')}
+      onLongPress={() => console.log('[DIAG] roda: onLongPress')}
+      accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
       <Ionicons name="settings-outline" size={24} color={colors.text} />
     </Pressable>
   );
@@ -135,7 +140,10 @@ export default function MainApp() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View
+      style={{ flex: 1, backgroundColor: colors.background }}
+      onTouchStart={(e) => console.log('[DIAG] toque', Math.round(e.nativeEvent.pageX), Math.round(e.nativeEvent.pageY), 'ecrã', Math.round(Dimensions.get('window').width), 'x', Math.round(Dimensions.get('window').height), 'topo', Math.round(insets.top))}
+    >
       {/* Barra de topo: "Serena" à esquerda e Definições (com o Perfil lá dentro) à direita */}
       <View style={{ paddingTop: insets.top }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl, paddingRight: spacing.xl - 10, height: 60 }}>
