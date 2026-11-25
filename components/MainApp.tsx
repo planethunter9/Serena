@@ -45,7 +45,7 @@ export default function MainApp() {
   }
 
   const settingsButton = (
-    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} hitSlop={{ top: 4, bottom: 10, left: 16, right: 0 }} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable onPress={openSettings} accessibilityRole="button" accessibilityLabel={a11y.settings} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
       <Ionicons name="settings-outline" size={24} color={colors.text} />
     </Pressable>
   );
@@ -138,9 +138,7 @@ export default function MainApp() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Barra de topo: "Serena" à esquerda e Definições (com o Perfil lá dentro) à direita */}
       <View style={{ paddingTop: insets.top }}>
-        {/* Serena e roda um pouco para dentro (30 pt): no iPhone 17 Pro (Expo Go) o
-            canto superior direito, logo abaixo da barra de estado, não recebe toques. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl + 30, paddingRight: spacing.xl - 10 + 30, height: 60 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.xl, paddingRight: spacing.xl - 10, height: 60 }}>
           <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '800' }}>{APP_NAME}</Text>
           <CoachTarget name="header-actions">{settingsButton}</CoachTarget>
         </View>
